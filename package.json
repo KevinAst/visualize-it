@@ -1,0 +1,44 @@
+{
+  "name": "visualize-it",
+  "version": "0.1.0",
+  "description": "Your View into External Systems",
+  "author": "Kevin J. Bridges <kevinast@gmail.com> (https://wiiBridges.com/)",
+  "private": true,
+  "keywords": [
+    "react",
+    "web-app",
+    "web",
+    "visualize-it",
+    "feature-u",
+    "geeku",
+    "astx"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "start": "react-scripts start",
+    "test": "react-scripts test",
+    "lint": "eslint src",
+    "build": "react-scripts build"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "dependencies": {
+    "konva": "^4.0.16",
+    "react": "^16.11.0",
+    "react-dom": "^16.11.0",
+    "react-scripts": "3.2.0"
+  }
+}
