@@ -27,9 +27,9 @@
 
 **visualize-it** promotes an interactive graphical visualization of an external system!
 
-<center>
+<p align="center">
   <img src="../public/visualize-it-logo-eyes.jpg" width="500" alt="Logo Eyes"/>
-</center><br/>
+</p>
 
 What, _you might be asking_, is a system?  A system can be virtually
 anything!  Ultimately it is whatever is on the other end of a
