@@ -212,7 +212,7 @@ class NotifyAPI extends React.Component {
       autoHideDuration,
       anchorOrigin: anchorOrigin[position],
       action: actionButtons,
-      onClickAction: (e) => {
+      onClick: (e) => {
         // close this notification
         this.props.closeSnackbar(snackbarKey);
 
