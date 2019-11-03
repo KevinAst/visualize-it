@@ -1,0 +1,38 @@
+import auth                          from './common/auth/feature';
+import authService                   from './common/auth/subFeatures/authService/feature';
+import authServiceFirebase           from './common/auth/subFeatures/authServiceFirebase/feature';
+import authServiceMock               from './common/auth/subFeatures/authServiceMock/feature';
+import initFirebase                  from './common/initFirebase/feature';
+import baseUI                        from './common/baseUI/feature';
+import logActions                    from './common/diagnostic/logActions/feature';
+import pwa                           from './common/pwa/feature';
+
+// accumulate/promote ALL features that make up our app
+export default [
+
+
+  //***
+  //*** app-specific features
+  //***
+
+  // TODO: ?? app-specific features when defined
+
+
+  //***
+  //*** common app-neutral features
+  //***
+
+  baseUI,
+  
+  auth,
+  authService,
+  authServiceFirebase,
+  authServiceMock,
+  
+  initFirebase,
+  
+  pwa,
+
+  // diagnostic features ...
+  logActions,
+];

@@ -36,9 +36,31 @@
     ]
   },
   "dependencies": {
+    "@material-ui/core": "^4.5.2",
+    "@material-ui/icons": "^4.5.1",
+    "action-u": "^0.2.0",
+    "astx-redux-util": "^1.0.0",
+    "feature-redux": "^1.0.0",
+    "feature-redux-logic": "^1.0.0",
+    "feature-router": "^1.0.0",
+    "feature-u": "^2.1.0",
+    "firebase": "^7.2.3",
     "konva": "^4.0.16",
+    "lodash.isequal": "^4.5.0",
+    "lodash.isfunction": "^3.0.9",
+    "lodash.isplainobject": "^4.0.6",
+    "lodash.isstring": "^4.0.1",
+    "notistack": "^0.9.5",
     "react": "^16.11.0",
     "react-dom": "^16.11.0",
-    "react-scripts": "3.2.0"
+    "react-redux": "^7.1.1",
+    "react-scripts": "3.2.0",
+    "redux": "^4.0.4",
+    "redux-logic": "^2.1.1",
+    "reselect": "^4.0.0",
+    "yup": "^0.27.0"
+  },
+  "devDependencies": {
+    "gh-pages": "^2.1.1"
   }
 }
