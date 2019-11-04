@@ -68,12 +68,12 @@ const lightTheme = createMuiTheme({
   palette: {
     type: 'light',
     // AI: More theming to consider
-    // primary: {
-    //   main: '#37b44e',
-    // },
-    // secondary: {
-    //   main: '#000',
-    // },
+    primary: {
+      main: '#336600', // subtle dark green -or- 365735
+    },
+    secondary: {
+      main: '#000',
+    },
   },
 });
 
@@ -83,6 +83,12 @@ const darkTheme = createMuiTheme({
   },
   palette: {
     type: 'dark',
+    primary: {
+      main: '#336600',
+    },
+    secondary: {
+      main: '#000',
+    },
   },
 });
 
