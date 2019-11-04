@@ -10,7 +10,7 @@ import KonvaSandboxScreen  from './KonvaSandboxScreen';
 export default [
 
   featureRoute({
-    priority: PRIORITY.HIGH,
+    //priority: PRIORITY.HIGH,
     content({fassets, appState}) {
       // TODO: for now simply unconditionally display our Sandbox screen
       return <KonvaSandboxScreen/>;
