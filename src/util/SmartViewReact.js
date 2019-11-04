@@ -4,7 +4,7 @@ import {useRef, useEffect} from 'react';
 // SmartViewReact: a re-usable React Component that manifests (i.e. renders) a SmartView.
 //                 NOTE: This is part of util because it is a react utility 
 //                       used by the interactive tool ... NOT a core offering!
-export default function SmartViewReact({view}) {
+export default function SmartViewReact({view, ...otherProps}) {
 
   const stageElm = useRef(null);
 
@@ -13,5 +13,5 @@ export default function SmartViewReact({view}) {
   });
 
   // ?? crude test
-  return <div ref={stageElm} style={{backgroundColor: 'gray', borderWidth: 5, borderStyle: 'solid', borderColor: 'purple'}}/>;
+  return <div ref={stageElm} {...otherProps} style={{backgroundColor: 'gray', borderWidth: 5, borderStyle: 'solid', borderColor: 'purple'}}/>;
 }
