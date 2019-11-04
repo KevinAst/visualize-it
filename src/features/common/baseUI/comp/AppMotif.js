@@ -174,11 +174,14 @@ function resolveCurViewAuxiliaryContent(curView, viewAuxiliaryContent) {
 }
 
 const fallbackViewAuxiliaryContent = ['AppMotif.auxViewContent.FALLBACK', {
+  // TODO: unsure if we need a customizable Title in our header
+  //       - temporarly make "App Motif" "Visualize It" 
+  //       = research further
   TitleComp: () => (
     <Typography variant="h6"
                 color="inherit"
                 noWrap>
-      App Motif
+      Visualize It
     </Typography>
   ),
 }];
