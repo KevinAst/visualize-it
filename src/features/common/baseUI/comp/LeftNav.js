@@ -110,15 +110,28 @@ export default function LeftNav() {
 const drawerWidth = 240;
 
 const useStyles = makeStyles( theme => ({
+
   leftNav: {
     width: drawerWidth,
     flexShrink: 0,
   },
+
   leftNavPaper: { // match same width in our LeftNav Drawer usage
     width: drawerWidth,
+
+    //? // AI: try some simple css (advanced) TO implement resizing
+    //? // RESULT: KINDA WORKS 
+    //? //         - only operates in Chrome (NOT Edge) ... didn't test anything else
+    //? //         - rezies the LeftNav GREAT
+    //? //         - does NOT propogate to other elms (just overlays the main page) ... prob need some programatic event handler
+    //? //         - kinda querky (with little corner frame)
+    //? resize: 'horizontal', // KOOL: kinda works
+    //? // NOT NEEDED: border: '1px solid #333',
+    //? // NOT NEEDED: overflow: 'auto',
   },
 
   toolbarSpacer: theme.mixins.toolbar, // a minimum height spacer so it isn't covered up by the AppBar
+
 }) );
 
 
