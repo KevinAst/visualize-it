@@ -2,7 +2,7 @@
 
 The **visualize-it** application is composed of the following **features**:
 
- - TODO: ?? app-specific features when defined
+ - [**konvaSandbox**](konvaSandbox/README.md): an early sandbox to play with konva.js
  - [**common**](common/README.md): a collection of **app-neutral** features
    - [**baseUI**](common/baseUI/README.md): provides a **UI Foundation** for the entire application _(in an **app neutral** way)_, including: **Responsive Design**, **UI Theme**, **Notify** utility activation, **Left Nav** menu items, **User Menu**, **Current View** state, and **Tool Bars**
    - [**auth**](common/auth/README.md): promotes complete user authentication

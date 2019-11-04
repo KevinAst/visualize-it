@@ -88,7 +88,7 @@ auth
 
 
   .signOut() ...............................................................................................    - set user TO empty User (i.e. NOT signed in)
-                                                 signOut:                                                       - TODO: what about eateries and discovery (may want to clear them when user signs back in)
+                                                 signOut:                                                       - TODO: may need to clear other state
                                                  =======
                                                    async: fassets.authService.signOut()
                                                           - ERR: discloseError(err)
