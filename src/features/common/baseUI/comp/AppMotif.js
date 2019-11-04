@@ -8,7 +8,6 @@ import {useSelector}  from 'react-redux'
 import {makeStyles}   from '@material-ui/core/styles';
 
 import LeftNav        from './LeftNav';
-import {openLeftNav}  from './LeftNav';
 import UserMenu       from './UserMenu';
 
 import AppBar         from '@material-ui/core/AppBar';
@@ -17,6 +16,7 @@ import MenuIcon       from '@material-ui/icons/Menu';
 import Toolbar        from '@material-ui/core/Toolbar';
 import Typography     from '@material-ui/core/Typography';
 
+import {toast}        from 'util/notify';
 
 /**
  * AppMotif is a re-usable top-level component that establishes
@@ -74,14 +74,14 @@ export default function AppMotif({children}) {
 
       {/* Title Bar */}
       <AppBar className={classes.appBar}
-              position="absolute">
+              position="fixed"> {/* NOTE: eatery-nod-w used position "absolute" ... don't see any diff */}
         <Toolbar className={classes.toolbar}
-                 disableGutters={false}>
+                 disableGutters={false}> {/*NOTE: doesn't seem that disableGutters does anything */}
 
-          {/* Left Nav Activation Button openLeftNav */}
+          {/* AI: Consider for some App Menu */}
           <IconButton className={classes.menuButton}
                       color="inherit"
-                      onClick={openLeftNav}>
+                      onClick={() => toast.warn({msg: 'App Menu NOT implemented yet (coming soon)!'}) }>
             <MenuIcon/>
           </IconButton>
 
@@ -125,17 +125,16 @@ AppMotif.propTypes = {
 
 
 const useStyles = makeStyles( theme => ({
+
+  toolbarSpacer: theme.mixins.toolbar, // add a minimum height spacer so it isn't covered up by the AppBar
+
+
   app: {
     display: 'flex', // KJB: does not seem to be doing anything
   },
 
   appBar: {
-    // ***Dashboard Sample***
-    // zIndex:     theme.zIndex.drawer + 1,
-    // transition: theme.transitions.create(['width', 'margin'], {
-    //   easing:   theme.transitions.easing.sharp,
-    //   duration: theme.transitions.duration.leavingScreen,
-    // }),
+    zIndex:     theme.zIndex.drawer + 1, // NOTE: forces AppBar to be OVER LeftNav (a drawer) ... this is new for fixed LeftNav
   },
 
   bottomBar: {
