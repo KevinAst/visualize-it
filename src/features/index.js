@@ -1,3 +1,4 @@
+import konvaSandbox                  from './konvaSandbox/feature';
 import auth                          from './common/auth/feature';
 import authService                   from './common/auth/subFeatures/authService/feature';
 import authServiceFirebase           from './common/auth/subFeatures/authServiceFirebase/feature';
@@ -15,8 +16,7 @@ export default [
   //*** app-specific features
   //***
 
-  // TODO: ?? app-specific features when defined
-
+  konvaSandbox,
 
   //***
   //*** common app-neutral features
