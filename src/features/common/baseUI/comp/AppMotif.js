@@ -74,7 +74,8 @@ export default function AppMotif({children}) {
 
       {/* Title Bar */}
       <AppBar className={classes.appBar}
-              position="fixed"> {/* NOTE: eatery-nod-w used position "absolute" ... don't see any diff */}
+              position="fixed"> {/* NOTE: eatery-nod-w used position "absolute" ... don't see any diff ??$$ */}
+        {/* ?? Toolbar variant="dense" make toolbar smaller, BUT theme.mixins.toolbar DOES NOT ADJUST ACCORDINGLY */}
         <Toolbar className={classes.toolbar}
                  disableGutters={false}> {/*NOTE: doesn't seem that disableGutters does anything */}
 
@@ -101,6 +102,10 @@ export default function AppMotif({children}) {
 
       {/* Page Content */}
       <main className={classes.content}>
+
+        {/* globally fixes offset issue in ALL our main pages */}
+        <div className={classes.toolbarSpacer}/>
+
         {children}
       </main>
 
@@ -108,6 +113,7 @@ export default function AppMotif({children}) {
       {FooterComp && (
          <AppBar className={classes.bottomBar}
                  position="absolute">
+           {/* ?? Toolbar variant="dense" make toolbar smaller, BUT theme.mixins.toolbar DOES NOT ADJUST ACCORDINGLY */}
            <Toolbar className={classes.toolbar}
                     disableGutters={false}>
              <FooterComp/>
@@ -124,10 +130,9 @@ AppMotif.propTypes = {
 };
 
 
-const useStyles = makeStyles( theme => ({
+ const useStyles = makeStyles( theme => ({
 
   toolbarSpacer: theme.mixins.toolbar, // add a minimum height spacer so it isn't covered up by the AppBar
-
 
   app: {
     display: 'flex', // KJB: does not seem to be doing anything
@@ -159,10 +164,8 @@ const useStyles = makeStyles( theme => ({
     flexGrow: 1,
     height: '100vh',                 // content window is height is same as our viewport (100%)
     overflow: 'auto',                // add scrollbar ONLY when necessary
-
-    paddingTop:    '4em', // HACK: so ToolBar doesn't cover up ... must be a better way
-    paddingBottom: '4em', // HACK: so BottomBar doesn't cover up ... must be a better way
-    // padding: theme.spacing(3), // ... from sample content ... sample: 8 * 3
+//  paddingTop:    '4em', // HACK: so ToolBar   doesn't cover up ... must be a better way (see toobarSpacer above)
+//  paddingBottom: '4em', // HACK: so BottomBar doesn't cover up ... must be a better way (see toobarSpacer above)
   },
 }) );
 
