@@ -122,9 +122,9 @@ const useStyles = makeStyles( theme => ({
     //? // AI: try some simple css (advanced) TO implement resizing
     //? // RESULT: KINDA WORKS 
     //? //         - only operates in Chrome (NOT Edge) ... didn't test anything else
-    //? //         - rezies the LeftNav GREAT
-    //? //         - does NOT propogate to other elms (just overlays the main page) ... prob need some programatic event handler
-    //? //         - kinda querky (with little corner frame)
+    //? //         - resizes the LeftNav GREAT
+    //? //         - does NOT propagate to other elms (just overlays the main page) ... prob need some programmatic event handler
+    //? //         - kinda quirky (with little corner frame)
     //? resize: 'horizontal', // KOOL: kinda works
     //? // NOT NEEDED: border: '1px solid #333',
     //? // NOT NEEDED: overflow: 'auto',
@@ -166,7 +166,7 @@ function MenuPallet({name, children}) {
         <ListItemText primary={name}/>
         {open ? <ExpandLess/> : <ExpandMore/>}
       </ListItem>
-      {/* AI NOTE: removed "unmountOnExit" attrobite, because it was causing tree expansion to loose state */}
+      {/* AI NOTE: removed "unmountOnExit" attribute, because it was causing tree expansion to loose state */}
       <Collapse in={open} timeout="auto">
         <Paper className={classes.pallet}>
           {children}
@@ -192,7 +192,7 @@ const usePalletStyles = makeStyles( theme => ({ // AI: really is useStyles(), bu
 //***                 https://material-ui.com/components/tree-view/#custom-icons-border-and-animation
 //****************************************************************************************
 
-// NOTE: Trees are currently part of the Material-UI lab (incubator NOT ready for core), and must be installed seperately
+// NOTE: Trees are currently part of the Material-UI lab (incubator NOT ready for core), and must be installed separately
 //       $ npm install --save @material-ui/lab
 
 // ALSO: this advanced demo requires react-spring (an animation library)
@@ -304,7 +304,7 @@ function CustomizedTreeView() {
 //***                 https://material-ui.com/components/tree-view/#tree-view
 //****************************************************************************************
 
-// NOTE: Trees are currently part of the Material-UI lab (incubator NOT ready for core), and must be installed seperately
+// NOTE: Trees are currently part of the Material-UI lab (incubator NOT ready for core), and must be installed separately
 //       $ npm install --save @material-ui/lab
 
 

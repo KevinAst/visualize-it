@@ -171,8 +171,8 @@ const useStyles = makeStyles( theme => ({
     flexGrow: 1,
     height: '100vh',                 // content window is height is same as our viewport (100%)
     overflow: 'auto',                // add scrollbar ONLY when necessary
-//  paddingTop:    '4em', // HACK: so ToolBar   doesn't cover up ... must be a better way (see toobarSpacer above)
-//  paddingBottom: '4em', // HACK: so BottomBar doesn't cover up ... must be a better way (see toobarSpacer above)
+//  paddingTop:    '4em', // HACK: so ToolBar   doesn't cover up ... must be a better way (see toolbarSpacer above)
+//  paddingBottom: '4em', // HACK: so BottomBar doesn't cover up ... must be a better way (see toolbarSpacer above)
   },
 }) );
 
@@ -185,7 +185,7 @@ function resolveCurViewAuxiliaryContent(curView, viewAuxiliaryContent) {
 
 const fallbackViewAuxiliaryContent = ['AppMotif.auxViewContent.FALLBACK', {
   // TODO: unsure if we need a customizable Title in our header
-  //       - temporarly make "App Motif" "Visualize It" 
+  //       - temporarily make "App Motif" "Visualize It" 
   //       = research further
   TitleComp: () => (
     <Typography variant="h6"
