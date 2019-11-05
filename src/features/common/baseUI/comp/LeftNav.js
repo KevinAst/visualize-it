@@ -130,7 +130,14 @@ const useStyles = makeStyles( theme => ({
     //? // NOT NEEDED: overflow: 'auto',
   },
 
-  toolbarSpacer: theme.mixins.toolbar, // a minimum height spacer so it isn't covered up by the AppBar
+  // NOTE: We would prefer to use following code:
+  //          toolbarSpacer: theme.mixins.toolbar, // add a minimum height spacer so it isn't covered up by the AppBar
+  //       HOWEVER, theme.mixins.toolbar DOES NOT adjust accordingly
+  //       WHEN <Toolbar variant="dense"> is in affect (making toolbar smaller)
+  //       WORKAROUND HACK: hard code it
+  toolbarSpacer: { // add a minimum height spacer so it isn't covered up by the AppBar
+    minHeight: 48,
+  },
 
 }) );
 

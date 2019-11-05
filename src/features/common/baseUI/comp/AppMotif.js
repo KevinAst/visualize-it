@@ -75,8 +75,8 @@ export default function AppMotif({children}) {
       {/* Title Bar */}
       <AppBar className={classes.appBar}
               position="fixed"> {/* NOTE: eatery-nod-w used position "absolute" ... don't see any diff */}
-        {/* ?? Toolbar variant="dense" make toolbar smaller, BUT theme.mixins.toolbar DOES NOT ADJUST ACCORDINGLY */}
         <Toolbar className={classes.toolbar}
+                 variant="dense"
                  disableGutters={false}> {/*NOTE: doesn't seem that disableGutters does anything */}
 
           {/* AI: Consider for some App Menu */}
@@ -103,7 +103,7 @@ export default function AppMotif({children}) {
       {/* Page Content */}
       <main className={classes.content}>
 
-        {/* globally fixes offset issue in ALL our main pages */}
+        {/* globally fix offset issue in ALL our main pages */}
         <div className={classes.toolbarSpacer}/>
 
         {children}
@@ -113,8 +113,8 @@ export default function AppMotif({children}) {
       {FooterComp && (
          <AppBar className={classes.bottomBar}
                  position="absolute">
-           {/* ?? Toolbar variant="dense" make toolbar smaller, BUT theme.mixins.toolbar DOES NOT ADJUST ACCORDINGLY */}
            <Toolbar className={classes.toolbar}
+                    variant="dense"
                     disableGutters={false}>
              <FooterComp/>
            </Toolbar>
@@ -130,9 +130,16 @@ AppMotif.propTypes = {
 };
 
 
- const useStyles = makeStyles( theme => ({
+const useStyles = makeStyles( theme => ({
 
-  toolbarSpacer: theme.mixins.toolbar, // add a minimum height spacer so it isn't covered up by the AppBar
+  // NOTE: We would prefer to use following code:
+  //          toolbarSpacer: theme.mixins.toolbar, // add a minimum height spacer so it isn't covered up by the AppBar
+  //       HOWEVER, theme.mixins.toolbar DOES NOT adjust accordingly
+  //       WHEN <Toolbar variant="dense"> is in affect (making toolbar smaller)
+  //       WORKAROUND HACK: hard code it
+  toolbarSpacer: { // add a minimum height spacer so it isn't covered up by the AppBar
+    minHeight: 48,
+  },
 
   app: {
     display: 'flex', // KJB: does not seem to be doing anything
