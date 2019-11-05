@@ -74,7 +74,7 @@ export default function AppMotif({children}) {
 
       {/* Title Bar */}
       <AppBar className={classes.appBar}
-              position="fixed"> {/* NOTE: eatery-nod-w used position "absolute" ... don't see any diff ??$$ */}
+              position="fixed"> {/* NOTE: eatery-nod-w used position "absolute" ... don't see any diff */}
         {/* ?? Toolbar variant="dense" make toolbar smaller, BUT theme.mixins.toolbar DOES NOT ADJUST ACCORDINGLY */}
         <Toolbar className={classes.toolbar}
                  disableGutters={false}> {/*NOTE: doesn't seem that disableGutters does anything */}
