@@ -18,7 +18,7 @@ export default function KonvaSandboxScreen() {
 
   const classes = useStyles();
 
-  // NOTE: relative path (in imgs below) support deployment in server sub-directory
+  // NOTE: relative path (in imgs below) support server deployment in sub-directory
   return (
     <Paper className={classes.root}>
       <CenterItems>
