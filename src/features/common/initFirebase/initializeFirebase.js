@@ -9,7 +9,7 @@ export default async function initializeFirebase({showStatus, fassets, appState,
   showStatus('Initializing Firebase');
   
   // fetch our FireBase App Configuration from our own deployment site: `public/fbac`
-  const resp = await fetch('/fbac');
+  const resp = await fetch('fbac'); // NOTE: relative path support deployment in server sub-directory
   
   // console.log(`xx resp.ok: ${resp.ok}, resp.status: ${resp.status} ... resp: `, resp);
   if (!resp.ok) {

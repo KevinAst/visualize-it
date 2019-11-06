@@ -18,10 +18,11 @@ export default function KonvaSandboxScreen() {
 
   const classes = useStyles();
 
+  // NOTE: relative path (in imgs below) support deployment in server sub-directory
   return (
     <Paper className={classes.root}>
       <CenterItems>
-        <img src="/visualize-it-logo.png" width="300" alt="Logo" className={classes.entry} />
+        <img src="visualize-it-logo.png" width="300" alt="Logo" className={classes.entry} />
       </CenterItems>
       <CenterItems>
         <Typography variant="h6" color="inherit" noWrap className={classes.entry} >
@@ -29,7 +30,7 @@ export default function KonvaSandboxScreen() {
         </Typography>
       </CenterItems>
       <CenterItems>
-        <img src="/visualize-it-logo-eyes.jpg" alt="Logo Eyes" className={classes.entry}/>
+        <img src="visualize-it-logo-eyes.jpg" alt="Logo Eyes" className={classes.entry}/>
       </CenterItems>
       <CenterItems>
         <SmartViewReact view={myView1} className={classes.entry} />

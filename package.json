@@ -4,6 +4,11 @@
   "description": "Your View into External Systems",
   "author": "Kevin J. Bridges <kevinast@gmail.com> (https://wiiBridges.com/)",
   "private": true,
+  "homepage": ".",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KevinAst/visualize-it.git"
+  },
   "keywords": [
     "react",
     "web-app",
