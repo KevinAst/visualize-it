@@ -6,6 +6,7 @@ import {makeStyles}    from '@material-ui/core/styles';
 
 import Drawer          from '@material-ui/core/Drawer';
 import List            from '@material-ui/core/List';
+import Toolbar         from '@material-ui/core/Toolbar';
 
 // AI: temp to see some hard-coded entries
 import ListItem        from '@material-ui/core/ListItem';
@@ -55,8 +56,6 @@ export default function LeftNav() {
 
   const classes = useStyles();
 
-  // AI: have seen some usage of tabIndex in <div> under <Drawer> (unsure if needed)
-  //     tabIndex={0} ... should be focus-able in sequential keyboard navigation, but its order is defined by the document's source order */}
   return (
     <Drawer className={classes.leftNav}
             variant="permanent"
@@ -64,7 +63,8 @@ export default function LeftNav() {
               paper: classes.leftNavPaper,
             }}>
 
-      <div className={classes.toolbarSpacer}/>
+      <Toolbar variant="dense"
+               comment="spacer (hidden UNDER AppBar) so our LeftNav isn't covered up by the AppBar"/>
 
       <List>
         {/* AI: temp to see some hard-coded entries  */}
@@ -128,15 +128,6 @@ const useStyles = makeStyles( theme => ({
     //? resize: 'horizontal', // KOOL: kinda works
     //? // NOT NEEDED: border: '1px solid #333',
     //? // NOT NEEDED: overflow: 'auto',
-  },
-
-  // NOTE: We would prefer to use following code:
-  //          toolbarSpacer: theme.mixins.toolbar, // add a minimum height spacer so it isn't covered up by the AppBar
-  //       HOWEVER, theme.mixins.toolbar DOES NOT adjust accordingly
-  //       WHEN <Toolbar variant="dense"> is in affect (making toolbar smaller)
-  //       WORKAROUND HACK: hard code it
-  toolbarSpacer: { // add a minimum height spacer so it isn't covered up by the AppBar
-    minHeight: 48,
   },
 
 }) );

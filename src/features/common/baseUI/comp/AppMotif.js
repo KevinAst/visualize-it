@@ -103,8 +103,8 @@ export default function AppMotif({children}) {
       {/* Page Content */}
       <main className={classes.content}>
 
-        {/* globally fix offset issue in ALL our main pages */}
-        <div className={classes.toolbarSpacer}/>
+        <Toolbar variant="dense"
+                 comment="spacer (hidden UNDER AppBar) so our main content isn't covered up by the AppBar"/>
 
         {children}
       </main>
@@ -131,15 +131,6 @@ AppMotif.propTypes = {
 
 
 const useStyles = makeStyles( theme => ({
-
-  // NOTE: We would prefer to use following code:
-  //          toolbarSpacer: theme.mixins.toolbar, // add a minimum height spacer so it isn't covered up by the AppBar
-  //       HOWEVER, theme.mixins.toolbar DOES NOT adjust accordingly
-  //       WHEN <Toolbar variant="dense"> is in affect (making toolbar smaller)
-  //       WORKAROUND HACK: hard code it
-  toolbarSpacer: { // add a minimum height spacer so it isn't covered up by the AppBar
-    minHeight: 48,
-  },
 
   app: {
     display: 'flex', // KJB: does not seem to be doing anything
@@ -171,8 +162,6 @@ const useStyles = makeStyles( theme => ({
     flexGrow: 1,
     height: '100vh',                 // content window is height is same as our viewport (100%)
     overflow: 'auto',                // add scrollbar ONLY when necessary
-//  paddingTop:    '4em', // HACK: so ToolBar   doesn't cover up ... must be a better way (see toolbarSpacer above)
-//  paddingBottom: '4em', // HACK: so BottomBar doesn't cover up ... must be a better way (see toolbarSpacer above)
   },
 }) );
 
