@@ -1,10 +1,9 @@
 import {createFeature}    from 'feature-u';
 import route              from './route';
 
-// feature: konvaSandbox
-//          sandbox to play with konva.js
+// feature: tabManager
+//          a manager of tabs
 export default createFeature({
-  name: 'konvaSandbox',
-  enabled: false, // ?? temp for now
+  name: 'tabManager',
   route,
 });

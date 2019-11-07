@@ -5,6 +5,7 @@ import authServiceFirebase           from './common/auth/subFeatures/authService
 import authServiceMock               from './common/auth/subFeatures/authServiceMock/feature';
 import initFirebase                  from './common/initFirebase/feature';
 import baseUI                        from './common/baseUI/feature';
+import tabManager                    from './common/tabManager/feature';
 import logActions                    from './common/diagnostic/logActions/feature';
 import pwa                           from './common/pwa/feature';
 
@@ -23,6 +24,7 @@ export default [
   //***
 
   baseUI,
+  tabManager,
   
   auth,
   authService,
