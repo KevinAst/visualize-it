@@ -20,20 +20,21 @@
   ],
   "license": "MIT",
   "scripts": {
-    "app:start": "react-scripts start",
-    "app:test": "react-scripts test",
-    "app:lint": "eslint src",
-    "app:build": "react-scripts build",
-    "terminology:COMMENT":   "app is DEPLOYED, and docs are PUBLISHED",
-    "preapp:deploy":         "npm run app:build",
-    "app:deploy":            "gh-pages --dist build --dest app",
-    "l8tr:docs:prepare:do:once":  "gitbook install",
-    "l8tr:docs:build:COMMENT":    "NOTE: for gitbook build/serve, following diagnostics are useful: --log=debug --debug",
-    "l8tr:docs:build":            "gitbook build",
+    "start": "npm run app:serve",
+
+    "app:serve":     "react-scripts start",
+    "app:build":     "react-scripts build",
+    "preapp:deploy": "npm run app:build",
+    "app:deploy":    "gh-pages --dist build --dest app",
+    "app:lint":      "eslint src",
+    "app:test":      "react-scripts test",
+
     "l8tr:docs:serve":            "gitbook serve",
-    "l8tr:predocs:publish":       "npm run docs:build",
-    "docs:publish":          "gh-pages --dist _docs --dest docs",
-    "docs:gitbook:help":     "gitbook help"
+    "l8tr:docs:build":            "gitbook build",
+    "l8tr:docs:build:COMMENT":    "NOTE: for gitbook build/serve, following diagnostics are useful: --log=debug --debug",
+    "l8tr:docs:prepare:do:once":  "gitbook install",
+    "docs:publish":               "gh-pages --dist _docs --dest docs",
+    "l8tr:predocs:publish":       "npm run docs:build"
   },
   "eslintConfig": {
     "extends": "react-app"
