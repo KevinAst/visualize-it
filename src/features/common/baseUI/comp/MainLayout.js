@@ -63,6 +63,8 @@ MainLayout.propTypes = {
 const lightTheme = createMuiTheme({
   typography: {
     useNextVariants: true,
+    // TODO: sync font settings here (from darkTheme)
+    //       ... for now leave lightTheme as default, to do a run-time comparison
   },
 
   palette: {
@@ -80,6 +82,12 @@ const lightTheme = createMuiTheme({
 const darkTheme = createMuiTheme({
   typography: {
     useNextVariants: true,
+    // TODO: test smaller font settings (in darkTheme only)
+    //       ... for now leave lightTheme as default, to do a run-time comparison
+    fontSize: 12,    // default is 16 (I DON'T THINK SO ... more like 14)
+//  htmlFontSize: 6, // NOTE: must inject CSS html style: font-size: 37.5%; /* 37.5% of 16px = 6px */
+                     // TODO: need more research on these font size settings
+                     //       ... see: https://material-ui.com/customization/typography/#font-size
   },
   palette: {
     type: 'dark',
