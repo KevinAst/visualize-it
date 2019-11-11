@@ -39,10 +39,9 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 //import TreeItem from '@material-ui/lab/TreeItem';
 
-
-
-
-
+// ?? TEMP TEST of dynamic TabManager:
+import {useDispatch}   from 'react-redux'
+import _tabManagerAct  from '../../tabManager/actions'; // ?? needs to be promoted through a fassets
 
 /**
  * LeftNav: our LeftNav component that accumulates menu items via use contract.
@@ -307,23 +306,78 @@ const useSimpleTreeStyles = makeStyles( theme => ({ // AI: really is useStyles()
   },
 }) );
 
+
+// ??$$ we have to deal with the React KRAP with onClick firing WITH onDoubleClick
+// ?? move into own util/module
+// utilize this function when registering BOTH onClick and onDoubleClick
+// ... React has really dropped the ball, because if you register 
+//     BOTH onClick and onDoubleClick, the onClick will fire in addition to onDoubleClick
+//     KEY: THE OBVIOUS SOLUTION is for React to specify an onSingleClick ... geeeze
+function genDualClickHandler(onSingleClick, onDoubleClick, delay=250) {
+  let timeoutID = null;
+  return function (...rest) { // onClick will pass event, but use ...rest to support any signature
+    if (!timeoutID) { // FIRST CLICK: create timeout (waiting for potential second click)
+      timeoutID = setTimeout(function () {
+        onSingleClick(...rest); // invoke onSingleClick() - timeout has passed (with no additional clicks)
+        timeoutID = null;       // reset our timeout indicator
+      }, delay);
+    }
+    else { // SECOND CLICK (within timeout period)
+      clearTimeout(timeoutID); // clear our timeout
+      timeoutID = null;        // reset our timeout indicator
+      onDoubleClick(...rest);  // invoke onDoubleClick(event)
+    }
+  };
+}
+
 function SimpleTreeView() {
   const classes = useSimpleTreeStyles();
+
+  // ?? very temp test
+  const dispatch     = useDispatch();
+
+  // ??$$ just move these functions OUT (except I need dispatch ... grrrrr)
+  // ?? do we need some memo or useCallback ... we are actually calling it INSIDE our jsx (below)
+  const activateTab = (tabId, tabName, dedicated=false) => {
+    console.log(`?? activateTab() with dedicated=${dedicated}`);
+    dispatch( _tabManagerAct.activateTab({ // ?? simulated TabControl
+      tabId,
+      tabName,
+      dedicated,
+      contentCreator: {
+        contentType: 'WowZee_system_view',
+        contentContext: {
+          whatever: 'poop',
+        }
+      },
+    }) );
+  };
+
+  // ?? do we need some memo or useCallback
+  const handleActivateTab = genDualClickHandler(
+    (tabId, tabName) => activateTab(tabId, tabName, false), // singleClick
+    (tabId, tabName) => activateTab(tabId, tabName, true)   // doubleClick
+  );
 
   return (
     <TreeView className={classes.root}
               defaultCollapseIcon={<ExpandMoreIcon />}
               defaultExpandIcon={<ChevronRightIcon />}>
       <TreeItem nodeId="1" label="Applications">
-        <TreeItem nodeId="2" label="Calendar" />
-        <TreeItem nodeId="3" label="Chrome" />
-        <TreeItem nodeId="4" label="Webstorm" />
+        <TreeItem nodeId="2" label="Calendar"
+                  onClick={ ()=> handleActivateTab('tabId1', 'Calendar') }/>
+        <TreeItem nodeId="3" label="Chrome"
+                  onClick={ ()=> handleActivateTab('tabId2', 'Chrome') }/>
+        <TreeItem nodeId="4" label="Webstorm"
+                  onClick={ ()=> handleActivateTab('tabId3', 'Webstorm') }/>
       </TreeItem>
       <TreeItem nodeId="5" label="Documents">
         <TreeItem nodeId="6" label="Material-UI">
           <TreeItem nodeId="7" label="src">
-            <TreeItem nodeId="8" label="index.js" />
-            <TreeItem nodeId="9" label="tree-view.js" />
+            <TreeItem nodeId="8" label="index.js"
+                      onClick={ ()=> handleActivateTab('tabId8', 'index.js') }/>
+            <TreeItem nodeId="9" label="tree-view.js"
+                      onClick={ ()=> handleActivateTab('tabId89', 'tree-view.js') }/>
           </TreeItem>
         </TreeItem>
       </TreeItem>

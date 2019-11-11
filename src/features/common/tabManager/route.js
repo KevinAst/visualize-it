@@ -1,6 +1,8 @@
-import React               from 'react';
-import {featureRoute}      from 'feature-router';
-import TabManager          from './comp/TabManager';
+import React           from 'react';
+import {featureRoute}  from 'feature-router';
+import TabManager      from './comp/TabManager';
+import StartUpPage     from './comp/StartUpPage';
+import {getTotalTabs}  from './state';
 
 // ***
 // *** The routes for this feature.
@@ -9,10 +11,7 @@ import TabManager          from './comp/TabManager';
 export default [
 
   featureRoute({
-    content({fassets, appState}) {
-      // TODO: eventually, when NO tabs, display our tab splash background page
-      return <TabManager/>;
-    }
+    content: ({fassets, appState}) => getTotalTabs(appState) === 0 ? <StartUpPage/> : <TabManager/>,
   }),
 
 ];

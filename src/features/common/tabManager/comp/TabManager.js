@@ -1,4 +1,14 @@
-import React           from 'react';
+import React,
+       {useCallback}   from 'react';
+
+import {useSelector,
+        useDispatch}   from 'react-redux'
+
+import * as _tabManagerSel from '../state';
+import _tabManagerAct      from '../actions';
+
+import {makeStyles}    from '@material-ui/core/styles';
+
 import AppBar          from '@material-ui/core/AppBar';
 import Tabs            from '@material-ui/core/Tabs';
 import Tab             from '@material-ui/core/Tab';
@@ -10,74 +20,71 @@ import Box             from '@material-ui/core/Box';
  */
 export default function TabManager() {
 
-  // KJB TODO: we MUST insure that when tabs exist, one is always ACTIVE ... if some error condition, just choose last one
-  // KJB NOTE: tabId will be something unique - derived from our tabCntl
-  const [activeTabId, setActiveTabId] = React.useState('TEST TAB 1');
+  const classes = useStyles();
 
-  const handleChange = (event, newActiveTabId) => {
-    // console.log(`xx active tab changed, newActiveTabId=${newActiveTabId}`);
-    setActiveTabId(newActiveTabId);
-  };
+  const activeTabId  = useSelector((appState) => _tabManagerSel.getActiveTabId(appState), []);
+  const previewTabId = useSelector((appState) => _tabManagerSel.getPreviewTabId(appState), []);
+  const tabs         = useSelector((appState) => _tabManagerSel.getTabs(appState), []);
+  const dispatch     = useDispatch();
+  const tabChanged   = useCallback((event, newActiveTabId) => {
+    // console.log(`?? tabChanged('${newActiveTabId}')`);
+    dispatch( _tabManagerAct.activateTab({ // simulated TabControl
+      tabId: newActiveTabId,               // ... for existing tabs, only this attribute is used
+    }) );
+  }, [dispatch]); // ?? dependency UNSURE
 
+
+  // KJB NOTE: our TabPanels ... content is app-specific ... derived from tabControl
+
+  // KJB NOTE: these props are ONLY used to determine visibility
+
+  // ?? KEY NOTE: our content is dynamically created using a global contentCreator
+  //
+  // we are iterating over state:
+  //   tabManager.tabs ... an array of TabControl
+  //
+  // for each: tabControl
+  //   const contentCreatorCtx = tabControl.contentCreator;
+  //   return:
+  //     contentCreator[contentCreatorCtx.contentType].createContent(contentCreatorCtx.contentContext);
+  //
+  // ?? HOPEFULLY this will NOT "Comp.manifest" multiple times
   return (
     <>
       <AppBar position="static" color="default">
         {/* KJB NOTE: <Tabs> value IS the currently selected Tab value ... can be false (no tab selected - all that useful) */}
-        {/* KJB NOTE: onChange= fired when <Tab> clicked, passing new active <Tab> value */}
+        {/* KJB NOTE: onChange fired when <Tab> clicked, passing new active <Tab> value */}
         <Tabs value={activeTabId}
-              onChange={handleChange}
+              onChange={tabChanged}
               indicatorColor="primary"
               textColor="primary"
               variant="scrollable"
               scrollButtons="auto">
-          {/* our tabs */}
-          <Tab value="TEST TAB 1" label="Item One"/>
-          <Tab value="TEST TAB 2" label="Item Two"/>
-          {/* KJB NOTE: comment following out to see small number of tabs */}
-          <Tab value="TEST TAB 3" label="Item Three"/>
-          <Tab value="TEST TAB 4" label="Item Four"/>
-          <Tab value="TEST TAB 5" label="Item Five"/>
-          <Tab value="TEST TAB 6" label="Item Six"/>
-          <Tab value="TEST TAB 7" label="Item Seven"/>
+          {tabs.map( tab => <Tab className={tab.tabId===previewTabId ? classes.tabPreview : classes.tabPermanent}
+                                 key={tab.tabId}
+                                 value={tab.tabId}
+                                 label={tab.tabName}/> )}
         </Tabs>
       </AppBar>
-
-      {/* KJB NOTE: our TabPanels ... content is app-specific ... derived from tabCntl */}
-      {/* KJB NOTE: these props are ONLY used to determine visibility */}
-      <TabPanel tabId="TEST TAB 1" activeTabId={activeTabId}>
-        Item One
-      </TabPanel>
-
-      <TabPanel tabId="TEST TAB 2" activeTabId={activeTabId}>
-        Item Two
-      </TabPanel>
-
-      <TabPanel tabId="TEST TAB 3" activeTabId={activeTabId}>
-        Item Three
-      </TabPanel>
-
-      <TabPanel tabId="TEST TAB 4" activeTabId={activeTabId}>
-        Item Four
-      </TabPanel>
-
-      <TabPanel tabId="TEST TAB 5" activeTabId={activeTabId}>
-        Item Five
-      </TabPanel>
-
-      <TabPanel tabId="TEST TAB 6" activeTabId={activeTabId}>
-        Item Six
-      </TabPanel>
-
-      <TabPanel tabId="TEST TAB 7" activeTabId={activeTabId}>
-        Item Seven
-      </TabPanel>
+      {tabs.map( tab => (
+         <TabPanel key={tab.tabId} tabId={tab.tabId} activeTabId={activeTabId}>
+           do dynamics here for {tab.tabId}/{tab.tabName}
+         </TabPanel>
+       ) )}
     </>
   );
 }
 
+const useStyles = makeStyles( theme => ({
+  tabPreview: {
+    fontStyle: 'italic',
+  },
+  tabPermanent: {
+  },
+}) );
+
 
 // KJB TODO: consider moving TabPanel out into it's own module (possibly NOT if we only use it here)
-// KJB TODO: not sure I like passing activeTabId down ... I think this is causing needless re-rendering ... should be better when we get this from redux state
 const TabPanel = ({tabId, activeTabId, children}) => (
   <Paper hidden={tabId !== activeTabId}>
     {/* KJB TODO: do we need box? ... is providing some padding */}
