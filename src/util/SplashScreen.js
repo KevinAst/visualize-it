@@ -164,7 +164,7 @@ If this problem persists, please contact your tech support.`
       <DialogContent>
         <center>
           <br/>
-          <img width="120px" src='/visualize-it-logo.png' alt='visualize-it'/>
+          <img width="120px" src='visualize-it-logo.png' alt='visualize-it'/>
           <br/>
           <Progress className={classes.progress} color="secondary"/>
           <Typography variant="body2">{msg}</Typography>
