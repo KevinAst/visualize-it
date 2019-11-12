@@ -336,10 +336,10 @@ function SimpleTreeView() {
   // ?? very temp test
   const dispatch     = useDispatch();
 
-  // ??$$ just move these functions OUT (except I need dispatch ... grrrrr)
-  // ?? do we need some memo or useCallback ... we are actually calling it INSIDE our jsx (below)
+  // NOTE: activateTab: DO WE need to cache via useCallback() ... I am creating multiple inline funcs within the render (below)
+  //       TODO: ?? determine if this is causing unneeded re-renders (only fix would be to cache multiple functions (with implied second tabId param) ... https://medium.com/@Charles_Stover/cache-your-react-event-listeners-to-improve-performance-14f635a62e15
   const activateTab = (tabId, tabName, dedicated=false) => {
-    console.log(`?? activateTab() with dedicated=${dedicated}`);
+    // console.log(`xx activateTab() with dedicated=${dedicated}`);
     dispatch( _tabManagerAct.activateTab({ // ?? simulated TabControl
       tabId,
       tabName,
@@ -353,7 +353,8 @@ function SimpleTreeView() {
     }) );
   };
 
-  // ?? do we need some memo or useCallback
+  // NOTE: handleActivateTab: DO WE need to cache via useCallback() ... I am creating multiple inline funcs within the render (below)
+  //       TODO: ?? determine if this is causing unneeded re-renders (only fix would be to cache multiple functions (with implied second tabId param) ... https://medium.com/@Charles_Stover/cache-your-react-event-listeners-to-improve-performance-14f635a62e15
   const handleActivateTab = genDualClickHandler(
     (tabId, tabName) => activateTab(tabId, tabName, false), // singleClick
     (tabId, tabName) => activateTab(tabId, tabName, true)   // doubleClick

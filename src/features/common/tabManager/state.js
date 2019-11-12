@@ -14,64 +14,33 @@ const reducer = slicedReducer(_tabManager, expandWithFassets( (fassets) => combi
 
   // activeTabId: string ... the tabId of the active tab
   activeTabId: reducerHash({
-    [_tabManagerAct.closeTab]:        (state, action) => null, // ?? must set to OTHER tabId ?? maintain other heuristics too
-    [_tabManagerAct.activateTab]:     (tabs, action)  => action.tabControl.pgmDirectives.next_activeTabId,
-//?? OLD: OBSOLETE
-//  [_tabManagerAct.activateTab]:     (tabs, action)  => action.tabControl.tabId, // ?? maintain other heuristics too
+    [_tabManagerAct.activateTab]:     (state, action) => action.tabControl.pgmDirectives.next_activeTabId,
+    [_tabManagerAct.closeTab]:        (state, action) => action.next_activeTabId,
   }, null), // initialState
 
   // previewTabId: string ... the tabId of the optional tab that is in preview mode (will be re-used)
   previewTabId: reducerHash({
-    // ?? TEST THIS when our visuals support preview
-    [_tabManagerAct.activateTab]:     (tabs, action)  => action.tabControl.pgmDirectives.next_previewTabId,
+    [_tabManagerAct.activateTab]:     (previewTabId, action) => action.tabControl.pgmDirectives.next_previewTabId,
+    [_tabManagerAct.closeTab]:        (previewTabId, action) => previewTabId===action.tabId ? null : previewTabId,
   }, null), // initialState
 
-  // tabs: [TabControl] ... an array of all our tabs (TabControl objects - fed from our actions)
-  //        {
-  //          tabId:   'tabXYZ',        ... repeated in self for convenience NOTE: this is a unique ID defined by client
-  //          tabName: 'ACME Pressure'  ... concise desc displayed in tab
-  // 
-  //   ??     dedicated: true/false,    ... directive as to whether the tab is dedicated (permanent via double-click) or preview (single-click) (?? NO (I think): when tab is being created the first time)
-  // 
-  //                                    >>> FOLLOWING CONTENT is supplied by centralized logic, simplifying the reducer process
-  //          xxx: xxx ???
-  // 
-  //                                    >>> FOLLOWING DATA IS RETAINED in our state BECAUSE it is USED by JSX to dynamically create the tab content
-  //          contentCreator: {
-  //            contentType: 'system_view',   ... an index into the "contentCreator" global control structure that knows HOW to create the content of the tab
-  //            contentContext: {             ... an open structure that parameterizes the content creation (as needed by contentType)
-  //              whatever: 1,
-  //            }
-  //          }
-  //        }
+  // tabs: TabControl[] ... all of our tabs (TabControl objects), fed from the activateTab action
   tabs: reducerHash({
     [_tabManagerAct.activateTab]: (tabs, action) => {
-
-      let   newTabs    = tabs;
-
+      let   newTabs = tabs;
       const {removeTabId, addNewTab} = action.tabControl.pgmDirectives.tabsArrDirectives;
 
       if (removeTabId) {
         newTabs = newTabs.filter( (tab) => tab.tabId !== removeTabId );
       }
-
       if (addNewTab) {
         newTabs = [...newTabs, action.tabControl];
       }
-
-      // console.log(`?? tabs changed: ${newTabs !== tabs}`);
-
       return newTabs;
-
-      // ?? OLD: OBSOLETE
-      //? const existingTab = tabs.find( (tab) => action.tabControl.tabId === tab.tabId );
-      //? if (existingTab) {
-      //?   return tabs; // NO change
-      //? }
-      //? else {
-      //?   return [...tabs, action.tabControl];
-      //? }
     },
+
+    [_tabManagerAct.closeTab]: (tabs, action) => tabs.filter( (tab) => tab.tabId !== action.tabId ),
+
   }, []), // initialState
 
 }) ) );

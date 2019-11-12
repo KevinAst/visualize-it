@@ -82,20 +82,6 @@ export const supplementActivateTab = createLogic({
       }
       // .. otherwise we leave preview as-is (I THINK)
 
-      // FIRST LOGIC (I THINK THIS IS BAD)
-      // ?? OBSOLETE THIS (after a bit of testing)
-      //? // define the ultimate dedicated/preview state of the targeted tab
-      //? // ... ex: a preview may be requested, but it may already be in a dedicated state (taking precedence)
-      //? const existingTargetTab_dedicated = req_tabId !== cur_previewTabId; // OBSCURE: have to consider req_dedicated
-      //? 
-      //? if (existingTargetTab_dedicated) { // ... existing target tab is dedicated (any prior preview should NOT change)
-      //?   // ... this is our default setting
-      //? }
-      //? else { // ... existing target tab is preview (displacing any prior preview)
-      //?   // OBSCURE: THINK ABOUT THIS: for existing tab to be preview, IT MUST ALREADY BE PREVIEW
-      //?   next_previewTabId = req_tabId; // our new tab will now be the preview tab
-      //?   removeTabId       = cur_previewTabId; // displacing prior preview tab (if any - may be null)
-      //? }
     }
 
     //***
@@ -127,10 +113,47 @@ export const supplementActivateTab = createLogic({
 
 });
 
+
+/**
+ * Supplement our 'closeTab' action with additional action directives:
+ *  - next_activeTabId
+ * 
+ * By supplementing this action, we centralize the logic in one spot, and
+ * greatly simplify our reducer process.
+ */
+export const supplementCloseTab = createLogic({
+
+  name: `${_tabManager}.supplementCloseTab`,
+  type: String(_tabManagerAct.closeTab),
+
+  transform({getState, action, fassets}, next, reject) {
+
+    const appState = getState();
+
+    const tabs         = sel.getTabs(appState);
+    const closeTabIndx = tabs.findIndex( (tab) => action.tabId === tab.tabId );
+
+    // we shift our next active tab to the right (except on end - to the left)
+    // ... REMEMBER: we are dealing with the state (array) BEFORE it has been altered
+
+    //                                                     AT END ...       NOT AT END ...
+    //                                                     ==============   ==============
+    const nextTabIndx = (closeTabIndx === tabs.length-1) ? closeTabIndx-1 : closeTabIndx+1;
+    const nextTabId   = nextTabIndx < 0 ? null : tabs[nextTabIndx].tabId;
+
+    // supplement our action with next_activeTabId
+    action.next_activeTabId = nextTabId;
+    next(action);
+  },
+
+});
+
+
 // promote all logic modules for this feature
 // ... NOTE: individual logic modules are unit tested using the named exports.
 export default [
 
   supplementActivateTab,
+  supplementCloseTab,
 
 ];
