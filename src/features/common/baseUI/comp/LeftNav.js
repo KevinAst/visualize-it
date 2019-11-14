@@ -1,7 +1,5 @@
-import React,
-       {useMemo}                from 'react';
+import React                    from 'react';
 
-import {useFassets}             from 'feature-u';
 import {makeStyles}             from '@material-ui/core/styles';
 
 import Drawer                   from '@material-ui/core/Drawer';
