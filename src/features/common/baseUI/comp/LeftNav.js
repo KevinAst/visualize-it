@@ -20,12 +20,6 @@ export default function LeftNav() {
 
   const classes = useStyles();
 
-  // ??$$ OLD via usage contract OBSOLETE THIS
-  const leftNavItems        = useFassets('AppMotif.LeftNavItem.*@withKeys');
-  const orderedLeftNavItemsOLD = useMemo(() => (
-    [...leftNavItems].sort(([item1Key], [item2Key]) => item1Key.localeCompare(item2Key))
-  ), [leftNavItems]);
-
   const orderedLeftNavItems = useSelector((appState) => getOrderedLeftNavItems(appState), []);
 
   // LeftNav is dynamic, only displayed when it has entries
@@ -44,9 +38,6 @@ export default function LeftNav() {
                comment="spacer (hidden UNDER AppBar) so our LeftNav isn't covered up by the AppBar"/>
 
       <List>
-        {/* AI: production entries (via use contract) ?? OBSOLETE THIS */}
-        {orderedLeftNavItemsOLD.map( ([fassetsKey, LeftNavItem]) => <LeftNavItem key={fassetsKey}/> )}
-
         {orderedLeftNavItems.map( ([leftNavKey, LeftNavComp]) => <LeftNavComp key={leftNavKey}/> )}
       </List>
     </Drawer>

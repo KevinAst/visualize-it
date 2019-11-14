@@ -52,7 +52,6 @@ export default createFeature({
     use: [
       // full details in README
       ['AppMotif.UserMenuItem.*',   {required: true,  type: fassetValidations.comp}],
-      ['AppMotif.LeftNavItem.*',    {required: false, type: fassetValidations.comp}], // ?? eventually make a required dependency
       ['AppMotif.auxViewContent.*', {required: false, type: fassetValidations.any}],
     ],
   },

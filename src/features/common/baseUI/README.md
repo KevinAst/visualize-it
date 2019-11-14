@@ -57,7 +57,7 @@ follow)_:
 
 Resource Key                      | Resource               | Description
 ----------------------------------|------------------------|----------------
-**`'AppMotif.LeftNavItem.*'`**    | `<ListItem>`           | Component entries that constitute the **[Left Nav] menu**.
+**`'AppMotif.LeftNavItem.*'`**    | `<ListItem>`           | Component entries that constitute the **[Left Nav] menu**. ?? OBSOLETE: replaced by programatic API: fassets.actions.addLeftNavItem()
 **`'AppMotif.UserMenuItem.*'`**   | `<UserMenuItem>`       | Component entries that make up the **[User Menu] menu**.
 **`'AppMotif.auxViewContent.*'`** | `ViewAuxiliaryContent` | Entries that inject auxiliary view content that vary by view manifest in the **[Tool Bar]**. For this resource, the wildcard (`*`) is interpreted as the `curView`.
                                                              
@@ -361,7 +361,7 @@ it's content is accumulated from external features through the
 following **Use Contract**:
 
 - **`'AppMotif.LeftNavItem.*'`**: `<ListItem>` component entries that
-  constitute the **[Left Nav] menu**.
+  constitute the **[Left Nav] menu**. ?? OBSOLETE: replaced by programatic API: fassets.actions.addLeftNavItem()
 
   These entries are **sorted by key**, giving complete control over the
   order in which they appear, irrespective of feature-expansion
