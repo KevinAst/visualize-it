@@ -23,5 +23,19 @@ export default generateActions.root({
                    },
     },
 
+    addLeftNavItem: { // actions.addLeftNavItem(leftNavKey, LeftNavComp): Action
+                      // > add a new LeftNav menu item to the LeftNav (ordered by leftNavKey)
+                      actionMeta: {
+                        traits: ['leftNavKey', 'LeftNavComp'],
+                      },
+    },
+
+    removeLeftNavItem: { // actions.removeLeftNavItem(leftNavKey): Action
+                         // > removed the supplied LeftNav menu item
+                         actionMeta: {
+                           traits: ['leftNavKey'],
+                         },
+    },
+
   },
 });

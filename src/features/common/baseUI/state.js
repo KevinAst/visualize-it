@@ -6,6 +6,9 @@ import _baseUI                from './featureName';
 import _baseUIAct             from './actions';
 import {fetchUITheme}         from './uiThemeStorage';
 import {fetchResponsiveMode}  from './responsiveModeStorage';
+import {createSelector}       from 'reselect';
+import {fnRefEncode,
+        fnRefDecode}          from 'util/reduxFnRef';
 
 
 // ***
@@ -27,8 +30,17 @@ const reducer = slicedReducer(_baseUI, expandWithFassets( (fassets) => combineRe
   // loc: {lat, lng} ... device GPS location
   curView: reducerHash({
     [_baseUIAct.changeView]:   (state, action) => action.viewName,
-    [fassets.actions.signOut]: (state, action) => 'eateries', // AI: Innappropriate app knowledge dependancy (really part of an @@INIT app payload) ... AI: streamline in "INITIALIZATION" journal entry
+    [fassets.actions.signOut]: (state, action) => 'eateries', // AI: Inappropriate app knowledge dependency (really part of an @@INIT app payload) ... AI: streamline in "INITIALIZATION" journal entry
   }, 'uninitialized'), // initialState
+
+  // leftNavItems: {leftNavKey1: LeftNavComp1, leftNavKey2: LeftNavComp2, ...}
+  leftNavItems: reducerHash({
+    [_baseUIAct.addLeftNavItem]:    (state, action) => ({...state, ...{[action.leftNavKey]: fnRefEncode(action.LeftNavComp)}}),
+    [_baseUIAct.removeLeftNavItem]: (state, action) => {
+      const {[action.leftNavKey]: omit, ...remainder} = state;
+      return remainder;
+    },
+  }, {}), // initialState
 
 }) ) );
 
@@ -51,3 +63,24 @@ export const getResponsiveMode  = (appState) => gfs(appState).responsiveMode;
 
                                   /** current view (ex: 'eateries') */
 export const curView            = (appState) => gfs(appState).curView;
+
+                                       /** raw leftNavItems */
+const getLeftNavItems = (appState)  => gfs(appState).leftNavItems;
+
+                                       /** ordered leftNavItems */
+export const getOrderedLeftNavItems  = createSelector( // return: [ [leftNavKey1, LeftNavItem1], [leftNavKey2, LeftNavItem2], ... ]
+  getLeftNavItems,
+  (leftNavItems) => {
+
+    // convert to [ [leftNavKey1, encodedLeftNavItem1], [leftNavKey2, encodedLeftNavItem2], ... ]
+    const encodedEntries = Object.entries( leftNavItems );
+
+    // decode component functions [ [leftNavKey1, LeftNavItem1], [leftNavKey2, LeftNavItem2], ... ]
+    const entries = encodedEntries.map( ([leftNavKey, encodedLeftNavComp]) => [leftNavKey, fnRefDecode(encodedLeftNavComp)]);
+
+    // order by leftNavKey
+    const orderedEntries = entries.sort( ([k1], [k2]) => k1.localeCompare(k2) );
+
+    return orderedEntries;
+  }
+);

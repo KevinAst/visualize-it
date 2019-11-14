@@ -106,20 +106,24 @@ const aNode = getNode('valve1a');
 // NOTE: in BOTH OP1/OP2 (below) we can merge multiple catalogs (in our plugin architecture)
 
 const compCatalog = {
-  plumbing: {    // intermediate levels simply represent a nested classification
-    valves: {
-      catalog: [ // OP1: keyword 'catalog' indicates component entries ... PRO: can have a node that is BOTH a component and a collector of other nodes <<< I think this is N/A too confusing
-        SingleValve, // value is UI class name
-        TwoWayValve,
+  name: "GeekU", // concise UNIQUE name visiable to user as component library name
+  desc: "GeekU Components for All",
+  catalog: {       // ?? this is new, but I think it is needed to distinguish meta data (name/desc/etc)
+    plumbing: {    // intermediate levels simply represent a NAMED nested classification
+      valves: {
+        catalog: [ // OP1: keyword 'catalog' indicates component entries ... PRO: can have a node that is BOTH a component and a collector of other nodes <<< I think this is N/A too confusing
+          SingleValve, // value is UI class name ?? WHERE do we get the component name to display? ... similar to expectations where class has SVG images to display
+          TwoWayValve,
+        ],
+      },
+      pumps: [ // OP2: here is what it looks like using array heuristic (NOT catalog) ... CON: can't have node that is BOTH a component and a collector of other nodes <<< I think this OK (less confusing)
+        PowerPump,
+        SumpPump,
       ],
     },
-    pumps: [ // OP2: here is what it looks like using array heuristic (NOT catalog) ... CON: can't have node that is BOTH a component and a collector of other nodes <<< I think this OK (less confusing)
-      PowerPump,
-      SumpPump,
-    ],
-  },
-  electrical: {
-    // etc ...
+    electrical: {
+      // etc ...
+    }
   }
 };
 

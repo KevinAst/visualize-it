@@ -34,6 +34,9 @@ export default createFeature({
     define: {
       'actions.changeView': _baseUIAct.changeView, // changeView(viewName)
       'sel.curView':        _baseUISel.curView,    // curView(appState): string
+
+      'actions.addLeftNavItem':    _baseUIAct.addLeftNavItem,    // addLeftNavItem(leftNavKey, LeftNavComp)
+      'actions.removeLeftNavItem': _baseUIAct.removeLeftNavItem, // removeLeftNavItem(leftNavKey)
     },
 
     defineUse: {
@@ -64,6 +67,6 @@ export default createFeature({
         {curRootAppElm}
       </MainLayout>
     );
-  }
+  },
 
 });

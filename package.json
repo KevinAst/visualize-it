@@ -21,20 +21,18 @@
   "license": "MIT",
   "scripts": {
     "start": "npm run app:serve",
-
-    "app:serve":     "react-scripts start",
-    "app:build":     "react-scripts build",
+    "app:serve": "react-scripts start",
+    "app:build": "react-scripts build",
     "preapp:deploy": "npm run app:build",
-    "app:deploy":    "gh-pages --dist build --dest app",
-    "app:lint":      "eslint src",
-    "app:test":      "react-scripts test",
-
-    "l8tr:docs:serve":            "gitbook serve",
-    "l8tr:docs:build":            "gitbook build",
-    "l8tr:docs:build:COMMENT":    "NOTE: for gitbook build/serve, following diagnostics are useful: --log=debug --debug",
-    "l8tr:docs:prepare:do:once":  "gitbook install",
-    "docs:publish":               "gh-pages --dist _docs --dest docs",
-    "l8tr:predocs:publish":       "npm run docs:build"
+    "app:deploy": "gh-pages --dist build --dest app",
+    "app:lint": "eslint src",
+    "app:test": "react-scripts test",
+    "l8tr:docs:serve": "gitbook serve",
+    "l8tr:docs:build": "gitbook build",
+    "l8tr:docs:build:COMMENT": "NOTE: for gitbook build/serve, following diagnostics are useful: --log=debug --debug",
+    "l8tr:docs:prepare:do:once": "gitbook install",
+    "docs:publish": "gh-pages --dist _docs --dest docs",
+    "l8tr:predocs:publish": "npm run docs:build"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -72,7 +70,6 @@
     "react-dom": "^16.11.0",
     "react-redux": "^7.1.1",
     "react-scripts": "3.2.0",
-    "react-spring": "^8.0.27",
     "redux": "^4.0.4",
     "redux-logic": "^2.1.1",
     "reselect": "^4.0.0",

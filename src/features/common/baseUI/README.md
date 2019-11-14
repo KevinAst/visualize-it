@@ -395,6 +395,8 @@ the following **Use Contract**:
 
 ### Current View
 
+<!--- TODO: ?? this may be obsolete for visualize-it ... I think the implementation is merely whether the StateRouter interprets it! --->
+
 <ul> <!--- indentation hack --->
 
 The **curView** is maintained within the application state as a simple
