@@ -4,6 +4,7 @@ import {createFeature}    from 'feature-u';
 // ?? TEMP TEST of TreeView and MenuPallet
 import ExpandLessIcon  from '@material-ui/icons/ExpandMore';   // in effect WHEN EXPANDED  ... i.e. clicking will collapse
 import ExpandMoreIcon  from '@material-ui/icons/ChevronRight'; // in effect WHEN COLLAPSED ... i.e. clicking will expand
+import Divider         from '@material-ui/core/Divider';
 import MenuPallet      from '../common/baseUI/comp/MenuPallet';
 import React           from 'react';
 import TreeItem        from '@material-ui/lab/TreeItem';
@@ -26,15 +27,21 @@ export default createFeature({
   appInit({showStatus, fassets, appState, dispatch}) {
     
     dispatch( fassets.actions.addLeftNavItem('MyCrudeTest2', () => (
-      <MenuPallet name="MyCrudeTest2">
-        <SimpleTreeView/>
-      </MenuPallet>
+      <>
+        <MenuPallet name="MyCrudeTest2">
+          <SimpleTreeView/>
+        </MenuPallet>
+        <Divider/>
+        </>
     )) );
 
     dispatch( fassets.actions.addLeftNavItem('MyCrudeTest1', () => (
-      <MenuPallet name="MyCrudeTest1">
-        <SimpleTreeView/>
-      </MenuPallet>
+      <>
+        <MenuPallet name="MyCrudeTest1">
+          <SimpleTreeView/>
+        </MenuPallet>
+        <Divider/>
+      </>
     )) );
     
   },
