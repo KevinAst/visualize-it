@@ -13,11 +13,13 @@ import {makeStyles}        from '@material-ui/core/styles';
 
 
 /**
- * MenuPallet: A top-level pallet of collapsable menu items
- *             (optionally containing expandable trees)
- *             dynamically registered to the LeftNav component.
+ * MenuPallet: A top-level LeftNav entry that adorns it's children
+ *             (the pallet) with a collapsible control.
+ *
+ * The pallet (i.e. the children) will typically contain an expandable
+ * tree ... however this is not required.
  */
-export default function MenuPallet({name, children, PaletteIcon=PaletteIconDefault}) {
+export default function MenuPallet({name, PaletteIcon=PaletteIconDefault, children}) {
 
   const classes         = useStyles();
   const [open, setOpen] = useState(false);
