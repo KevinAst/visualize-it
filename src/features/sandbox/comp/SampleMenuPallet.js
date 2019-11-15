@@ -1,12 +1,12 @@
 import React           from 'react';
 
 import {useDispatch}   from 'react-redux'
+import {useFassets}    from 'feature-u'
 
 import ExpandLessIcon  from '@material-ui/icons/ExpandMore';   // in effect WHEN EXPANDED  ... i.e. clicking will collapse
 import ExpandMoreIcon  from '@material-ui/icons/ChevronRight'; // in effect WHEN COLLAPSED ... i.e. clicking will expand
 import TreeItem        from '@material-ui/lab/TreeItem';
 import TreeView        from '@material-ui/lab/TreeView';
-import _tabManagerAct  from 'features/common/tabManager/actions'; // ?? needs to be promoted through a fassets
 import {makeStyles}    from '@material-ui/core/styles';
 
 /**
@@ -18,18 +18,18 @@ import {makeStyles}    from '@material-ui/core/styles';
  */
 export default function SampleMenuPallet() {
 
-  const classes = useStyles();
-
-  const dispatch     = useDispatch();
+  const classes     = useStyles();
+  const activateTab = useFassets('actions.activateTab');
+  const dispatch    = useDispatch();
 
   // TODO: determine if this is causing unneeded re-renders
   //       - should we need to cache this function  via useCallback()
   //         DON'T THINK IT WOULD HELP, BECAUSE: I am creating multiple inline funcs within the render (below)
   //       - if needed, potential fix would be to cache multiple functions (with implied second tabId param)
   //         ... https://medium.com/@Charles_Stover/cache-your-react-event-listeners-to-improve-performance-14f635a62e15
-  const activateTab = (tabId, tabName, dedicated=false) => {
-    // console.log(`xx activateTab( tabId:'${tabId}', tabName:'${tabName}', dedicated=${dedicated} )`);
-    dispatch( _tabManagerAct.activateTab({ // TODO: simulated TabControl
+  const handleActivateTab = (tabId, tabName, dedicated=false) => {
+    // console.log(`xx handleActivateTab( tabId:'${tabId}', tabName:'${tabName}', dedicated=${dedicated} )`);
+    dispatch( activateTab({ // TODO: simulated TabControl
       tabId: 'tabId-'+tabId,
       tabName,
       dedicated,
@@ -43,9 +43,9 @@ export default function SampleMenuPallet() {
   };
 
   // TODO: determine if this is causing unneeded re-renders (SEE ABOVE)
-  const handleActivateTab = genDualClickHandler(
-    (tabId, tabName) => activateTab(tabId, tabName, false), // singleClick
-    (tabId, tabName) => activateTab(tabId, tabName, true)   // doubleClick
+  const dualHandleActivateTab = genDualClickHandler(
+    (tabId, tabName) => handleActivateTab(tabId, tabName, false), // singleClick
+    (tabId, tabName) => handleActivateTab(tabId, tabName, true)   // doubleClick
   );
 
 
@@ -102,7 +102,7 @@ export default function SampleMenuPallet() {
               defaultCollapseIcon={<ExpandLessIcon/>}
               defaultExpandIcon={<ExpandMoreIcon/>}>
 
-      { genTreeItemFromData(sampleData, handleActivateTab) }
+      { genTreeItemFromData(sampleData, dualHandleActivateTab) }
 
     </TreeView>
   );
@@ -202,21 +202,21 @@ function genTreeItemFromData(dataNodes, eventHandler, idPrefix='') {
 // console.log(`xx here is our generated SampleMenuPallet: `, genTreeItemFromData(sampleData));
 // GENS FOLLOWING:
 // <TreeItem nodeId="P" label="Passive">
-//   <TreeItem nodeId="P-1" label="Resistors"  onClick={ ()=> handleActivateTab('P-1', 'Resistors') }/>
-//   <TreeItem nodeId="P-2" label="Capacitors" onClick={ ()=> handleActivateTab('P-2', 'Capacitors') }/>
-//   <TreeItem nodeId="P-3" label="Inductors"  onClick={ ()=> handleActivateTab('P-3', 'Inductors') }/>
+//   <TreeItem nodeId="P-1" label="Resistors"  onClick={ ()=> dualHandleActivateTab('P-1', 'Resistors') }/>
+//   <TreeItem nodeId="P-2" label="Capacitors" onClick={ ()=> dualHandleActivateTab('P-2', 'Capacitors') }/>
+//   <TreeItem nodeId="P-3" label="Inductors"  onClick={ ()=> dualHandleActivateTab('P-3', 'Inductors') }/>
 // </TreeItem>
 // <TreeItem nodeId="A" label="Active">
-//   <TreeItem nodeId="A-1" label="Diodes"      onClick={ ()=> handleActivateTab('A-1', 'Diodes') }/>
-//   <TreeItem nodeId="A-2" label="Transistors" onClick={ ()=> handleActivateTab('A-2', 'Transistors') }/>
+//   <TreeItem nodeId="A-1" label="Diodes"      onClick={ ()=> dualHandleActivateTab('A-1', 'Diodes') }/>
+//   <TreeItem nodeId="A-2" label="Transistors" onClick={ ()=> dualHandleActivateTab('A-2', 'Transistors') }/>
 // </TreeItem>
 // <TreeItem nodeId="M" label="More">
 //   <TreeItem nodeId="M-D" label="Depth">
 //     <TreeItem nodeId="M-D-D" label="Display">
-//       <TreeItem nodeId="M-D-D-L" label="LCD"     onClick={ ()=> handleActivateTab('M-D-D-L', 'LCD') }/>
+//       <TreeItem nodeId="M-D-D-L" label="LCD"     onClick={ ()=> dualHandleActivateTab('M-D-D-L', 'LCD') }/>
 //     </TreeItem>
 //     <TreeItem nodeId="M-D-P" label="Power">
-//       <TreeItem nodeId="M-D-P-B" label="Battery"  onClick={ ()=> handleActivateTab('M-D-P-B', 'Battery') }/>
+//       <TreeItem nodeId="M-D-P-B" label="Battery"  onClick={ ()=> dualHandleActivateTab('M-D-P-B', 'Battery') }/>
 //     </TreeItem>
 //   </TreeItem>
 // </TreeItem>
