@@ -5,7 +5,7 @@ import {createFeature}    from 'feature-u';
 import ExpandLessIcon  from '@material-ui/icons/ExpandMore';   // in effect WHEN EXPANDED  ... i.e. clicking will collapse
 import ExpandMoreIcon  from '@material-ui/icons/ChevronRight'; // in effect WHEN COLLAPSED ... i.e. clicking will expand
 import Divider         from '@material-ui/core/Divider';
-import MenuPallet      from '../common/baseUI/comp/MenuPallet';
+import {MenuPallet}    from 'featureAssets';
 import React           from 'react';
 import TreeItem        from '@material-ui/lab/TreeItem';
 import TreeView        from '@material-ui/lab/TreeView';
@@ -115,7 +115,7 @@ export function SimpleTreeView() {
     }) );
   };
 
-  // ?? crude test WORKS
+  // ?? crude test of closing pallet works WORKS
   //? const handleClosePallet = () => {
   //?   dispatch( _baseUIAct.removeLeftNavItem('MyCrudeTest1') );
   //? };
