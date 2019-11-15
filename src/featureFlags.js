@@ -12,5 +12,5 @@ export default {
   log:     false,
 
   // should app enable diagnostic sandbox controls?
-  sandbox: false,
+  sandbox: true,
 };
