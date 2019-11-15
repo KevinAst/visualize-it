@@ -13,11 +13,11 @@ import _tabManagerAct  from 'features/common/tabManager/actions'; // ?? needs to
 import {makeStyles}    from '@material-ui/core/styles';
 import {useDispatch}   from 'react-redux'
 
-// feature: konvaSandbox
+// feature: sandbox
 //          sandbox to play with konva.js
 export default createFeature({
 
-  name: 'konvaSandbox',
+  name: 'sandbox',
 
   enabled: true, // ?? temp for now
 
