@@ -1,4 +1,4 @@
-import MenuPallet     from 'features/common/baseUI/comp/MenuPallet';
+import LeftNavCollapsibleItem  from 'features/common/baseUI/comp/LeftNavCollapsibleItem';
 
 //*** 
 //*** Promote various feature public assets (i.e. aliases)
@@ -11,7 +11,7 @@ import MenuPallet     from 'features/common/baseUI/comp/MenuPallet';
 //       -or-
 //         import * as featureAssets from 'featureAssets';
 export {
-  MenuPallet,
+  LeftNavCollapsibleItem,
 };
 
 // NOTE: This default export supports CommonJS modules (otherwise Babel does NOT promote them).
@@ -20,5 +20,5 @@ export {
 //       -or-
 //         const featureAssets = require('featureAssets');
 export default {
-  MenuPallet,
+  LeftNavCollapsibleItem,
 };
