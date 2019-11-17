@@ -83,8 +83,30 @@ export default function TabManager() {
         </Tabs>
       </AppBar>
       {tabs.map( tab => (
-         <TabPanel key={tab.tabId} tabId={tab.tabId} activeTabId={activeTabId}>
-           do dynamics here for {tab.tabId}/{tab.tabName}
+         <TabPanel key={tab.tabId}
+                   tabId={tab.tabId}
+                   activeTabId={activeTabId}>
+           {/* AI: this content will be dynamically rendered
+                   NOTE: the following div/Box (if used) will show you the results of a big content and where the scroll bars appear
+??                      <div style={{height: 2000, width: 1000, border: '1px solid orange'}}>
+
+??                      <Box border={1}
+                             borderColor="secondary.light"
+                             width={1000}
+                             height={2000}>
+
+                             primary.light: green diff shade
+                             primary.main:  green
+                             primary.dark:  green diff shade
+
+                             secondary.light: grayish <<< like this one
+                             secondary.main:  purple
+                             secondary.dark:  almost black
+             */}
+           <Box border={1}
+                borderColor="secondary.light">
+             AI: eventually this will be dynamically rendered content for {tab.tabId}/{tab.tabName}
+           </Box>
          </TabPanel>
        ) )}
     </>
@@ -101,10 +123,16 @@ const useStyles = makeStyles( theme => ({
 
 
 // KJB TODO: consider moving TabPanel out into it's own module (possibly NOT if we only use it here)
+// ?? something above TabPanel is giving it the full width
+// ?? how to fill all vertical space?
+//    - a style height: '100%' kinda works, but it doesn't account for filler under AppBar
+//      ... style={{height: '100%'}}
+//    - can use css calc(): 97px = 48px AppBar + 49px TabBar <<< number calculation is a real hack
+//      ... style={{height: 'calc(100% - 97px)'}}
+// ?? the box is giving us some styling (currently padding)
 const TabPanel = ({tabId, activeTabId, children}) => (
-  <Paper hidden={tabId !== activeTabId}>
-    {/* KJB TODO: do we need box? ... is providing some padding */}
-    <Box p={2}>
+  <Paper hidden={tabId !== activeTabId} style={{height: 'calc(100% - 97px)'}}>
+    <Box padding={2}>
       {children}
     </Box>
   </Paper>

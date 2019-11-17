@@ -14,8 +14,9 @@ export default function StartUpPage() {
   const classes = useStyles();
 
   // NOTE: relative path (in imgs below) support server deployment in sub-directory
+  // ?? HACK: how to fill all vertical space (using calc below) see TabManager.js note
   return (
-    <Paper className={classes.root}>
+    <Paper className={classes.root} style={{height: 'calc(100% - 48px)'}}>
       <CenterItems>
         <img src="visualize-it-logo.png" width="300" alt="Logo" className={classes.entry} />
       </CenterItems>
