@@ -1,13 +1,15 @@
-import React           from 'react';
+import React                from 'react';
 
-import {useDispatch}   from 'react-redux'
-import {useFassets}    from 'feature-u'
+import {useDispatch}        from 'react-redux';
+import {useFassets}         from 'feature-u';
 
-import ExpandLessIcon  from '@material-ui/icons/ExpandMore';   // in effect WHEN EXPANDED  ... i.e. clicking will collapse
-import ExpandMoreIcon  from '@material-ui/icons/ChevronRight'; // in effect WHEN COLLAPSED ... i.e. clicking will expand
-import TreeItem        from '@material-ui/lab/TreeItem';
-import TreeView        from '@material-ui/lab/TreeView';
-import {makeStyles}    from '@material-ui/core/styles';
+import genDualClickHandler  from 'util/genDualClickHandler';
+
+import ExpandLessIcon       from '@material-ui/icons/ExpandMore';   // in effect WHEN EXPANDED  ... i.e. clicking will collapse
+import ExpandMoreIcon       from '@material-ui/icons/ChevronRight'; // in effect WHEN COLLAPSED ... i.e. clicking will expand
+import TreeItem             from '@material-ui/lab/TreeItem';
+import TreeView             from '@material-ui/lab/TreeView';
+import {makeStyles}         from '@material-ui/core/styles';
 
 /**
  * SampleMenuPallet: 
@@ -167,7 +169,7 @@ const sampleData = [
 ];
 
 // KOOL: our algorithm that interprets sampleData (above), generating TreeView/TreeItem structure USING recursion
-function genTreeItemFromData(dataNodes, eventHandler, idPrefix='') {
+function genTreeItemFromData(dataNodes, onClickHandler, idPrefix='') {
 
   return dataNodes.map( (dataNode) => {
 
@@ -180,7 +182,7 @@ function genTreeItemFromData(dataNodes, eventHandler, idPrefix='') {
         <TreeItem key={id}
                   nodeId={id}
                   label={dataNode.label}>
-          {genTreeItemFromData(dataNode.nodes, eventHandler, id)}
+          {genTreeItemFromData(dataNode.nodes, onClickHandler, id)}
         </TreeItem>
       );
     }
@@ -192,7 +194,7 @@ function genTreeItemFromData(dataNodes, eventHandler, idPrefix='') {
         <TreeItem key={id}
                   nodeId={id}
                   label={dataNode.label}
-                  onClick={ ()=> eventHandler(id, dataNode.label) }/>
+                  onClick={ ()=> onClickHandler(id, dataNode.label) }/>
       );
     }
   });
@@ -220,34 +222,3 @@ function genTreeItemFromData(dataNodes, eventHandler, idPrefix='') {
 //     </TreeItem>
 //   </TreeItem>
 // </TreeItem>
-
-
-
-
-
-//******************************************************************************
-//*** move out
-//******************************************************************************
-
-// ?? we have to deal with the React KRAP with onClick firing WITH onDoubleClick
-// ?? move into own util/module
-// utilize this function when registering BOTH onClick and onDoubleClick
-// ... React has really dropped the ball, because if you register 
-//     BOTH onClick and onDoubleClick, the onClick will fire in addition to onDoubleClick
-//     KEY: THE OBVIOUS SOLUTION is for React to specify an onSingleClick ... geeeze
-function genDualClickHandler(onSingleClick, onDoubleClick, delay=250) {
-  let timeoutID = null;
-  return function (...rest) { // onClick will pass event, but use ...rest to support any signature
-    if (!timeoutID) { // FIRST CLICK: create timeout (waiting for potential second click)
-      timeoutID = setTimeout(function () {
-        onSingleClick(...rest); // invoke onSingleClick() - timeout has passed (with no additional clicks)
-        timeoutID = null;       // reset our timeout indicator
-      }, delay);
-    }
-    else { // SECOND CLICK (within timeout period)
-      clearTimeout(timeoutID); // clear our timeout
-      timeoutID = null;        // reset our timeout indicator
-      onDoubleClick(...rest);  // invoke onDoubleClick(event)
-    }
-  };
-}
