@@ -19,6 +19,10 @@
 - [Components]
 - [Perspectives]
 - [Logic]
+- [Internals]
+  - [Tab Manager]
+  - [Component Catalog]
+  - [Systems Resources]
 - [Action Items]
 
 
@@ -668,6 +672,161 @@ Models digital control logic through a visual logic diagram
 ```
 
 
+<!--- *** SECTION *************************************************************** --->
+# Internals
+
+Internally, **visualize-it** contains a lot of dynamics:
+
+- Tabs are used to dynamically display various resources (views,
+  perspectives, components, etc.).
+
+- In addition, these "dynamically displayed" resources are themselves
+  dynamically obtained.  In other words they are retrieved at run-time
+  and **NOT** statically known at compile time.
+
+As a result of these dynamics, we document a number of characteristics
+here.
+
+**NOTE**: A key goal of this architecture is to maintain our
+application state in a persistable form (i.e. serializable), so we can
+easily retain UI characteristics between **visualize-it** sessions.
+This would not be possible if we were to retain functions in our state
+(as an example).
+
+
+<!--- *** SUB-SECTION *************************************************************** --->
+## Tab Manager
+
+The **tabManager** feature is a dynamic manager of visual tabs.  
+
+- Tabs are initially activated through **LeftNav** menu pallets.
+
+- In turn, the displayed tab content is also dynamic in nature.
+
+In support of these dynamics, the following structure is maintained.
+
+**Tab Registry**
+
+<ul>
+
+The **tabManager** maintains a registry of all tabs that can be
+visualized.
+
+It is the responsibility of the various menus and controls to register
+their tabs, before a "tab activation" request is made.  The reason for
+this is related to our dynamics: the Tab Manger must have the ability
+to instantiate tab content when it is first activated!
+
+This Tab Registry contains the following information:
+
+- `tabId` a globally unique key, identifying the tab in question.
+  Typically a federated namespace is employed to insure this key is
+  globally unique (ex: compLibName-comp, or systemName-view, etc.).
+
+- `tabName` the name displayed in the tab.
+
+- `tabCreator` a React Component that instantiates the tab content
+  **without** any additional context _(in other words, it will be
+  instantiated without any attributes)_.
+
+**NOTE**: The `tabCreator` utilizes a React Component, rather than a
+pre-instantiated element, because a component _(i.e. a function or a
+class)_ is very light weight until it is instantiated.  This is
+important because all tabs must be registered up front, just to
+support their potential activation ... which may never occur,
+depending on user activity.
+
+A typical example of a `tabCreator` component that instantiates a
+given SmartView, would be an anonymous functional component:
+
+```js
+const xyzView    = ... some SmartView
+const tabCreator = () => <SmartViewReact view={xyzView}/>;
+```
+
+The important thing to note is that all context is provided via
+closures and NOT through component parameters.
+
+The **Tab Registry** has the following **API**:
+
+```
++ registerTab(tabId, tabName, tabCreator): void
++ getTabName(tabId): tabName
++ getTabCreator(tabId): ReactComp ... that instantiates the tab content
+                                      (or a "missing registration error" content)
+```
+
+</ul>
+
+
+**Tab Actions**
+
+<ul>
+
+The following **Tab Actions** _(Action Creators)_ are available:
+
+```
++ activateTab(tabId, dedicated): Action
+                                 NOTE: the tabId is used to index into the Tab Registry
+                                 NOTE: dedicated: true/false,
+                                       true:  tab is dedicated (permanent via double-click)
+                                       false: tab is preview   (single-click)
+                                 NOTE: logic supplements this action with the following:
+                                       action: {
+                                         tabName: 'ValveXyz', ... strictly a convenience
+                                         pgmDirectives: {     ... simplifying reducers
+                                           next_activeTabId:  'tabXYZ' -or- null (when NO tabs)
+                                           next_previewTabId: 'tabXYZ' -or- null (when NO preview tab)
+                                           tabsArrDirectives: {
+                                             removeTabId: 'tabXYZ' -or- null ... supports previewTab removal
+                                             addNewTab:   true/false
+                                           }
+                                         }
+                                       }
+
++ closeTab(tabId): Action
+```
+
+</ul>
+
+**Tab State**
+
+<ul>
+
+The following application **Tab State** is maintained:
+
+```
+tabManager: {
+  activeTabId:  'tabXYZ', // the tabId of the active tab
+  previewTabId: 'tabXYZ', // the tabId of the optional tab in preview mode (i.e. will be re-used)
+  tabs: [                 // all active tabs
+    {tabId: 'tabABC', tabName: 'WowZee'},
+    {tabId: 'tabXYZ', tabName: 'WowWoo'},
+    ...
+  ],
+}
+```
+</ul>
+
+
+<!--- *** SUB-SECTION *************************************************************** --->
+## Component Catalog
+
+AI: Because SmartComp catalogs are dynamically retrieved at run-time,
+they will have a similar registery process. This way we can support
+persistance of our views (containing SmartComps), where the referenced
+classes can be re-instantiated on retrieval.  The registery key would be
+a federated classname (ex: myXyzLib-ValveXyz).
+
+NOTE: I think this is true ... because the SmartView is a concrete
+class, it can be implied in our persistance.  In other words there is
+no registery for views.
+
+
+<!--- *** SUB-SECTION *************************************************************** --->
+## Systems Resources
+
+see NOTE (above)
 
 
 <!--- *** SECTION *************************************************************** --->
@@ -696,6 +855,9 @@ Models digital control logic through a visual logic diagram
 [Components]:               #components
 [Perspectives]:             #perspectives
 [Logic]:                    #logic
-
+[Internals]:                #internals
+  [Tab Manager]:            #tab-manager
+  [Component Catalog]:      #component-catalog
+  [Systems Resources]:      #systems-resources
 [Action Items]:             #action-items
 
