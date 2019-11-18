@@ -87,8 +87,16 @@ export default function TabManager() {
                    tabId={tab.tabId}
                    activeTabId={activeTabId}>
            {/* AI: this content will be dynamically rendered
+
+                   ??$$ now is the time to flesh out HOW  dynamic contentCreator acomplished
+                        VERY TEMP FOR NOW:
+                        render optional component specified in ?? tab.contentCreator.Poop
+
                    NOTE: the following div/Box (if used) will show you the results of a big content and where the scroll bars appear
 ??                      <div style={{height: 2000, width: 1000, border: '1px solid orange'}}>
+
+                        <Box border={1}
+                              borderColor="secondary.light">
 
 ??                      <Box border={1}
                              borderColor="secondary.light"
@@ -103,10 +111,7 @@ export default function TabManager() {
                              secondary.main:  purple
                              secondary.dark:  almost black
              */}
-           <Box border={1}
-                borderColor="secondary.light">
-             AI: eventually this will be dynamically rendered content for {tab.tabId}/{tab.tabName}
-           </Box>
+             { tab.contentCreator.Poop ? <tab.contentCreator.Poop/> : <span>AI: eventually this will be dynamically rendered content for {tab.tabId}/{tab.tabName}</span> }
          </TabPanel>
        ) )}
     </>
@@ -129,10 +134,10 @@ const useStyles = makeStyles( theme => ({
 //      ... style={{height: '100%'}}
 //    - can use css calc(): 97px = 48px AppBar + 49px TabBar <<< number calculation is a real hack
 //      ... style={{height: 'calc(100% - 97px)'}}
-// ?? the box is giving us some styling (currently padding)
+// ?? the box is giving us a bit of styling (currently padding so as to not but content right up to the edge)
 const TabPanel = ({tabId, activeTabId, children}) => (
   <Paper hidden={tabId !== activeTabId} style={{height: 'calc(100% - 97px)'}}>
-    <Box padding={2}>
+    <Box padding={1}>
       {children}
     </Box>
   </Paper>
