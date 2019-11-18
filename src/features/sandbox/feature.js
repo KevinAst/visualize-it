@@ -1,6 +1,5 @@
 import {createFeature}  from 'feature-u';
 import featureFlags     from 'featureFlags'
-//import route          from './route'; ?? obsolete
 import initSandbox      from './initSandbox';
 
 // feature: sandbox
@@ -8,6 +7,5 @@ import initSandbox      from './initSandbox';
 export default createFeature({
   name:    'sandbox',
   enabled: featureFlags.sandbox,
-//route, // ?? obsolete this (with new tabManager)
   appInit: initSandbox,
 });
