@@ -3,7 +3,7 @@ export default {
 
   // should app use WIFI?
   // ... regulates various services (real/mocked)
-  useWIFI: true,
+  useWIFI: false,
 
   // should app emit diagnostic logs?
   //  - false:     no logs
