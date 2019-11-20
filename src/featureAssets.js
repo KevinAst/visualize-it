@@ -1,4 +1,9 @@
 import LeftNavCollapsibleItem  from 'features/common/baseUI/comp/LeftNavCollapsibleItem';
+import {registerTab,
+        getTabName,
+        getTabCreator}         from 'features/common/tabManager/tabRegistry';
+
+
 
 //*** 
 //*** Promote various feature public assets (i.e. aliases)
@@ -11,7 +16,13 @@ import LeftNavCollapsibleItem  from 'features/common/baseUI/comp/LeftNavCollapsi
 //       -or-
 //         import * as featureAssets from 'featureAssets';
 export {
+
   LeftNavCollapsibleItem,
+
+  registerTab,
+  getTabName,
+  getTabCreator,
+
 };
 
 // NOTE: This default export supports CommonJS modules (otherwise Babel does NOT promote them).
@@ -20,5 +31,11 @@ export {
 //       -or-
 //         const featureAssets = require('featureAssets');
 export default {
+
   LeftNavCollapsibleItem,
+
+  registerTab,
+  getTabName,
+  getTabCreator,
+
 };

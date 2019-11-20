@@ -12,6 +12,10 @@ import TreeView             from '@material-ui/lab/TreeView';
 import {makeStyles}         from '@material-ui/core/styles';
 
 //???????????
+// ?? NO tabcontrol
+// ?? NO dedicated
+// ?? NO poop
+
 
 import Konva           from 'konva';
 
@@ -37,7 +41,7 @@ export default function KonvaMenuPallet() {
   //       - if needed, potential fix would be to cache multiple functions (with implied second tabId param)
   //         ... https://medium.com/@Charles_Stover/cache-your-react-event-listeners-to-improve-performance-14f635a62e15
   const handleActivateTab = (tabId, tabName, dedicated=false) => {
-    console.log(`?? handleActivateTab( tabId:'${tabId}', tabName:'${tabName}', dedicated=${dedicated} )`);
+    console.log(`?? handleActivateTab( tabId:'${tabId}', tabName:'${tabName}', dedicated=${dedicated} )`); // ????????????????????????????????????????????????????????????????????????????????
     dispatch( activateTab({ // TODO: simulated TabControl
       tabId: 'tabId-'+tabId,
       tabName,

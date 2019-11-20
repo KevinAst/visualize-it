@@ -1,21 +1,27 @@
 import React,
-       {useCallback}   from 'react';
+       {useCallback}       from 'react';
 
 import {useSelector,
-        useDispatch}   from 'react-redux'
+        useDispatch}       from 'react-redux'
+
+import {createLogger}      from 'util/logger';
 
 import * as _tabManagerSel from '../state';
 import _tabManagerAct      from '../actions';
+import {getTabCreator}     from '../tabRegistry';
 
-import AppBar          from '@material-ui/core/AppBar';
-import Box             from '@material-ui/core/Box';
-import CloseIcon       from '@material-ui/icons/Close';
-import Grid            from '@material-ui/core/Grid';
-import Paper           from '@material-ui/core/Paper';
-import Tab             from '@material-ui/core/Tab';
-import Tabs            from '@material-ui/core/Tabs';
-import Typography      from '@material-ui/core/Typography';
-import {makeStyles}    from '@material-ui/core/styles';
+import AppBar              from '@material-ui/core/AppBar';
+import Box                 from '@material-ui/core/Box';
+import CloseIcon           from '@material-ui/icons/Close';
+import Grid                from '@material-ui/core/Grid';
+import Paper               from '@material-ui/core/Paper';
+import Tab                 from '@material-ui/core/Tab';
+import Tabs                from '@material-ui/core/Tabs';
+import Typography          from '@material-ui/core/Typography';
+import {makeStyles}        from '@material-ui/core/styles';
+
+// our internal diagnostic logger (normally disabled)
+const log = createLogger('***DIAG*** <TabManager> ... ').disable();
 
 /**
  * TabManager: Our top-level manager of tabs.
@@ -28,24 +34,21 @@ export default function TabManager() {
   const previewTabId = useSelector((appState) => _tabManagerSel.getPreviewTabId(appState), []);
   const tabs         = useSelector((appState) => _tabManagerSel.getTabs(appState), []);
   const dispatch     = useDispatch();
-  const tabChanged   = useCallback((event, newActiveTabId) => {
-    // console.log(`xx tabChanged('${newActiveTabId}')`);
-    dispatch( _tabManagerAct.activateTab({ // simulated TabControl
-      tabId: newActiveTabId,               // ... for existing tabs, only this attribute is used
-    }) );
+  const handleTabChanged   = useCallback((event, tabId) => {
+    log(`handleTabChanged('${tabId}')`);
+    dispatch( _tabManagerAct.activateTab(tabId) );
   }, [dispatch]);
 
-  // NOTE: closeTab is currently NOT cached because I am creating multiple inline funcs within the render (below)
+  // NOTE: handleCloseTab is currently NOT cached because I am creating multiple inline funcs within the render (below)
   //       TODO: ?? determine if this is causing unneeded re-renders (only fix would be to cache multiple functions (with implied second tabId param) ... https://medium.com/@Charles_Stover/cache-your-react-event-listeners-to-improve-performance-14f635a62e15
-  const closeTab = (event, tabId) => {
-    // console.log('xx in closeTab: ', tabId);
-    event.stopPropagation(); // prevent parent event (tabChanged event) from firing ... if not done, it can fire AFTER closeTab - which is bad (because the tab is gone)
+  const handleCloseTab = (event, tabId) => {
+    log('in handleCloseTab: ', tabId);
+    event.stopPropagation(); // prevent parent tabChanged event from firing ... if not done, it can fire AFTER closeTab - which is bad (because the tab is gone)
     dispatch( _tabManagerAct.closeTab(tabId) );
   };
 
-  // NOTE: Our TabPanels content is app-specific (derived from tabControl)
-  //       This content is dynamically created using a global contentCreator.
-  //       TODO: ?? MUST INSURE this will NOT "Comp.manifest" multiple times
+  // NOTE: Each TabPanel content is app-specific,
+  //       dynamically created through the tab registry's tabCreator ReactComp.
 
   // TABS NOTE: <Tabs> value IS the currently selected Tab value
   //            ... can be false - NO tab selected (NOT all that useful)
@@ -55,7 +58,7 @@ export default function TabManager() {
     <>
       <AppBar position="static" color="default">
         <Tabs value={activeTabId}
-              onChange={tabChanged}
+              onChange={handleTabChanged}
               indicatorColor="primary"
               textColor="primary"
               variant="scrollable"
@@ -74,7 +77,7 @@ export default function TabManager() {
                         </Typography>
                       </Grid>
                       <Grid item>
-                        <CloseIcon onClick={(e) => closeTab(e, tab.tabId)}/>
+                        <CloseIcon onClick={(e) => handleCloseTab(e, tab.tabId)}/>
                       </Grid>
                     </Grid>
                   )}
@@ -82,38 +85,37 @@ export default function TabManager() {
            )}
         </Tabs>
       </AppBar>
-      {tabs.map( tab => (
-         <TabPanel key={tab.tabId}
-                   tabId={tab.tabId}
-                   activeTabId={activeTabId}>
-           {/* AI: this content will be dynamically rendered
-
-                   ??$$ now is the time to flesh out HOW  dynamic contentCreator acomplished
-                        VERY TEMP FOR NOW:
-                        render optional component specified in ?? tab.contentCreator.Poop
-
-                   NOTE: the following div/Box (if used) will show you the results of a big content and where the scroll bars appear
-??                      <div style={{height: 2000, width: 1000, border: '1px solid orange'}}>
-
-                        <Box border={1}
-                              borderColor="secondary.light">
-
-??                      <Box border={1}
-                             borderColor="secondary.light"
-                             width={1000}
-                             height={2000}>
-
-                             primary.light: green diff shade
-                             primary.main:  green
-                             primary.dark:  green diff shade
-
-                             secondary.light: grayish <<< like this one
-                             secondary.main:  purple
-                             secondary.dark:  almost black
-             */}
-             { tab.contentCreator.Poop ? <tab.contentCreator.Poop/> : <span>AI: eventually this will be dynamically rendered content for {tab.tabId}/{tab.tabName}</span> }
-         </TabPanel>
-       ) )}
+      {tabs.map( tab => {
+         const TabCreator = getTabCreator(tab.tabId);
+         return (
+           <TabPanel key={tab.tabId}
+                     tabId={tab.tabId}
+                     activeTabId={activeTabId}>
+             {/* AI: this content will be dynamically rendered
+           
+                     NOTE: the following div/Box (if used) will show you the results of a big content and where the scroll bars appear
+??                        <div style={{height: 2000, width: 1000, border: '1px solid orange'}}>
+           
+                          <Box border={1}
+                                borderColor="secondary.light">
+           
+??                        <Box border={1}
+                               borderColor="secondary.light"
+                               width={1000}
+                               height={2000}>
+           
+                               primary.light: green diff shade
+                               primary.main:  green
+                               primary.dark:  green diff shade
+           
+                               secondary.light: grayish <<< like this one
+                               secondary.main:  purple
+                               secondary.dark:  almost black
+               */}
+             <TabCreator/>
+           </TabPanel>
+         );
+       } )}
     </>
   );
 }

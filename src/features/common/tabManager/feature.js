@@ -13,8 +13,8 @@ export default createFeature({
 
   fassets: {
     define: {
-      'actions.activateTab': _tabManagerAct.activateTab, // activateTab(tabControl): Action
-      'actions.closeTab':    _tabManagerAct.closeTab,    // closeTab(tabId):         Action
+      'actions.activateTab': _tabManagerAct.activateTab, // activateTab(tabId, preview=true): Action
+      'actions.closeTab':    _tabManagerAct.closeTab,    // closeTab(tabId): Action
     },
   },
 

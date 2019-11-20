@@ -721,7 +721,7 @@ This Tab Registry contains the following information:
 
 - `tabId` a globally unique key, identifying the tab in question.
   Typically a federated namespace is employed to insure this key is
-  globally unique (ex: compLibName-comp, or systemName-view, etc.).
+  globally unique (ex: compLibName/comp, or systemName/view, etc.).
 
 - `tabName` the name displayed in the tab.
 
@@ -766,25 +766,42 @@ The **Tab Registry** has the following **API**:
 The following **Tab Actions** _(Action Creators)_ are available:
 
 ```
-+ activateTab(tabId, dedicated): Action
-                                 NOTE: the tabId is used to index into the Tab Registry
-                                 NOTE: dedicated: true/false,
-                                       true:  tab is dedicated (permanent via double-click)
-                                       false: tab is preview   (single-click)
-                                 NOTE: logic supplements this action with the following:
-                                       action: {
-                                         tabName: 'ValveXyz', ... strictly a convenience
-                                         pgmDirectives: {     ... simplifying reducers
-                                           next_activeTabId:  'tabXYZ' -or- null (when NO tabs)
-                                           next_previewTabId: 'tabXYZ' -or- null (when NO preview tab)
-                                           tabsArrDirectives: {
-                                             removeTabId: 'tabXYZ' -or- null ... supports previewTab removal
-                                             addNewTab:   true/false
-                                           }
-                                         }
-                                       }
++ activateTab(tabId, preview=true): Action
+    activate the specified tab (may exist, or will create on first reference)
+    NOTES:
+     1. the tabId is used to index into the Tab Registry
+     2. preview (only used when referencing new [non-existent] tab)
+          true:  preview tab   (single-click) <<< DEFAULT
+          false: permanent tab (double-click)
+     3. logic supplements this action with the following:
+        action: {
+          ... from incoming action:
+          tabId:   'xyz'
+          preview: true
+
+          ... supplemented by logic:
+          tabName: 'ValveXyz'  ... strictly a convenience
+          pgmDirectives: {     ... simplifies reducer
+            next_activeTabId:  'xyz' (or null when NO tabs)
+            next_previewTabId: 'xyz' (or null when NO preview tab)
+            removeTabId:       'abc' (or null) ... supports previewTab removal
+            addNewTab:         true/false ... supports new tab creation (on first reference)
+          }
+        }
 
 + closeTab(tabId): Action
+    close specified tab
+    NOTES:
+     1. logic supplements this action with the following:
+        action: {
+          ... from incoming action:
+          tabId:   'xyz'
+
+          ... supplemented by logic
+          pgmDirectives: {     ... simplifies reducer
+            next_activeTabId:  'abc' (or null when NO tabs)
+          }
+        }
 ```
 
 </ul>
@@ -797,11 +814,11 @@ The following application **Tab State** is maintained:
 
 ```
 tabManager: {
-  activeTabId:  'tabXYZ', // the tabId of the active tab
-  previewTabId: 'tabXYZ', // the tabId of the optional tab in preview mode (i.e. will be re-used)
+  activeTabId:  'xyz', // the tabId of the active tab
+  previewTabId: 'xyz', // the tabId of the optional tab in preview mode (i.e. will be re-used)
   tabs: [                 // all active tabs
-    {tabId: 'tabABC', tabName: 'WowZee'},
-    {tabId: 'tabXYZ', tabName: 'WowWoo'},
+    {tabId: 'abc', tabName: 'WowZee'},
+    {tabId: 'xyz', tabName: 'WowWoo'},
     ...
   ],
 }

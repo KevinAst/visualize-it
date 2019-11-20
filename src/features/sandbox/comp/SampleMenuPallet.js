@@ -3,7 +3,9 @@ import React                from 'react';
 import {useDispatch}        from 'react-redux';
 import {useFassets}         from 'feature-u';
 
+import {registerTab}        from 'featureAssets';
 import genDualClickHandler  from 'util/genDualClickHandler';
+import {createLogger}       from 'util/logger';
 
 import ExpandLessIcon       from '@material-ui/icons/ExpandMore';   // in effect WHEN EXPANDED  ... i.e. clicking will collapse
 import ExpandMoreIcon       from '@material-ui/icons/ChevronRight'; // in effect WHEN COLLAPSED ... i.e. clicking will expand
@@ -11,105 +13,38 @@ import TreeItem             from '@material-ui/lab/TreeItem';
 import TreeView             from '@material-ui/lab/TreeView';
 import {makeStyles}         from '@material-ui/core/styles';
 
+// our internal diagnostic logger (normally disabled)
+const log = createLogger('***DIAG*** <SampleMenuPallet> ... ').disable();
+
+
 /**
  * SampleMenuPallet: 
  *
  * A very SIMPLE test pallet fleshing out details of:
  *   - a collapsible TreeView
  *   - tabManger interactions
+ *   - optimizing react performance (renders) (see: PERF comments)
  */
-export default function SampleMenuPallet() {
+function SampleMenuPallet() {
 
   const classes     = useStyles();
-  const activateTab = useFassets('actions.activateTab');
-  const dispatch    = useDispatch();
 
-  // TODO: determine if this is causing unneeded re-renders
-  //       - should we need to cache this function  via useCallback()
-  //         DON'T THINK IT WOULD HELP, BECAUSE: I am creating multiple inline funcs within the render (below)
-  //       - if needed, potential fix would be to cache multiple functions (with implied second tabId param)
-  //         ... https://medium.com/@Charles_Stover/cache-your-react-event-listeners-to-improve-performance-14f635a62e15
-  const handleActivateTab = (tabId, tabName, dedicated=false) => {
-    // console.log(`xx handleActivateTab( tabId:'${tabId}', tabName:'${tabName}', dedicated=${dedicated} )`);
-    dispatch( activateTab({ // TODO: simulated TabControl
-      tabId: 'tabId-'+tabId,
-      tabName,
-      dedicated,
-      contentCreator: {
-        contentType: 'WowZee_system_view',
-        contentContext: {
-          whatever: 'poop',
-        }
-      },
-    }) );
-  };
-
-  // TODO: determine if this is causing unneeded re-renders (SEE ABOVE)
-  const dualHandleActivateTab = genDualClickHandler(
-    (tabId, tabName) => handleActivateTab(tabId, tabName, false), // singleClick
-    (tabId, tabName) => handleActivateTab(tabId, tabName, true)   // doubleClick
-  );
-
-
-  // AI: crude test of closing pallet works WORKS
-  // const handleClosePallet = () => {
-  //   dispatch( _baseUIAct.removeLeftNavItem('MyCrudeTest1') );
-  // };
-  // ... inject (below)
-  // <TreeItem nodeId="DD" label="Delete Me"    onClick={handleClosePallet}/>
-
-
-  // // PUNT-FOR-NOW: see if treeViewOnNodeToggle helps
-  // // BAD: NO HELP, only invoked on non-concrete nodes when toggled
-  // // PUNT-FOR-NOW: see how this is implemented, so I could possibly wrap in my own class
-  // //      ... https://github.com/mui-org/material-ui/blob/master/packages/material-ui-lab/src/TreeView/TreeView.js
-  // //      ... c:/data/tech/dev/project/visualize-it/temp.TreeView.js
-  // //          GEEZE: they are registering all kinds of functions inlined in the render
-  // const treeViewOnNodeToggle = (nodeId, expanded) => {
-  //   console.log(`xx treeViewOnNodeToggle(nodeId:'${nodeId}', expanded:${expanded})`);
-  // };
-  // // USED AS FOLLOWS:
-  // //   <TreeView className={classes.root}
-  // //             onClick={treeViewOnClick}            <<< this is it
-  // //             onNodeToggle={treeViewOnNodeToggle}  <<< this is it
-  // //             ...
-  // //             defaultCollapseIcon={<ExpandLessIcon/>}
-  // //             defaultExpandIcon={<ExpandMoreIcon/>}>
-  // 
-  // 
-  // // PUNT-FOR-NOW: flesh out treeViewOnClick using onClick
-  // const treeViewOnClick = (e) => {
-  //   console.log(`xx treeViewOnClick() e:`, e);
-  //   console.log(`xx treeViewOnClick() e.target:`, e.target);
-  //   console.log(`xx treeViewOnClick() e.target.nodeName:`, e.target.nodeName);
-  //   console.log(`xx treeViewOnClick() e.target.attributes:`, e.target.attributes);
-  //   console.log(`xx treeViewOnClick() e.target.getAttribute('class'):`, e.target.getAttribute('class'));
-  //   console.log(`xx treeViewOnClick() e.target.getAttribute('id'):`, e.target.getAttribute('id'));
-  // };
-  // 
-  // // PUNT-FOR-NOW: flesh out treeViewOnClick
-  // //      BAD: TreeItem's nodeId and label attributes are swallowed up, presumably retained in internal JS state, nowhere to be found in the DOM
-  // //      BAD: try adding a standard attribute, like id
-  // //           this id gets added to an intermediate node that we don't have access to
-  // //           >>> it may be possible to get this node somehow
-  // //               even if you could, the code would be VERY BRITTLE (subsequent versions may break this)
-  // //      BOTTOM LINE: I think the only thing you can rely on is what is injected in the synthetic event
-  // //      RESEARCH: WONDER if I can supplement the event that is propagated up?
-  // //                I think this would defeat the purpose, as it would require a newly generated arrow at the lowest level!!!
-  // //      RESEARCH: WONDER if there is a way I can gen a cached function
+  const tabActivationHandlers = useTabActivationHandlers(sampleData);
 
   // KOOL: here is our TreeView/TreeItem generation process driven by our data!
   return (
     <TreeView className={classes.root}
               defaultCollapseIcon={<ExpandLessIcon/>}
               defaultExpandIcon={<ExpandMoreIcon/>}>
-
-      { genTreeItemFromData(sampleData, dualHandleActivateTab) }
-
+      { genTreeItemFromData(sampleData, tabActivationHandlers) }
     </TreeView>
   );
 
 }
+// PERF: memo is critical (re-render is frequent and we do a lot of processing to generate our render)
+export default React.memo(SampleMenuPallet);
+
+
 
 const useStyles = makeStyles( theme => ({
   root: {
@@ -168,21 +103,115 @@ const sampleData = [
   },
 ];
 
-// KOOL: our algorithm that interprets sampleData (above), generating TreeView/TreeItem structure USING recursion
-function genTreeItemFromData(dataNodes, onClickHandler, idPrefix='') {
+
+const rootId = 'SampleMenuPallet';
+
+// our process for Tab Registration from our data structure
+function registerTabsFromData(dataNodes, accumulativeId=rootId) {
+
+  // iterate over all our direct children
+  dataNodes.forEach( (dataNode) => {
+    const id = `${accumulativeId}-${dataNode.id}`;
+
+    // for non-leaf nodes (with children):
+    // ... keep drilling into our structure USING recursion
+    if (dataNode.nodes) {
+      log(`registerTabsFromData(): TreeItem non-leaf node ... id: ${id}`);
+      registerTabsFromData(dataNode.nodes, id);
+    }
+
+    // for leaf nodes (without children):
+    // ... register this entry with our Tab Registry
+    else {
+      log(`registerTabsFromData(): TreeItem leaf node ... id: ${id}`);
+      registerTab(id, dataNode.label, () => (
+        <span>Dynamic content for {id} / {dataNode.label}</span>
+      ));
+    }
+  });
+}
+registerTabsFromData(sampleData); // register our Tabs NOW!!!
+
+
+// pre-carve out all the tabActivationHandlers we need in the entire process
+// PERF: this is an optimization that minimizes re-rendering
+//       due to anonymous function reference props constantly changing
+//       HOWEVER not really a concern
+//       ... due to the top-level memoization of SampleMenuPallet
+function useTabActivationHandlers(dataNodes) {
+
+  const dispatch    = useDispatch();
+  const activateTab = useFassets('actions.activateTab');
+
+  log(`in useTabActivationHandlers()`);
+
+  // PERF: consider useCallback()
+  //       HOWEVER not really needed
+  //       ... due to the top-level memoization of SampleMenuPallet
+  // NOTE: technically 2nd param (tabName) is NOT needed, but kept for diagnostic logging
+  const handleActivateTab = (tabId, tabName, preview) => {
+    log(`handleActivateTab( tabId:'${tabId}', tabName:'${tabName}', preview=${preview} )`);
+    dispatch( activateTab(tabId, preview) );
+  };
+
+  const dualHandleActivateTab = genDualClickHandler(
+    (tabId, tabName) => handleActivateTab(tabId, tabName, true), // singleClick: preview   tab ... preview is true
+    (tabId, tabName) => handleActivateTab(tabId, tabName, false) // doubleClick: permanent tab ... preview is false
+  );
+
+  // PERF: this is ALWAYS GOING TO return a new item 
+  //       HOWEVER not really a concern
+  //       ... due to the top-level memoization of SampleMenuPallet
+  return genTabActivationHandlers(dataNodes, dualHandleActivateTab);
+
+}
+
+// the recursive generator
+function genTabActivationHandlers(dataNodes,
+                                  rootHandler,
+                                  accumulativeId=rootId,
+                                  handlers={}) {
+
+  // iterate over all our direct children
+  dataNodes.forEach( (dataNode) => {
+    const id = `${accumulativeId}-${dataNode.id}`;
+
+    // for non-leaf nodes (with children):
+    // ... keep drilling into our structure USING recursion
+    if (dataNode.nodes) {
+      log(`genTabActivationHandlers(): TreeItem non-leaf node ... id: ${id}, label: ${dataNode.label}`);
+      genTabActivationHandlers(dataNode.nodes, rootHandler, id, handlers);
+    }
+
+    // for leaf nodes (without children):
+    // ... accumulate the needed handler
+    else {
+      log(`genTabActivationHandlers(): TreeItem leaf node ... id: ${id}, label: ${dataNode.label}`);
+      // NOTE: technically 2nd param (tabName) is NOT needed, but kept for diagnostic logging
+      handlers[id] = () => rootHandler(id, dataNode.label);
+    }
+  });
+
+  return handlers;
+}
+
+
+// algorithm that morphs our sampleData into TreeView/TreeItem structure USING recursion
+function genTreeItemFromData(dataNodes, tabActivationHandlers, accumulativeId=rootId) {
 
   return dataNodes.map( (dataNode) => {
 
-    const id = idPrefix ? (idPrefix + '-' + dataNode.id) : dataNode.id;
+    const id = `${accumulativeId}-${dataNode.id}`;
 
     // for non-leaf nodes (with children):
     // ... generate a parent TreeItem with child nodes USING recursion
     if (dataNode.nodes) {
+      log(`genTreeItemFromData(): TreeItem non-leaf node ... id: ${id}`);
       return (
         <TreeItem key={id}
                   nodeId={id}
                   label={dataNode.label}>
-          {genTreeItemFromData(dataNode.nodes, onClickHandler, id)}
+          {genTreeItemFromData(dataNode.nodes, tabActivationHandlers, id)}
         </TreeItem>
       );
     }
@@ -190,19 +219,19 @@ function genTreeItemFromData(dataNodes, onClickHandler, idPrefix='') {
     // for leaf nodes (without children):
     // ... generate a leaf TreeItem with our registered event handler
     else {
+      log(`genTreeItemFromData(): TreeItem leaf node ... id: ${id}`);
       return (
         <TreeItem key={id}
                   nodeId={id}
                   label={dataNode.label}
-                  onClick={ ()=> onClickHandler(id, dataNode.label) }/>
+                  onClick={tabActivationHandlers[id]}/>
       );
     }
   });
 
 }
 
-// console.log(`xx here is our generated SampleMenuPallet: `, genTreeItemFromData(sampleData));
-// GENS FOLLOWING:
+// EXAMPLE GENERATION (except the onClick has changed):
 // <TreeItem nodeId="P" label="Passive">
 //   <TreeItem nodeId="P-1" label="Resistors"  onClick={ ()=> dualHandleActivateTab('P-1', 'Resistors') }/>
 //   <TreeItem nodeId="P-2" label="Capacitors" onClick={ ()=> dualHandleActivateTab('P-2', 'Capacitors') }/>
