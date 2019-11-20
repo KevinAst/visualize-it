@@ -1,4 +1,8 @@
-import Konva  from 'konva';
+import Konva          from 'konva';
+import {createLogger} from 'util/logger';
+
+// our internal diagnostic logger (normally disabled, but keep enabled for a while)
+const log = createLogger('***DIAG*** <SmartView> ... ').enable();
 
 // SmartView: a concrete class that manages named visualize-it views of our system
 export default class SmartView {
@@ -16,7 +20,7 @@ export default class SmartView {
   // manifest self's view self supplied html elm
   manifest(elm) {
 
-    console.log('invoking: SmartView.manifest()');
+    log('invoking: SmartView.manifest()');
 
     // KJB: currently assume Stage (container) ... per view
     const stage = new Konva.Stage({
