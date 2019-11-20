@@ -40,12 +40,14 @@ export default function TabManager() {
   }, [dispatch]);
 
   // NOTE: handleCloseTab is currently NOT cached because I am creating multiple inline funcs within the render (below)
-  //       TODO: ?? determine if this is causing unneeded re-renders (only fix would be to cache multiple functions (with implied second tabId param) ... https://medium.com/@Charles_Stover/cache-your-react-event-listeners-to-improve-performance-14f635a62e15
   const handleCloseTab = (event, tabId) => {
     log('in handleCloseTab: ', tabId);
     event.stopPropagation(); // prevent parent tabChanged event from firing ... if not done, it can fire AFTER closeTab - which is bad (because the tab is gone)
     dispatch( _tabManagerAct.closeTab(tabId) );
   };
+
+  // PERF: TabManager renders 2 times every tab change ... performance doesn't appear to be a problem :-)
+  log('rendering');
 
   // NOTE: Each TabPanel content is app-specific,
   //       dynamically created through the tab registry's tabCreator ReactComp.
@@ -94,12 +96,12 @@ export default function TabManager() {
              {/* AI: this content will be dynamically rendered
            
                      NOTE: the following div/Box (if used) will show you the results of a big content and where the scroll bars appear
-??                        <div style={{height: 2000, width: 1000, border: '1px solid orange'}}>
+                          <div style={{height: 2000, width: 1000, border: '1px solid orange'}}>
            
                           <Box border={1}
                                 borderColor="secondary.light">
            
-??                        <Box border={1}
+                          <Box border={1}
                                borderColor="secondary.light"
                                width={1000}
                                height={2000}>
@@ -129,14 +131,14 @@ const useStyles = makeStyles( theme => ({
 }) );
 
 
-// KJB TODO: consider moving TabPanel out into it's own module (possibly NOT if we only use it here)
-// ?? something above TabPanel is giving it the full width
-// ?? how to fill all vertical space?
-//    - a style height: '100%' kinda works, but it doesn't account for filler under AppBar
-//      ... style={{height: '100%'}}
-//    - can use css calc(): 97px = 48px AppBar + 49px TabBar <<< number calculation is a real hack
-//      ... style={{height: 'calc(100% - 97px)'}}
-// ?? the box is giving us a bit of styling (currently padding so as to not but content right up to the edge)
+// TODO: consider moving TabPanel out into it's own module (possibly NOT if we only use it here)
+// TODO: something above TabPanel is giving it the full width
+//       how to fill all vertical space?
+//        - a style height: '100%' kinda works, but it doesn't account for filler under AppBar
+//          ... style={{height: '100%'}}
+//        - can use css calc(): 97px = 48px AppBar + 49px TabBar <<< number calculation is a real hack
+//          ... style={{height: 'calc(100% - 97px)'}}
+// NOTE: the box (below) is giving us a bit of styling (currently padding so as to not place content right up to the edge)
 const TabPanel = ({tabId, activeTabId, children}) => (
   <Paper hidden={tabId !== activeTabId} style={{height: 'calc(100% - 97px)'}}>
     <Box padding={1}>
