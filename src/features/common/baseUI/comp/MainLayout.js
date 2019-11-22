@@ -63,18 +63,23 @@ MainLayout.propTypes = {
 const lightTheme = createMuiTheme({
   typography: {
     useNextVariants: true,
-    // TODO: sync font settings here (from darkTheme)
-    //       ... for now leave lightTheme as default, to do a run-time comparison
+    fontSize:        12,   // USE smaller font size ... default is 16 (seems more like 14)
   },
 
   palette: {
     type: 'light',
-    // AI: More theming to consider
-    primary: {
-      main: '#336600', // subtle dark green -or- 365735
+    // CREATED FROM: https://material.io/tools/color/
+    primary: {                 // REF: Teal 800
+      light:        '#439889',
+      main:         '#00695c',
+      dark:         '#003d33',
+      contrastText: '#f5f5f5', // OVERRIDE: Grey 200
     },
-    secondary: {
-      main: '#000',
+    secondary: {               // REF: Red 800
+      light:        '#ff5f52',
+      main:         '#c62828',
+      dark:         '#8e0000',
+      contrastText: '#f5f5f5', // OVERRIDE: Grey 200
     },
   },
 });
@@ -82,20 +87,22 @@ const lightTheme = createMuiTheme({
 const darkTheme = createMuiTheme({
   typography: {
     useNextVariants: true,
-    // TODO: test smaller font settings (in darkTheme only)
-    //       ... for now leave lightTheme as default, to do a run-time comparison
-    fontSize: 12,    // default is 16 (I DON'T THINK SO ... more like 14)
-//  htmlFontSize: 6, // NOTE: must inject CSS html style: font-size: 37.5%; /* 37.5% of 16px = 6px */
-                     // TODO: need more research on these font size settings
-                     //       ... see: https://material-ui.com/customization/typography/#font-size
+    fontSize:        12,   // USE smaller font size ... default is 16 (seems more like 14)
   },
   palette: {
     type: 'dark',
-    primary: {
-      main: '#336600',
+    // CREATED FROM: https://material.io/tools/color/
+    primary: {                 // REF: Teal 800
+      light:        '#439889',
+      main:         '#00695c',
+      dark:         '#003d33',
+      contrastText: '#f5f5f5', // OVERRIDE: Grey 200
     },
-    secondary: {
-      main: '#000',
+    secondary: {               // REF: Red 800
+      light:        '#ff5f52',
+      main:         '#c62828',
+      dark:         '#8e0000',
+      contrastText: '#f5f5f5', // OVERRIDE: Grey 200
     },
   },
 });
