@@ -50,7 +50,7 @@ export default function AppMotif({children}) {
 
   const fassets = useFassets();
 
-  const curUser = useSelector( (appState) => fassets.sel.curUser(appState), [fassets] );
+//const curUser = useSelector( (appState) => fassets.sel.curUser(appState), [fassets] );
   const curView = useSelector( (appState) => fassets.sel.curView(appState), [fassets] );
 
   const classes = useStyles();
@@ -60,14 +60,14 @@ export default function AppMotif({children}) {
   const curViewAuxiliaryContent = useMemo(() => resolveCurViewAuxiliaryContent(curView, viewAuxiliaryContent), [curView, viewAuxiliaryContent]);
   const {TitleComp, FooterComp} = curViewAuxiliaryContent;
 
-  // no-op when no user is signed-in
-  if (!curUser.isUserSignedIn()) {
-    return (
-      <>
-        {children}
-      </>
-    );
-  }
+  // no-op when no user is signed-in ... AI: DECIDE_AUTH_USER_NEEDED
+//if (!curUser.isUserSignedIn()) {
+//  return (
+//    <>
+//      {children}
+//    </>
+//  );
+//}
 
   return (
     <div className={classes.app}>
@@ -91,8 +91,10 @@ export default function AppMotif({children}) {
             <TitleComp/>
           </div>
 
-          {/* User Profile Menu */}
+          {/* User Profile Menu ... AI: DECIDE_AUTH_USER_NEEDED ... curUser prop usage
           <UserMenu curUser={curUser}/>
+            */}
+          <UserMenu/>
 
         </Toolbar>
       </AppBar>

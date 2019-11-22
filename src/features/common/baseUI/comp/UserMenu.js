@@ -2,14 +2,14 @@ import React,
        {useState,
         useCallback,
         useMemo}      from 'react';
-import PropTypes      from 'prop-types';
+//import PropTypes      from 'prop-types'; ... AI: DECIDE_AUTH_USER_NEEDED
 
 import {useFassets}   from 'feature-u';
 
 import IconButton     from '@material-ui/core/IconButton';
 import Menu           from '@material-ui/core/Menu';
 import UserIcon       from '@material-ui/icons/AccountCircle';
-import Typography     from '@material-ui/core/Typography';
+//import Typography     from '@material-ui/core/Typography'; ... AI: DECIDE_AUTH_USER_NEEDED
 
 
 /**
@@ -33,9 +33,11 @@ export default function UserMenu({curUser}) {
       <IconButton color="inherit"
                   onClick={openUserMenu}>
         <UserIcon/>
+        {/* ... AI: DECIDE_AUTH_USER_NEEDED
         <Typography variant="subtitle2" color="inherit" noWrap>
           &nbsp;{curUser.name}
         </Typography>
+        */}
       </IconButton>
       <Menu anchorEl={anchorUserMenu}
             anchorOrigin={{
@@ -54,9 +56,10 @@ export default function UserMenu({curUser}) {
   );
 }
 
-UserMenu.propTypes = {
-  curUser: PropTypes.object.isRequired,
-};
+// AI: DECIDE_AUTH_USER_NEEDED
+//UserMenu.propTypes = {
+//  curUser: PropTypes.object.isRequired,
+//};
 
 
 

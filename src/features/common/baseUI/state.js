@@ -27,10 +27,11 @@ const reducer = slicedReducer(_baseUI, expandWithFassets( (fassets) => combineRe
     [_baseUIAct.setResponsiveMode]: (state, action) => action.responsiveMode,
   }, fetchResponsiveMode() || 'sm' ), // initialState (from device storage, default to small (a tablet))
 
-  // loc: {lat, lng} ... device GPS location
-  curView: reducerHash({
+  // the current view
+  curView: reducerHash({ // TODO: suspect curView is OBSOLETE for visualize-it ... we are using the dynamic Tab Manager
     [_baseUIAct.changeView]:   (state, action) => action.viewName,
-    [fassets.actions.signOut]: (state, action) => 'eateries', // AI: Inappropriate app knowledge dependency (really part of an @@INIT app payload) ... AI: streamline in "INITIALIZATION" journal entry
+//  AI: DECIDE_AUTH_USER_NEEDED
+//  [fassets.actions.signOut]: (state, action) => 'eateries', // AI: Inappropriate app knowledge dependency (really part of an @@INIT app payload) ... AI: streamline in "INITIALIZATION" journal entry
   }, 'uninitialized'), // initialState
 
   // leftNavItems: {leftNavKey1: LeftNavComp1, leftNavKey2: LeftNavComp2, ...}

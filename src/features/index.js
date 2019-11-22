@@ -1,8 +1,8 @@
 import sandbox                from './sandbox/feature';
-import auth                   from './common/auth/feature';
-import authService            from './common/auth/subFeatures/authService/feature';
-import authServiceFirebase    from './common/auth/subFeatures/authServiceFirebase/feature';
-import authServiceMock        from './common/auth/subFeatures/authServiceMock/feature';
+//import auth                   from './common/auth/feature';    // AI: DECIDE_AUTH_USER_NEEDED
+//import authService            from './common/auth/subFeatures/authService/feature';
+//import authServiceFirebase    from './common/auth/subFeatures/authServiceFirebase/feature';
+//import authServiceMock        from './common/auth/subFeatures/authServiceMock/feature';
 import initFirebase           from './common/initFirebase/feature';
 import baseUI                 from './common/baseUI/feature';
 import tabManager             from './common/tabManager/feature';
@@ -26,10 +26,10 @@ export default [
   baseUI,
   tabManager,
   
-  auth,
-  authService,
-  authServiceFirebase,
-  authServiceMock,
+//auth,
+//authService,
+//authServiceFirebase,
+//authServiceMock,
   
   initFirebase,
   
