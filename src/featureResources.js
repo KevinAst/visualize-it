@@ -12,9 +12,9 @@ import {registerTab,
 
 // NOTE: This named export supports ES6 imports.
 //       Example:
-//         import {whatever} from 'featureAssets';
+//         import {whatever} from 'featureResources';
 //       -or-
-//         import * as featureAssets from 'featureAssets';
+//         import * as featureResources from 'featureResources';
 export {
 
   LeftNavCollapsibleItem,
@@ -27,9 +27,9 @@ export {
 
 // NOTE: This default export supports CommonJS modules (otherwise Babel does NOT promote them).
 //       Example:
-//         const {whatever} = require('featureAssets');
+//         const {whatever} = require('featureResources');
 //       -or-
-//         const featureAssets = require('featureAssets');
+//         const featureResources = require('featureResources');
 export default {
 
   LeftNavCollapsibleItem,

@@ -3,7 +3,7 @@ import React                from 'react';
 import {useDispatch}        from 'react-redux';
 import {useFassets}         from 'feature-u';
 
-import {registerTab}        from 'featureAssets';
+import {registerTab}        from 'featureResources';
 import genDualClickHandler  from 'util/genDualClickHandler';
 import {createLogger}       from 'util/logger';
 

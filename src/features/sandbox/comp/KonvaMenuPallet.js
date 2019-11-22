@@ -5,12 +5,12 @@ import {useFassets}             from 'feature-u';
 
 import konvaSandbox             from '../konvaSandbox';
 
-import {registerTab}            from 'featureAssets';
+import {registerTab}            from 'featureResources';
 import genDualClickHandler      from 'util/genDualClickHandler';
 import {createLogger}           from 'util/logger';
 import SmartViewReact           from 'util/SmartViewReact';
 
-import {LeftNavCollapsibleItem} from 'featureAssets';
+import {LeftNavCollapsibleItem} from 'featureResources';
 import ExpandLessIcon           from '@material-ui/icons/ExpandMore';   // in effect WHEN EXPANDED  ... i.e. clicking will collapse
 import ExpandMoreIcon           from '@material-ui/icons/ChevronRight'; // in effect WHEN COLLAPSED ... i.e. clicking will expand
 import TreeItem                 from '@material-ui/lab/TreeItem';
