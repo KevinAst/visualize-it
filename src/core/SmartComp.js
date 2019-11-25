@@ -2,10 +2,10 @@
  * SmartComp is the abstract base class for all visualize-it
  * components.
  *
- * These are graphical representations of system components:
+ * These are graphical representations of of components found in a system:
  *  - they bind to a data model (for visual affects and animation)
- *  - their graphics are atomically maintained and selectable (using Konva.Group)
- *    ... for example, the entire component is selectable
+ *  - their graphics are atomically managed (selection and transformation)
+ *    ... using a single rooted Konva.Group
  */
 export default class SmartComp {
 

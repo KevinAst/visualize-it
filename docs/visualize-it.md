@@ -113,7 +113,7 @@ The tool allows you to maintain BOTH system-specific
 
 
 **KEY AI PERSIST**: _Persistence vs. Executable Parcel Bundles_
-<ul> <!-- cheap indentaion -->
+<ul> <!-- cheap indentation -->
 
 I am starting to refine the concept of persistance:
 
@@ -126,7 +126,7 @@ I am starting to refine the concept of persistance:
 - must include npm packages for:
   - **core visualize-it**
   - and **plugin component**
-- and must load **system visualizations** through some I/O mechnism
+- and must load **system visualizations** through some I/O mechanism
 
 </ul>
 
@@ -260,7 +260,7 @@ plugin architecture**_. Components:
 
 **Component Verification**
 
-<ul> <!-- cheap indentaion -->
+<ul> <!-- cheap indentation -->
 
 <!-- AI: other terms:
 verification
@@ -288,7 +288,7 @@ reflected in the code.
 
 **Project Structure**
 
-<ul> <!-- cheap indentaion -->
+<ul> <!-- cheap indentation -->
 
 As a result, our project structure contains some aspects of a
 **pseudo plugin architecture** (**AI**: may want to merely
@@ -476,7 +476,7 @@ Data (?Meta):
 
 - the OM contains:
   * various business parameters (as needed)
-  * an intelligance of what variou GM artifacts are
+  * an intelligence of what various GM artifacts are
     ... ex: a "connector"
 
 - ? the integration of these two models MUST BE bi-directional
@@ -504,7 +504,7 @@ Data (?Meta):
 
 ??
 
-- ?? the protocal to interact with the SYSTEM ( ?service/server/backend/driver/externalFeed)
+- ?? the protocol to interact with the SYSTEM ( ?service/server/backend/driver/externalFeed)
   (i.e. what is being visualized)
 
 - ?? a "playback" mode indicates that there is NO "interactiveness" within the visualization
@@ -533,7 +533,7 @@ Data (?Meta):
   - Each component is a visual representation of a single Data Node (in our master model)
     * Each component has a mapping to reference the underlying single Data Node
   - Each view is NOT required to visualize the entire model
-    ... this allows us to focus some "fuctional" subset of interest
+    ... this allows us to focus some "functional" subset of interest
     * We may decide to support a "Master" view, that is required to have ALL nodes in the model
       ... this would provide us with the technique to setup our overall complete model
 
@@ -563,7 +563,7 @@ Data (?Meta):
            - ? it would really have to load a React App
              ... unless our view is STRICTLY our Display Port
     * KJB: Also consider <frame> and <iframe>
-      ... unsure which is more supported, research compatability, etc.
+      ... unsure which is more supported, research compatibility, etc.
 ```
 
 
@@ -573,10 +573,10 @@ Data (?Meta):
 
 ??
 
-?? UI components making up a visual digram
+?? UI components making up a visual diagram
 - supports connectivity to other components (in say a graph)
-- supports annimation with changes to data
-- supports inneractivity (set directives to model)
+- supports animation with changes to data
+- supports interactivity (set directives to model)
 
 
 
@@ -654,7 +654,7 @@ AI: FUTURE - unsure if is needed (possibly for simulation -or- ACTUAL CONTROL of
 ```
 Models digital control logic through a visual logic diagram
 - represented as a visual flow diagram
-- supports programatic setting of model
+- supports programmatic setting of model
 - KJB: I am trying to fully understand hos modeling logic fits in this overall product (may be a miss-match - not fully sure)
        * it IS applicable if we wish to simulate digital control logic that say drives a system
        * I suppose it may EVEN be applicable in production (say packaging logic to deploy to a system)
@@ -831,14 +831,14 @@ tabManager: {
 ## Component Catalog
 
 AI: Because SmartComp catalogs are dynamically retrieved at run-time,
-they will have a similar registery process. This way we can support
+they will have a similar registry process. This way we can support
 persistance of our views (containing SmartComps), where the referenced
-classes can be re-instantiated on retrieval.  The registery key would be
+classes can be re-instantiated on retrieval.  The registry key would be
 a federated classname (ex: myXyzLib-ValveXyz).
 
 NOTE: I think this is true ... because the SmartView is a concrete
 class, it can be implied in our persistance.  In other words there is
-no registery for views.
+no registry for views.
 
 
 <!--- *** SUB-SECTION *************************************************************** --->
@@ -873,8 +873,8 @@ see NOTE (above)
                  Stage (<div>)     SmartView     ... manage the scene(s) to display
        1:M         Layer (Canvas)    SmartScene  ... a perspective that visualizes a system (either part or whole)
        1:M           Shape/Group       SmartComp ... a graphical representation of a system component,
-                                                     - atomically managed (and selectable)
-                                                     - bound to a data model (driving animation)
+                                                     - bound to a data model (for visual affects and animation)
+                                                     - atomically managed (selection and transformation)
 
 ### visualize-it Classes
 
@@ -891,9 +891,9 @@ SmartScene: a perspective that visualizes a system (either part or whole)
               > NEEDS WORK: may want to do things in our static layer (like change component color)
 
 SmartComp: a graphical representation of a system component,
-           - atomically managed (and selectable)
-           - bound to a data model (driving animation)
-           - a fundamental aspect is the component uses Konva Group to make it "atomically selectable"
+           - bound to a data model (for visual affects and animation)
+           - atomically managed (selection and transformation)
+             ... using a single rooted Konva.Group
            - QUESTION: is SmartComp abstract requiring derivation, or is there a containment of native Konva shapes
                        - prob a need for some hierarchy
            
