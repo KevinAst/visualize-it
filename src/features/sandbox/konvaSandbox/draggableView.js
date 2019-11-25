@@ -1,6 +1,7 @@
 import Konva                from 'konva';
 
 import SmartView            from 'core/SmartView';
+import SmartScene           from 'core/SmartScene';
 import SmartComp            from 'core/SmartComp';
 
 
@@ -17,7 +18,7 @@ class Valve1 extends SmartComp {
   //   super(id);
   // }
 
-  manifest(container) {
+  mount(container) {
     const shape = new Konva.Rect({
       x: 20, // TODO: parameterize with defaults (needed for persistence)
       y: 20,
@@ -39,7 +40,7 @@ class Valve2 extends SmartComp {
   //   super(id);
   // }
 
-  manifest(container) {
+  mount(container) {
     const shape = new Konva.Rect({
       x: 150, // TODO: parameterize with defaults (needed for persistence)
       y: 40,
@@ -61,7 +62,7 @@ class Valve3 extends SmartComp {
   //   super(id);
   // }
 
-  manifest(container) {
+  mount(container) {
     const shape = new Konva.Rect({
       x: 50,  // TODO: parameterize with defaults (needed for persistence)
       y: 120,
@@ -76,8 +77,8 @@ class Valve3 extends SmartComp {
 
 
 //******************************************************************************
-// KJB: Here is my instantiated SmartView object
-//      NOTE 1: it is VERY light-weight UNTIL it is manifest!!
+// KJB: Here is my instantiated SmartScene/SmartView objects
+//      NOTE 1: it is VERY light-weight UNTIL it is mounted!!
 //      NOTE 2: KEY: This structure is 
 //                   A. managed through our interactive editor,
 //                      A1. need to monitor/sync these "edit" changes
@@ -87,12 +88,19 @@ class Valve3 extends SmartComp {
 //                      C1. don't think we need to monitor/sync any "animation" changes
 //                          ... because this is NOT persisted
 
-const draggableView = new SmartView('draggableView', [
-  new Valve1('myValve1'),
-  new Valve2('myValve2'),
-  new Valve3('myValve3'),
-]);
-//? draggableView.x = 30; // ?? crude for now
+const scene = new SmartScene({
+  id: 'draggableScene',
+  comps: [
+    new Valve1('myValve1'),
+    new Valve2('myValve2'),
+    new Valve3('myValve3'),
+  ],
+  width:  300,
+  height: 250,
+});
+
+const draggableView = new SmartView('draggableView', scene);
+//? draggableView.x = 30; // ?? crude test to see offset (no longer supported in my SmartView)
 //? draggableView.y = 30;
 
 export default draggableView;
