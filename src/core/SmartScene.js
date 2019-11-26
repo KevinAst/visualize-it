@@ -84,6 +84,34 @@ export default class SmartScene {
   //this.y = 0; 
 
   }
+  
+  /**
+   * Verify self has been mounted.
+   * @param {string} [method] - the method name on which behalf we are checking.
+   */
+  checkMounted(method) {
+    verify(this.konvaLayer, `${this.constructor.name}.${method}() can only be invoked after mounting.`);
+  }
+
+  /**
+   * Get/set our draggable scene flag.
+   *
+   * @param {boolean} [draggable] - the optional setting that when
+   * supplied will set the scene's draggability.
+   *
+   * @returns {boolean|self} for getter: our current draggable
+   * setting, for setter: self (supporting chainable setters).
+   */
+  draggable(draggable) {
+    this.checkMounted('draggable');
+    if (draggable===undefined) {          // getter:
+      return this.konvaLayer.draggable(); // return boolean setting
+    }
+    else {                                  // setter:
+      this.konvaLayer.draggable(draggable); // set internal object
+      return this;                          // return self (for chaining)
+    }
+  }
 
   /**
    * Mount the visuals of this scene, binding the graphics to the
@@ -100,27 +128,18 @@ export default class SmartScene {
   mount(containingKonvaStage, x=0, y=0) {
 
     // create our layer where our components will be mounted
-    // TODO: ?? determine if this needs to be retained in self
-    const konvaLayer = new Konva.Layer({
-
-      // ?? crude test to determine that YES you can drag the entire layer
-      //    - YOU CAN!
-      //    - must drag one of it's object
-      //    - UNSURE if this restricts individual objects from dragging?
-      //    - ?? TODO: parameterize this so we can accomplish it at run-time through some api
-      draggable: true,
-
+    this.konvaLayer = new Konva.Layer({
       x,
       y,
     });
 
     // mount our components into this layer
-    this.comps.forEach( (comp) => comp.mount(konvaLayer) );
+    this.comps.forEach( (comp) => comp.mount(this.konvaLayer) );
 
     // wire our layer into the supplied containingKonvaStage
     // ... NOTE: This must be added AFTER the layer is populated :-(
     //           UNSURE WHY: seems like a Konva limitation :-(
-    containingKonvaStage.add(konvaLayer)
+    containingKonvaStage.add(this.konvaLayer)
   }
 
   //? persistenceMethods() {

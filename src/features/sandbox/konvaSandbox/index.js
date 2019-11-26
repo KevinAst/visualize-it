@@ -1,4 +1,5 @@
-import draggableView from './draggableView';
+import {viewTestingDraggableScene, 
+        viewTestingDraggableScene2} from './draggableScene';
 
 //******************************************************************************
 //*** konvaSandbox: the data structure driving our Konva demonstrations,
@@ -11,8 +12,8 @@ const konvaSandbox = {
   nodes: [
     { id: 'basics', desc: 'Basics',
       nodes: [
-        { id: 'draggableView', desc: 'Draggable View', smartView: draggableView, },
-        { id: 'temp2',         desc: 'Temp Test 2',    smartView: draggableView, },
+        { id: 'viewTestingDraggableScene',  desc: 'Draggable Scene',   smartView: viewTestingDraggableScene,  },
+        { id: 'viewTestingDraggableScene2', desc: 'Draggable Scend 2', smartView: viewTestingDraggableScene2, },
       ],
     }
   ],

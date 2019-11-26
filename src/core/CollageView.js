@@ -36,6 +36,27 @@ export default class CollageView extends SmartView {
     this.height = height;
   }
 
+  /**
+   * Get/set the draggable flag of our contained scene.
+   *
+   * @param {boolean} [draggable] - the optional setting that when
+   * supplied will set the scene's draggability.
+   *
+   * @returns {boolean|self} for getter: the current draggable
+   * setting of our contained scene, for setter: self (supporting
+   * chainable setters).
+   */
+  draggableScene(draggable) {
+    this.checkMounted('draggableScene');
+
+    if (draggable===undefined) {               // getter:
+      return this.scenes[0].scene.draggable(); // return boolean setting of our first scene (assumes it is synced)
+    }
+    else {                                  // setter: sets across all our scenes
+      this.scenes.forEach( (sceneCtx) => sceneCtx.scene.draggable(draggable) );
+      return this;                          // return self (for chaining)
+    }
+  }
 
   /**
    * Mount the visuals of this view, binding the graphics to the
@@ -52,8 +73,7 @@ export default class CollageView extends SmartView {
     log(`mounting CollageView id: ${this.id}`);
     
     // create our stage where our scenes will be mounted
-    // TODO: ?? determine if this needs to be retained in self
-    const konvaStage = new Konva.Stage({
+    this.konvaStage = new Konva.Stage({
       container: containingHtmlElm,
       x:         0, // we assume an offset at the origin
       y:         0,
@@ -63,7 +83,7 @@ export default class CollageView extends SmartView {
     
     // mount our scenes onto this stage
     this.scenes.forEach( (sceneCtx) => {
-      sceneCtx.scene.mount(konvaStage, sceneCtx.pos.x, sceneCtx.pos.y);
+      sceneCtx.scene.mount(this.konvaStage, sceneCtx.pos.x, sceneCtx.pos.y);
     });
 
   }

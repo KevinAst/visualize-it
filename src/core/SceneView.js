@@ -24,6 +24,28 @@ export default class SceneView extends SmartView {
     this.scene = scene;
   }
 
+  /**
+   * Get/set the draggable flag of our contained scene.
+   *
+   * @param {boolean} [draggable] - the optional setting that when
+   * supplied will set the scene's draggability.
+   *
+   * @returns {boolean|self} for getter: the current draggable
+   * setting of our contained scene, for setter: self (supporting
+   * chainable setters).
+   */
+  draggableScene(draggable) {
+    this.checkMounted('draggableScene');
+
+    if (draggable===undefined) {     // getter:
+      return this.scene.draggable(); // return boolean setting of our scene
+    }
+    else {                             // setter:
+      this.scene.draggable(draggable); //   sets our scene
+      return this;                     // return self (for chaining)
+    }
+  }
+
 
   /**
    * Mount the visuals of this view, binding the graphics to the
@@ -40,8 +62,7 @@ export default class SceneView extends SmartView {
     log(`mounting SceneView id: ${this.id}`);
   
     // create our stage where our scene will be mounted
-    // TODO: ?? determine if this needs to be retained in self
-    const konvaStage = new Konva.Stage({
+    this.konvaStage = new Konva.Stage({
       container: containingHtmlElm,
       x:         0, // we assume an offset at the origin
       y:         0,
@@ -50,7 +71,7 @@ export default class SceneView extends SmartView {
     });
   
     // mount our scene into this stage
-    this.scene.mount(konvaStage);
+    this.scene.mount(this.konvaStage);
   }
 
 

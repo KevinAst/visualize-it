@@ -1,3 +1,5 @@
+import verify  from 'util/verify';
+
 /**
  * SmartView is an abstract base class representing the viewport in
  * which scene(s) are displayed/visualized.
@@ -21,6 +23,28 @@ export default class SmartView {
   constructor(id, scene) {
     // retain parameters in self
     this.id = id;
+  }
+  
+  /**
+   * Verify self has been mounted.
+   * @param {string} [method] - the method name on which behalf we are checking.
+   */
+  checkMounted(method) {
+    verify(this.konvaStage, `${this.constructor.name}.${method}() can only be invoked after mounting.`);
+  }
+
+  /**
+   * Get/set the draggable flag of our contained scene.
+   *
+   * @param {boolean} [draggable] - the optional setting that when
+   * supplied will set the scene's draggability.
+   *
+   * @returns {boolean|self} for getter: the current draggable
+   * setting of our contained scene, for setter: self (supporting
+   * chainable setters).
+   */
+  draggableScene(draggable) {
+    throw new Error(`***ERROR*** SmartView pseudo-interface-violation: ${this.constructor.name}(id:${this.id}).draggableScene() is an abstract method that MUST BE implemented!`);
   }
 
 
