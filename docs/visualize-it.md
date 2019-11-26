@@ -866,68 +866,101 @@ see NOTE (above)
         ... hmmmm
 ```
 
-### visualize-it mapping to Konva
 
-    Cardinality  KonvaJS           visualize-it
-    ===========  ================  =============
-                 Stage (<div>)     SmartView     ... manage the scene(s) to display
-       1:M         Layer (Canvas)    SmartScene  ... a perspective that visualizes a system (either part or whole)
-       1:M           Shape/Group       SmartComp ... a graphical representation of a system component,
-                                                     - bound to a data model (for visual affects and animation)
-                                                     - atomically managed (selection and transformation)
+### View Requirements
+
+In support of our visualization requirement to be able to display ONE
+or MORE scenes, we introduce a "Collage" concept, where multiple
+scenes are managed.
+
+As a result, we maintain the following SmartView class hierarchy:
+
+```
+   SmartView .......... an abstract viewport in which scene(s) are displayed/visualized
+isA ├── SceneView ..... a single scene
+    └── CollageView ... multiple scenes
+```
+
+
+### visualize-it Object Mapping to Konva
+
+```
+Cardinality  KonvaJS           visualize-it
+===========  ================  =============
+             Stage (<div>)     SmartView     ... a viewport in which scene(s) are displayed/visualized
+   1:M         Layer (Canvas)    SmartScene  ... a graphical perspective that visualizes a system (part or whole)
+   1:M           Shape/Group       SmartComp ... a graphical representation of a system component
+```
 
 ### visualize-it Classes
 
+**Class Summary _(with isA relationships)_**
 ```
-SmartScene: a perspective that visualizes a system (either part or whole)
-            - a scene contains visual components, arranged in a way that resembles a system
-            - multiple scenes may visualize different aspects of a system (for example a functional breakdown)
-            - a scene can be divided into MULTIPLE functional layers (INTERNALLY each a Konva layer)
-              * components of a scene will belong to one of these functional layers
-              * allows the visualization of these functional layers to be toggled on/off
-            - NEEDS WORK: internally each scene (and their functional layers) is sub-divided into two Konva layers:
-              * a static layer
-              * an animation layer
-              > NEEDS WORK: may want to do things in our static layer (like change component color)
+   SmartView .......... an abstract viewport in which scene(s) are displayed/visualized
+isA ├── SceneView ..... single scene
+    └── CollageView ... multiple scenes
 
-SmartComp: a graphical representation of a system component,
-           - bound to a data model (for visual affects and animation)
-           - atomically managed (selection and transformation)
-             ... using a single rooted Konva.Group
-           - QUESTION: is SmartComp abstract requiring derivation, or is there a containment of native Konva shapes
-                       - prob a need for some hierarchy
-           
-                          SmartComp        ... abstract in some way I THINK
-                           ├── DynamicComp ... for dynamic-based resource-loaded compLibs
-                           │                   a concrete derivation managed by the visualize-it component editor
-                           └── Others      ... for code-base compLibs
+   SmartScene ......... a graphical perspective that visualizes a system (either part or whole)
 
+   SmartComp        ... an abstract graphical representation of a system component
+isA ├── DynamicComp ... a concrete derivation for dynamic-based resource-loaded compLibs
+    │                   ... managed by the visualize-it component editor
+    └── others      ... for code-based compLibs
+```
 
-REQUIREMENT: support BOTH visualizations of a SINGLE scene -OR- MULTIPLE scenes
-             - in support of this, we have a class hierarchy
-
-                SmartView
-                 ├── FrameView ..... a single scene  <<< this is "implied" by our editor
-                 │                   (exposing only scenes ... which can imply FrameView)
-                 └── CollageView ... multiple scenes <<< this manifests concrete aspects in our editor
-                                     (i.e. Collage)
-
-SmartView:   the viewport in which scene(s) are displayed/visualized
+**Class Detail**
+```
+SmartView:   an abstract viewport in which scene(s) are displayed/visualized
              - in all cases, this visualization can be "displayed":
-               NOTE: this MAY BE more of a run-time consideration (rather than specified/retained in our editor)
                * in-line:  within the "contained" HTML DOM container
-               * external: using an external browser window
+               * external: using external browser window(s)
+               > NOTE: this MAY BE more of a run-time consideration
+                       (rather than specified/retained in our editor)
 
-FrameView:   a viewport (SmartView derivation) in which a single scene is displayed/visualized
-             - INTERNALLY: we LOGICALLY expose ONLY scenes because we can IMPLY a FrameView from it
-             - constructor:
-                 new FrameView(scene, display='in-line')
-                 ... INTERNAL: here the position is implied to be fixed at (0,0)
-                 
-CollageView: a viewport (View derivation) in which multiple scenes are displayed/visualized
-             - INTERNALLY: we expose Collages because we need to specify/retain each scene position
-             - constructor:
-                 new Collage([ {scene, pos}, ... ], display='in-line')
+  SceneView:   a viewport (SmartView derivation) in which a single scene is displayed/visualized
+               - constructor:
+                   new SceneView(scene, display='in-line')
+                   ... NOTE: in this case the scene position is implied to be anchored at (0,0)
+               - TODO: it may be that we "imply" this SceneView within our "system" data model
+                       - I THINK we need to reference the scene directly in our collages
+                       
+                   
+  CollageView: a viewport (SmartView derivation) in which multiple scenes are displayed/visualized
+               - constructor:
+                   new Collage([ {scene, pos}, ... ], display='in-line')
+                   ... NOTE: in this case the scene positions are supplied, facilitating the desired layout
+
+
+SmartScene: a graphical perspective that visualizes a system (either part or whole)
+            - a scene contains visual components, arranged in a way that resembles a system
+            - a scene DIRECTLY manges the width/height properties
+            - multiple scenes may visualize different aspects of a system (for example a functional breakdown)
+              * each scene INTERNALLY correlates to a separate Konva.Layer
+            - FUTURE: support of user-defined functional layers
+              * a scene may be further sub-divided into MULTIPLE functional layers
+              * components of a scene will belong to one of these functional layers
+                ... Quest: is this a direct containment, or some logical tagging?
+              * this allows the visualization of these functional layers to be toggled on/off
+            - FUTURE: Animation Consideration:
+              * internally each scene (and their functional layers) is sub-divided into two Konva layers:
+                - a static layer
+                - an animation layer
+                > NEEDS WORK: may want to do things in our static layer (like change component color)
+
+
+SmartComp: an abstract graphical representation of a system component:
+           - bound to a data model (for visual affects and animation)
+           - their graphics are atomically managed (selection and transformation)
+             ... using a single rooted Konva.Group
+           - NOTE: SmartComp is abstract requiring derivation (for code-based compLibs)
+                   HOWEVER: there is a concrete derivation that supports 
+                            dynamic-based resource-loaded compLibs
+                            (maintained by the visualize-it component editor)
+           
+                          SmartComp        ... abstract
+                      isA  ├── DynamicComp ... a concrete derivation for dynamic-based resource-loaded compLibs
+                           │                   ... managed by the visualize-it component editor
+                           └── others      ... for code-based compLibs
 ```
 
 

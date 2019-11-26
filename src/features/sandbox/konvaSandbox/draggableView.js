@@ -1,6 +1,6 @@
 import Konva                from 'konva';
 
-import SmartView            from 'core/SmartView';
+import SceneView            from 'core/SceneView';
 import SmartScene           from 'core/SmartScene';
 import SmartComp            from 'core/SmartComp';
 
@@ -99,8 +99,8 @@ const scene = new SmartScene({
   height: 250,
 });
 
-const draggableView = new SmartView('draggableView', scene);
-//? draggableView.x = 30; // ?? crude test to see offset (no longer supported in my SmartView)
+const draggableView = new SceneView('draggableView', scene);
+//? draggableView.x = 30; // ?? crude test to see offset (no longer supported in my SceneView)
 //? draggableView.y = 30;
 
 export default draggableView;

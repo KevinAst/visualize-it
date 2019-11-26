@@ -2,19 +2,29 @@
  * SmartComp is the abstract base class for all visualize-it
  * components.
  *
- * These are graphical representations of of components found in a system:
+ * These are graphical representations of components found in a system:
+ *
  *  - they bind to a data model (for visual affects and animation)
+ *
  *  - their graphics are atomically managed (selection and transformation)
  *    ... using a single rooted Konva.Group
+ *
+ *  - NOTE: SmartComp is abstract requiring derivation (for code-based compLibs)
+ *          HOWEVER: there is a concrete derivation that supports 
+ *                   dynamic-based resource-loaded compLibs
+ *                   (maintained by the visualize-it component editor)
+ *  
+ *                 SmartComp        ... abstract
+ *             isA  ├── DynamicComp ... a concrete derivation for dynamic-based resource-loaded compLibs
+ *                  │                   ... managed by the visualize-it component editor
+ *                  └── others      ... for code-based compLibs
  */
 export default class SmartComp {
 
   /**
    * Create a SmartComp.
    *
-   * ?? **Please Note** this function uses named parameters.
-   *
-   * @param {string} id - The unique identifier of this component. ?? is there more?
+   * @param {string} id - The unique identifier of this component. ?? is there more params?
    */
   constructor(id) {
     this.id = id;

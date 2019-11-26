@@ -1,34 +1,26 @@
-import Konva          from 'konva';
-import {createLogger} from 'util/logger';
-
-// our internal diagnostic logger (normally disabled, but keep enabled for a while)
-const log = createLogger('***DIAG*** <SmartView> ... ').enable();
-
 /**
- * SmartView is a base class representing the viewport in which
- * scene(s) are displayed/visualized.
+ * SmartView is an abstract base class representing the viewport in
+ * which scene(s) are displayed/visualized.
+ * 
+ * Derivations of SmartView will handle the specifics of visualizing a
+ * single scene (SceneView) or multiple scenes (CollageView).
  * 
  * In all cases, this visualization can be "displayed":
  *   - in-line:  within the "contained" HTML DOM container
  *   - external: using an external browser window
  * TODO: this MAY BE more of a run-time consideration (rather than
- *       specified/retained in our editor)
+ *       specified/retained by constructor params driven by our editor)
  */
 export default class SmartView {
 
   /**
    * Create a SmartView.
    *
-   * TODO: ?? eventually SmartView will be abstract, but for now it is concrete (mimicking FrameView - a single scene) 
-   * TODO: ?? do we want to utilize named parameters (like SmartScene)
-   *
    * @param {string} id - the unique identifier of this view.
-   * @param {SmartScene} scene - the scene visualized in this view.
    */
   constructor(id, scene) {
     // retain parameters in self
-    this.id    = id;
-    this.scene = scene;
+    this.id = id;
   }
 
 
@@ -39,25 +31,11 @@ export default class SmartView {
    * Prior to `mount()` execution, the visualize-it object
    * representation is very lightweight.
    *
-   * @param {HtmlElm} htmlElm - The container of this scene (an HTML
-   * Element).
+   * @param {HtmlElm} containingHtmlElm - The container of this view
+   * (an HTML Element).
    */
-  mount(htmlElm) {
-
-    log(`mounting SmartView id: ${this.id}`);
-
-    // create our stage where our scene will be mounted
-    // TODO: ?? determine if this needs to be retained in self
-    const konvaStage = new Konva.Stage({
-      container: htmlElm,
-      x:         0, // we assume an offset at the origin
-      y:         0,
-      width:     this.scene.width, // our size is defined within our scene
-      height:    this.scene.height,
-    });
-
-    // mount our scene into this stage
-    this.scene.mount(konvaStage)
+  mount(containingHtmlElm) {
+    throw new Error(`***ERROR*** SmartView pseudo-interface-violation: ${this.constructor.name}(id:${this.id}).mount() is an abstract method that MUST BE implemented!`);
   }
 
 
