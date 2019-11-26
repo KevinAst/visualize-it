@@ -1,10 +1,10 @@
 import React               from 'react';
 import {useRef, useEffect} from 'react';
 
-// SmartViewReact: a re-usable React Component that mounts (i.e. renders) a SmartView.
+// ReactSmartView: a re-usable React Component that mounts (i.e. renders) a SmartView.
 //                 NOTE: This is part of util because it is a react utility 
 //                       used by the interactive tool ... NOT a core offering!
-export default function SmartViewReact({view, ...otherProps}) {
+export default function ReactSmartView({view, ...otherProps}) {
 
   const stageElm = useRef(null);
 

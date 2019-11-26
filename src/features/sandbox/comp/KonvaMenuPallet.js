@@ -8,7 +8,7 @@ import konvaSandbox             from '../konvaSandbox';
 import {registerTab}            from 'featureResources';
 import genDualClickHandler      from 'util/genDualClickHandler';
 import {createLogger}           from 'util/logger';
-import SmartViewReact           from 'util/SmartViewReact';
+import ReactSmartView           from 'util/ReactSmartView';
 
 import {LeftNavCollapsibleItem} from 'featureResources';
 import ExpandLessIcon           from '@material-ui/icons/ExpandMore';   // in effect WHEN EXPANDED  ... i.e. clicking will collapse
@@ -75,7 +75,7 @@ function registerTabsFromData(nodes, accumulativeId=konvaSandbox.id) {
     else {
       log(`registerTabsFromData(): TreeItem leaf node ... id: ${id}`);
       registerTab(id, node.desc, () => (
-        <SmartViewReact view={node.smartView}/>
+        <ReactSmartView view={node.smartView}/>
       ));
     }
   });
