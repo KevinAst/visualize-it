@@ -82,7 +82,21 @@ export default function AppMotif({children}) {
           {/* AI: Consider for some App Menu */}
           <IconButton className={classes.menuButton}
                       color="inherit"
-                      onClick={() => toast.warn({msg: 'App Menu NOT implemented yet (coming soon)!'}) }>
+                      onClick={ async () => {
+                          // toast.warn({msg: 'App Menu NOT implemented yet (coming soon)!'}) // ?? original
+                          try {
+                            const fileHandle  = await window.chooseFileSystemEntries(); // AI: eventually retain this in outer scope IF you need to reuse
+                            const file        = await fileHandle.getFile();
+                            const fileContent = await file.text();
+                            toast({msg: 'see console for file content :-)'});
+                            console.log(`local fileContent:\n\n${fileContent}`);
+                          }
+                          catch (err) {
+                            if (err.message !== 'The user aborted a request.') {
+                              console.log('err in local file handler: ', err);
+                            }
+                          }
+                      }}>
             <MenuIcon/>
           </IconButton>
 
