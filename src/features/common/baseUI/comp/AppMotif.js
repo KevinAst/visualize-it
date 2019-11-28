@@ -88,11 +88,13 @@ export default function AppMotif({children}) {
                             const fileHandle  = await window.chooseFileSystemEntries(); // AI: eventually retain this in outer scope IF you need to reuse
                             const file        = await fileHandle.getFile();
                             const fileContent = await file.text();
-                            toast({msg: 'see console for file content :-)'});
-                            console.log(`local fileContent:\n\n${fileContent}`);
+                            toast({msg: `local fileContent:\n\n${fileContent}`});
+                            //? toast({msg: 'see console for file content :-)'});
+                            //? console.log(`local fileContent:\n\n${fileContent}`);
                           }
                           catch (err) {
                             if (err.message !== 'The user aborted a request.') {
+                              toast.error({msg: `err in local file handler: ${err.message}`});
                               console.log('err in local file handler: ', err);
                             }
                           }
