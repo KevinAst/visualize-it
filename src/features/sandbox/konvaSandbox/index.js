@@ -13,7 +13,7 @@ const konvaSandbox = {
     { id: 'basics', desc: 'Basics',
       nodes: [
         { id: 'viewTestingDraggableScene',  desc: 'Draggable Scene',   smartView: viewTestingDraggableScene,  },
-        { id: 'viewTestingDraggableScene2', desc: 'Draggable Scend 2', smartView: viewTestingDraggableScene2, },
+        { id: 'viewTestingDraggableScene2', desc: 'Draggable Scene 2', smartView: viewTestingDraggableScene2, },
       ],
     }
   ],
