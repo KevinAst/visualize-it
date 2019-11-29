@@ -43,7 +43,7 @@ export default class SmartScene {
    */
   constructor({id,
                comps,
-               width, // NOTE: we keep as width/height rather than size: {width, height} (for now) ... CONSISTANT with Konva.Stage API (not that that matters ... it is an internal)
+               width, // NOTE: we keep as width/height rather than size: {width, height} (for now) ... CONSISTENT with Konva.Stage API (not that that matters ... it is an internal)
                height,
                ...unknownArgs}={}) {
 
