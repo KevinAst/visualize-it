@@ -24,13 +24,25 @@ export default class SmartView {
     // retain parameters in self
     this.id = id;
   }
-  
+
   /**
    * Verify self has been mounted.
    * @param {string} [method] - the method name on which behalf we are checking.
    */
   checkMounted(method) {
     verify(this.konvaStage, `${this.constructor.name}.${method}() can only be invoked after mounting.`);
+  }
+
+  /**
+   * Get self's size ... {width, height}.
+   *
+   * NOTE: Because view size is derived from it's contained scene(s), 
+   *       you may only set the size within the scene object (where it is mastered).
+   *
+   * @returns {Size} our current size.
+   */
+  size(size) {
+    throw new Error(`***ERROR*** SmartView pseudo-interface-violation: ${this.constructor.name}(id:${this.id}).size() is an abstract method that MUST BE implemented!`);
   }
 
   /**

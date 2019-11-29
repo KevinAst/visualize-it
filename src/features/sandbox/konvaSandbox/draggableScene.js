@@ -48,7 +48,7 @@ const scene = new SmartScene({
     new generalComps.Valve3('myValve3'),
     new ToggleDraggableScenesButton('myButton'),
   ],
-  width:  300, // ?? see different numbers pass through (NO WORKY YET)
+  width:  300, // ... see different numbers pass through
   height: 250,
 });
 
@@ -92,10 +92,10 @@ const scene2 = new SmartScene({
   comps: [
     new generalComps.Valve1('myValve1'),
     new generalComps.Valve2('myValve2'),
-//  new generalComps.Valve3('myValve3'),
+//  new generalComps.Valve3('myValve3'),  // omit this JUST to make it different
     new ToggleDraggableScenesButton2('myButton'),
   ],
-  width:  400, // ?? see different numbers pass through (NO WORKY YET)
+  width:  400, // ... see different numbers pass through
   height: 400,
 });
 

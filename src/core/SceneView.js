@@ -1,5 +1,6 @@
 import SmartView      from './SmartView';
 import Konva          from 'konva';
+import verify         from 'util/verify';
 import {createLogger} from 'util/logger';
 
 // our internal diagnostic logger (normally disabled, but keep enabled for a while)
@@ -22,6 +23,20 @@ export default class SceneView extends SmartView {
 
     // retain derivation-specific parameters in self
     this.scene = scene;
+  }
+
+  /**
+   * Get self's size ... {width, height}.
+   *
+   * NOTE: Because view size is derived from it's contained scene(s), 
+   *       you may only set the size within the scene object (where it is mastered).
+   *
+   * @returns {Size} our current size.
+   */
+  size(size) {
+    // NOTE: this method does NOT require mounting, because it's contained scene masters the size!
+    verify(size===undefined, `***ERROR*** ${this.constructor.name}.size() can only be invoked as a getter (with no params) ... size is mastered in the scene, AND derived in the view.`);
+    return this.scene.size(); // return current size (from our contained scene)
   }
 
   /**
@@ -62,12 +77,13 @@ export default class SceneView extends SmartView {
     log(`mounting SceneView id: ${this.id}`);
   
     // create our stage where our scene will be mounted
+    const {width, height} = this.size();
     this.konvaStage = new Konva.Stage({
       container: containingHtmlElm,
       x:         0, // we assume an offset at the origin
       y:         0,
-      width:     this.scene.width, // our size is defined within our scene
-      height:    this.scene.height,
+      width,
+      height,
     });
   
     // mount our scene into this stage

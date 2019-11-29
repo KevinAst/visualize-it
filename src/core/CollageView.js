@@ -1,5 +1,6 @@
 import SmartView      from './SmartView';
 import Konva          from 'konva';
+import verify         from 'util/verify';
 import {createLogger} from 'util/logger';
 
 // our internal diagnostic logger (normally disabled, but keep enabled for a while)
@@ -25,15 +26,28 @@ export default class CollageView extends SmartView {
 
     // retain derivation-specific parameters in self
     this.scenes = scenes; // TODO: need mucho validation and/or a real SceneCtx structure
+  }
 
-    // calculate our width/height (accumulation of all our scenes)
-    const {width, height} = this.scenes.reduce( (accum, sceneCtx) => {
-      accum.width  = Math.max(accum.width,  sceneCtx.scene.pos.x + sceneCtx.scene.width);
-      accum.height = Math.max(accum.height, sceneCtx.scene.pos.y + sceneCtx.scene.height);
+  /**
+   * Get self's size ... {width, height}.
+   *
+   * NOTE: Because view size is derived from it's contained scene(s), 
+   *       you may only set the size within the scene object (where it is mastered).
+   *
+   * @returns {Size} our current size.
+   */
+  size(size) {
+    // NOTE: this method does NOT require mounting, because it's contained scene masters the size!
+    verify(size===undefined, `***ERROR*** ${this.constructor.name}.size() can only be invoked as a getter (with no params) ... size is mastered in the scene, AND derived in the view.`);
+
+    // compute our size accumulated from all our scenes
+    const viewSize = this.scenes.reduce( (accum, sceneCtx) => {
+      const sceneSize = sceneCtx.scene.size();
+      accum.width  = Math.max(accum.width,  sceneCtx.scene.pos.x + sceneSize.width); 
+      accum.height = Math.max(accum.height, sceneCtx.scene.pos.y + sceneSize.height);
       return accum;
     }, {width:0, height:0});
-    this.width  = width;
-    this.height = height;
+    return viewSize;
   }
 
   /**
@@ -73,12 +87,13 @@ export default class CollageView extends SmartView {
     log(`mounting CollageView id: ${this.id}`);
     
     // create our stage where our scenes will be mounted
+    const {width, height} = this.size();
     this.konvaStage = new Konva.Stage({
       container: containingHtmlElm,
       x:         0, // we assume an offset at the origin
       y:         0,
-      width:     this.width, // our size is the accumulation of all our scenes
-      height:    this.height,
+      width,
+      height,
     });
     
     // mount our scenes onto this stage

@@ -38,12 +38,12 @@ export default class SmartScene {
    * @param {string} id - the unique identifier of this scene.
    * @param {SmartComp[]} comps - the set of components (SmartComp) that 
    * make up this scene (logically our display list).
-   * @param {int} width - the width of this scene.
-   * @param {int} height - the height of this scene.
+   * @param {int} width - the width of this scene (mastered in scene).
+   * @param {int} height - the height of this scene (mastered in scene).
    */
   constructor({id,
                comps,
-               width,
+               width, // NOTE: we keep as width/height rather than size: {width, height} (for now) ... CONSISTANT with Konva.Stage API (not that that matters ... it is an internal)
                height,
                ...unknownArgs}={}) {
 
@@ -78,8 +78,7 @@ export default class SmartScene {
     // retain parameters in self
     this.id     = id;
     this.comps  = comps;
-    this.width  = width;
-    this.height = height;
+    this._size = {width, height}; // NOTE: we use _size so as NOT to clash with size() method
   //this.x = 0; // ?? crude test to see offset (no longer supported in my SceneView)
   //this.y = 0; 
 
@@ -91,6 +90,29 @@ export default class SmartScene {
    */
   checkMounted(method) {
     verify(this.konvaLayer, `${this.constructor.name}.${method}() can only be invoked after mounting.`);
+  }
+
+  /**
+   * Get/Set self's size ... {width, height}.
+   *
+   * NOTE: Because the pallet size is mastered in the scene, it can be
+   *       set here.  A view size is derived from it's contained scene(s).
+   *
+   * @param {Size} [size] - the optional size that when
+   * supplied will set self's size.
+   *
+   * @returns {Size|self} for getter: our current size,
+   * for setter: self (supporting chainable setters).
+   */
+  size(size) {
+    // NOTE: this method does NOT require mounting, because SmartScene masters the size!
+    if (size===undefined) {      // getter:
+      return this._size;
+    }
+    else {                       // setter:
+      this._size = {width: size.width, height: size.height}; // new copy for good measure
+      return this;               // return self (for chaining)
+    }
   }
 
   /**

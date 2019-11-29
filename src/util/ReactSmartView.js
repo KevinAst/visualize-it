@@ -8,15 +8,16 @@ export default function ReactSmartView({view, ...otherProps}) {
 
   const stageElm = useRef(null);
 
-  useEffect( () => { // runs after the render is committed to the screen - BY DEFAULT after EVERY render ? may need to conditionalize this HOWEVER don't see it invoked more than once
+  // mount the view canvas graphics, once self is fully manifest in the real HTML DOM
+  useEffect( () => {
     view.mount(stageElm.current);    
-  }, [view]); // ??$$ see if [] fixes? ... the dependency list seems to fix redundant mounts()
+  }, [view]); // ... the dependency list prevents redundant mounts()
 
   // ?? crude test
   // ? style={{backgroundColor: 'gray', borderWidth: 5, borderStyle: 'solid', borderColor: 'purple'}}
   // ?? AI: the style characteristics (below) will be eventually gleaned from future SmartView API
   //        ex: view.backgroundColor, view.width, view.height 
   //        THE BORDER is provided by US (not sure) to expose the view border and/or ability to edit width/height (unsure about this last one)
-// ??$$ we MUST get width from our view (via it's scene)
-  return <div ref={stageElm} {...otherProps} style={{backgroundColor: 'gray', width: 300, height: 250, border: '1px solid black'}}/>;
+  const {width, height} = view.size();
+  return <div ref={stageElm} {...otherProps} style={{backgroundColor: 'gray', width, height, border: '1px solid black'}}/>;
 }
