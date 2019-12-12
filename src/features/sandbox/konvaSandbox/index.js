@@ -1,5 +1,6 @@
 import {viewTestingDraggableScene, 
-        viewTestingDraggableScene2} from './draggableScene';
+        viewTestingDraggableScene2,
+        aCollageView}                from './draggableScene';
 
 //******************************************************************************
 //*** konvaSandbox: the data structure driving our Konva demonstrations,
@@ -12,8 +13,10 @@ const konvaSandbox = {
   nodes: [
     { id: 'basics', desc: 'Basics',
       nodes: [
-        { id: 'viewTestingDraggableScene',  desc: 'Draggable Scene',   smartView: viewTestingDraggableScene,  },
-        { id: 'viewTestingDraggableScene2', desc: 'Draggable Scene 2', smartView: viewTestingDraggableScene2, },
+        // ?? would be NICE to get desc FROM the SmartView (a new property)
+        { id: 'viewTestingDraggableScene',  desc: 'Scene View Demo',   smartView: viewTestingDraggableScene,  },
+        { id: 'viewTestingDraggableScene2', desc: 'Scene View2 Demo',  smartView: viewTestingDraggableScene2, },
+        { id: 'viewCollage',                desc: 'Collage View Demo', smartView: aCollageView, },
       ],
     }
   ],

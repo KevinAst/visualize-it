@@ -43,8 +43,8 @@ export default class CollageView extends SmartView {
     // compute our size accumulated from all our scenes
     const viewSize = this.scenes.reduce( (accum, sceneCtx) => {
       const sceneSize = sceneCtx.scene.size();
-      accum.width  = Math.max(accum.width,  sceneCtx.scene.pos.x + sceneSize.width); 
-      accum.height = Math.max(accum.height, sceneCtx.scene.pos.y + sceneSize.height);
+      accum.width  = Math.max(accum.width,  sceneCtx.pos.x + sceneSize.width); 
+      accum.height = Math.max(accum.height, sceneCtx.pos.y + sceneSize.height);
       return accum;
     }, {width:0, height:0});
     return viewSize;

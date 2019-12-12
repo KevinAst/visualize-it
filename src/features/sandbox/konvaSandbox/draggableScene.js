@@ -3,6 +3,7 @@ import Konva             from 'konva';
 import * as generalComps from './generalComps';
 
 import SceneView         from 'core/SceneView';
+import CollageView       from 'core/CollageView';
 import SmartScene        from 'core/SmartScene';
 import SmartComp         from 'core/SmartComp';
 
@@ -12,9 +13,9 @@ import {createLogger}   from 'util/logger';
 const log = createLogger('***DIAG*** draggableScene ... ').enable();
 
 
-//******************************************************************************
-//*** viewTestingDraggableScene: a SmartView demonstrating draggable scenes
-//******************************************************************************
+//************************************************************************************
+//*** viewTestingDraggableScene: a SceneView demonstrating draggable scenes
+//************************************************************************************
 
 //************************
 // Specialized Components
@@ -57,10 +58,8 @@ export const viewTestingDraggableScene = new SceneView('viewTestingDraggableScen
 //? viewTestingDraggableScene.y = 30;
 
 
-
-
 //******************************************************************************
-//*** viewTestingDraggableScene2: a SECOND SmartView demonstrating draggable scenes <<< VERY CRUDE TEST FOR NOW
+//*** viewTestingDraggableScene2: a SECOND SceneView demonstrating draggable scenes
 //******************************************************************************
 
 //************************
@@ -86,7 +85,7 @@ class ToggleDraggableScenesButton2 extends SmartComp {
 
 //************************
 // Our scene/view objects
-
+ 
 const scene2 = new SmartScene({
   id: 'draggableScene',
   comps: [
@@ -99,4 +98,14 @@ const scene2 = new SmartScene({
   height: 400,
 });
 
-export const viewTestingDraggableScene2 = new SceneView('viewTestingDraggableScene2', scene2);
+export const viewTestingDraggableScene2 = new SceneView('viewTestingDraggableScene', scene2);
+
+
+//**********************************************************
+//*** aCollageView: a CollageView demonstrating basic stuff
+//**********************************************************
+
+export const aCollageView = new CollageView('aCollageView', [
+  {scene: scene,  pos: {x:0,   y:0}},
+  {scene: scene2, pos: {x:300, y:250}},
+]);

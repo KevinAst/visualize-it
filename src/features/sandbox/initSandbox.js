@@ -12,7 +12,7 @@ import KonvaMenuPallet          from './comp/KonvaMenuPallet';
 export default function initSandbox({showStatus, fassets, appState, dispatch}) {
 
   // register our SampleMenuPallet to the LeftNav
-  dispatch( fassets.actions.addLeftNavItem('999-SampleMenuPallet', () => (
+  dispatch( fassets.actions.addLeftNavItem('999-SandboxMenuPallet', () => (
     <>
       <KonvaMenuPallet/>
       <Divider/>
