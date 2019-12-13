@@ -1,3 +1,3 @@
 # sandbox feature
 
-The **sandbox** feature is a sandbox to play with konva.js.
+The **sandbox** feature is an isolated environment to experiment with konva.js.

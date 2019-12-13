@@ -1,8 +1,7 @@
 import React                    from 'react';
 import Divider                  from '@material-ui/core/Divider';
-import {LeftNavCollapsibleItem} from 'featureResources';
-import SampleMenuPallet         from './comp/SampleMenuPallet';
-import KonvaMenuPallet          from './comp/KonvaMenuPallet';
+import SampleMenuPallet         from './sampleSandbox/SampleMenuPallet';
+import KonvaMenuPallet          from './konvaSandbox/KonvaMenuPallet';
 
 
 // ***
@@ -14,11 +13,9 @@ export default function initSandbox({showStatus, fassets, appState, dispatch}) {
   // register our SampleMenuPallet to the LeftNav
   dispatch( fassets.actions.addLeftNavItem('999-SandboxMenuPallet', () => (
     <>
-      <KonvaMenuPallet/>
+      <SampleMenuPallet/>
       <Divider/>
-      <LeftNavCollapsibleItem name="Sample Pallet">
-        <SampleMenuPallet/>
-      </LeftNavCollapsibleItem>
+      <KonvaMenuPallet/>
       <Divider/>
     </>
   )) );

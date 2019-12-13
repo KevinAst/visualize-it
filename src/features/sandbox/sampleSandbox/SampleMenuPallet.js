@@ -1,17 +1,18 @@
-import React                from 'react';
+import React           from 'react';
 
-import {useDispatch}        from 'react-redux';
-import {useFassets}         from 'feature-u';
+import {useDispatch}   from 'react-redux';
+import {useFassets}    from 'feature-u';
 
-import {registerTab}        from 'featureResources';
-import genDualClickHandler  from 'util/genDualClickHandler';
-import {createLogger}       from 'util/logger';
+import {LeftNavCollapsibleItem} from 'featureResources';
+import {registerTab}            from 'featureResources';
+import genDualClickHandler      from 'util/genDualClickHandler';
+import {createLogger}           from 'util/logger';
 
-import ExpandLessIcon       from '@material-ui/icons/ExpandMore';   // in effect WHEN EXPANDED  ... i.e. clicking will collapse
-import ExpandMoreIcon       from '@material-ui/icons/ChevronRight'; // in effect WHEN COLLAPSED ... i.e. clicking will expand
-import TreeItem             from '@material-ui/lab/TreeItem';
-import TreeView             from '@material-ui/lab/TreeView';
-import {makeStyles}         from '@material-ui/core/styles';
+import ExpandLessIcon  from '@material-ui/icons/ExpandMore';   // in effect WHEN EXPANDED  ... i.e. clicking will collapse
+import ExpandMoreIcon  from '@material-ui/icons/ChevronRight'; // in effect WHEN COLLAPSED ... i.e. clicking will expand
+import TreeItem        from '@material-ui/lab/TreeItem';
+import TreeView        from '@material-ui/lab/TreeView';
+import {makeStyles}    from '@material-ui/core/styles';
 
 // our internal diagnostic logger (normally disabled)
 const log = createLogger('***DIAG*** <SampleMenuPallet> ... ').disable();
@@ -33,11 +34,13 @@ function SampleMenuPallet() {
 
   // KOOL: here is our TreeView/TreeItem generation process driven by our data!
   return (
-    <TreeView className={classes.root}
-              defaultCollapseIcon={<ExpandLessIcon/>}
-              defaultExpandIcon={<ExpandMoreIcon/>}>
-      { genTreeItemFromData(sampleData, tabActivationHandlers) }
-    </TreeView>
+    <LeftNavCollapsibleItem name="Sample Pallet">
+      <TreeView className={classes.root}
+                defaultCollapseIcon={<ExpandLessIcon/>}
+                defaultExpandIcon={<ExpandMoreIcon/>}>
+        { genTreeItemFromData(sampleData, tabActivationHandlers) }
+      </TreeView>
+    </LeftNavCollapsibleItem>
   );
 
 }

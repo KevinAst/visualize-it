@@ -3,7 +3,7 @@ import React                    from 'react';
 import {useDispatch}            from 'react-redux';
 import {useFassets}             from 'feature-u';
 
-import konvaSandbox             from '../konvaSandbox';
+import konvaSandboxCatalog      from './konvaSandboxCatalog';
 
 import {registerTab}            from 'featureResources';
 import genDualClickHandler      from 'util/genDualClickHandler';
@@ -29,15 +29,15 @@ function KonvaMenuPallet() {
 
   const classes     = useStyles();
 
-  const tabActivationHandlers = useTabActivationHandlers(konvaSandbox.nodes);
+  const tabActivationHandlers = useTabActivationHandlers(konvaSandboxCatalog.nodes);
 
   // KOOL: here is our TreeView/TreeItem generation process driven by our data!
   return (
-    <LeftNavCollapsibleItem name={konvaSandbox.desc}>
+    <LeftNavCollapsibleItem name={konvaSandboxCatalog.desc}>
       <TreeView className={classes.root}
                 defaultCollapseIcon={<ExpandLessIcon/>}
                 defaultExpandIcon={<ExpandMoreIcon/>}>
-        { genTreeItemFromData(konvaSandbox.nodes, tabActivationHandlers) }
+        { genTreeItemFromData(konvaSandboxCatalog.nodes, tabActivationHandlers) }
       </TreeView>
     </LeftNavCollapsibleItem>
   );
@@ -57,7 +57,7 @@ const useStyles = makeStyles( theme => ({
 
 
 // our process for Tab Registration from our data structure
-function registerTabsFromData(nodes, accumulativeId=konvaSandbox.id) {
+function registerTabsFromData(nodes, accumulativeId=konvaSandboxCatalog.id) {
 
   // iterate over all our direct children
   nodes.forEach( (node) => {
@@ -75,12 +75,12 @@ function registerTabsFromData(nodes, accumulativeId=konvaSandbox.id) {
     else {
       log(`registerTabsFromData(): TreeItem leaf node ... id: ${id}`);
       registerTab(id, node.desc, () => (
-        <ReactSmartView view={node.smartView}/>
+        <ReactSmartView view={node.view}/>
       ));
     }
   });
 }
-registerTabsFromData(konvaSandbox.nodes, konvaSandbox.id); // register our Tabs NOW!!!
+registerTabsFromData(konvaSandboxCatalog.nodes, konvaSandboxCatalog.id); // register our Tabs NOW!!!
 
 
 
@@ -120,7 +120,7 @@ function useTabActivationHandlers(nodes) {
 // the recursive generator
 function genTabActivationHandlers(nodes,
                                   rootHandler,
-                                  accumulativeId=konvaSandbox.id,
+                                  accumulativeId=konvaSandboxCatalog.id,
                                   handlers={}) {
 
   // iterate over all our direct children
@@ -148,7 +148,7 @@ function genTabActivationHandlers(nodes,
 
 
 // morph our data into TreeView/TreeItem structure USING recursion
-function genTreeItemFromData(nodes, tabActivationHandlers, accumulativeId=konvaSandbox.id) {
+function genTreeItemFromData(nodes, tabActivationHandlers, accumulativeId=konvaSandboxCatalog.id) {
 
   return nodes.map( (node) => {
 
