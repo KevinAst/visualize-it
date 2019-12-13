@@ -7,9 +7,11 @@ import {scene2}  from './sceneView2';
 //*** collageView1: our first CollageView
 //**********************************************************
 
-const collageView1 = new CollageView('collageView1', [
+const collageView1 = new CollageView({id:     'collage1', 
+                                      name:   'Collage 1',
+                                      scenes: [
   {scene: scene1, pos: {x:0,   y:0}},
   {scene: scene2, pos: {x:300, y:250}},
-]);
+]});
 
 export default collageView1;

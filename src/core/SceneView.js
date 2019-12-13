@@ -1,4 +1,5 @@
 import SmartView      from './SmartView';
+import SmartScene     from './SmartScene';
 import Konva          from 'konva';
 import verify         from 'util/verify';
 import {createLogger} from 'util/logger';
@@ -15,11 +16,30 @@ export default class SceneView extends SmartView {
   /**
    * Create a SceneView.
    *
+   * **Please Note** this constructor uses named parameters.
+   *
    * @param {string} id - the unique identifier of this view.
+   * @param {string} [name=id] - The name of this view (DEFAULT to id).
    * @param {SmartScene} scene - the scene visualized in this view.
    */
-  constructor(id, scene) {
-    super(id);
+  constructor({id, name, scene, ...unknownArgs}={}) {
+    super({id, name});
+
+    // validate SceneView() constructor parameters
+    const check = verify.prefix(`${this.constructor.name}(id:'${id}', name:'${name}') constructor parameter violation: `);
+
+    // ... id/name validated by base class
+
+    // ... scene
+    check(scene,                       'scene is required');
+    check(scene instanceof SmartScene, 'scene must be a SmartScene instance');
+
+    // ... unrecognized named parameter
+    const unknownArgKeys = Object.keys(unknownArgs);
+    check(unknownArgKeys.length === 0,  `unrecognized named parameter(s): ${unknownArgKeys}`);
+
+    // ... unrecognized positional parameter
+    check(arguments.length === 1,  'unrecognized positional parameters (only named parameters can be specified)');
 
     // retain derivation-specific parameters in self
     this.scene = scene;

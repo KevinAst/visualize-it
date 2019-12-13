@@ -24,10 +24,12 @@ export default class SmartComp {
   /**
    * Create a SmartComp.
    *
-   * @param {string} id - The unique identifier of this component. ?? is there more params?
+   * @param {string} id - The unique identifier of this component.
+   * @param {string} [name=id] - The name of this component (DEFAULT to id).
    */
-  constructor(id) {
-    this.id = id;
+  constructor(id, name) {
+    this.id   = id;
+    this.name = name || id;
   }
 
   /**

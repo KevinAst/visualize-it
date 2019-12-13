@@ -33,7 +33,7 @@ function KonvaMenuPallet() {
 
   // KOOL: here is our TreeView/TreeItem generation process driven by our data!
   return (
-    <LeftNavCollapsibleItem name={konvaSandboxCatalog.desc}>
+    <LeftNavCollapsibleItem name={konvaSandboxCatalog.name}>
       <TreeView className={classes.root}
                 defaultCollapseIcon={<ExpandLessIcon/>}
                 defaultExpandIcon={<ExpandMoreIcon/>}>
@@ -66,16 +66,17 @@ function registerTabsFromData(nodes, accumulativeId=konvaSandboxCatalog.id) {
     // for non-leaf nodes (with children):
     // ... keep drilling into our structure USING recursion
     if (node.nodes) {
-      log(`registerTabsFromData(): TreeItem non-leaf node ... id: ${id}`);
+      log(`registerTabsFromData(): TreeItem non-leaf node ... id: ${id}, name: ${node.name}`);
       registerTabsFromData(node.nodes, id);
     }
 
     // for leaf nodes (without children):
     // ... register this entry with our Tab Registry
     else {
-      log(`registerTabsFromData(): TreeItem leaf node ... id: ${id}`);
-      registerTab(id, node.desc, () => (
-        <ReactSmartView view={node.view}/>
+      log(`registerTabsFromData(): TreeItem leaf node ... id: ${id}, name: ${node.name}`);
+      const view = node;
+      registerTab(id, node.name, () => (
+        <ReactSmartView view={view}/>
       ));
     }
   });
@@ -130,16 +131,16 @@ function genTabActivationHandlers(nodes,
     // for non-leaf nodes (with children):
     // ... keep drilling into our structure USING recursion
     if (node.nodes) {
-      log(`genTabActivationHandlers(): TreeItem non-leaf node ... id: ${id}, desc: ${node.desc}`);
+      log(`genTabActivationHandlers(): TreeItem non-leaf node ... id: ${id}, name: ${node.name}`);
       genTabActivationHandlers(node.nodes, rootHandler, id, handlers);
     }
 
     // for leaf nodes (without children):
     // ... accumulate the needed handler
     else {
-      log(`genTabActivationHandlers(): TreeItem leaf node ... id: ${id}, desc: ${node.desc}`);
+      log(`genTabActivationHandlers(): TreeItem leaf node ... id: ${id}, name: ${node.name}`);
       // NOTE: technically 2nd param (tabName) is NOT needed, but kept for diagnostic logging
-      handlers[id] = () => rootHandler(id, node.desc);
+      handlers[id] = () => rootHandler(id, node.name);
     }
   });
 
@@ -161,7 +162,7 @@ function genTreeItemFromData(nodes, tabActivationHandlers, accumulativeId=konvaS
       return (
         <TreeItem key={id}
                   nodeId={id}
-                  label={node.desc}>
+                  label={node.name}>
           {genTreeItemFromData(node.nodes, tabActivationHandlers, id)}
         </TreeItem>
       );
@@ -174,7 +175,7 @@ function genTreeItemFromData(nodes, tabActivationHandlers, accumulativeId=konvaS
       return (
         <TreeItem key={id}
                   nodeId={id}
-                  label={node.desc}
+                  label={node.name}
                   onClick={tabActivationHandlers[id]}/>
       );
     }

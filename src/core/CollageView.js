@@ -1,4 +1,5 @@
 import SmartView      from './SmartView';
+import SmartScene     from './SmartScene';
 import Konva          from 'konva';
 import verify         from 'util/verify';
 import {createLogger} from 'util/logger';
@@ -15,14 +16,41 @@ export default class CollageView extends SmartView {
   /**
    * Create a CollageView.
    *
+   * **Please Note** this constructor uses named parameters.
+   *
    * @param {string} id - the unique identifier of this view.
-   * @param {SomeSceneCtxArr} scenes - the scenes/position visualized by
-   * this view.
-   * SomeSceneCtxArr: `[ {scene, pos}, ... ]`, where pos is {x,y}
+   * @param {string} [name=id] - The name of this view (DEFAULT to id).
+   * @param {SceneCtxArr} scenes - the scenes/positions visualized by this view.
+   * ... where SceneCtxArr: `[ { scene: SmartScene, pos: {x,y} }, ... ]`
    * 
    */
-  constructor(id, scenes) {
-    super(id);
+  constructor({id, name, scenes, ...unknownArgs}={}) {
+    super({id, name});
+
+    // validate CollageView() constructor parameters
+    const check = verify.prefix(`${this.constructor.name}(id:'${id}', name:'${name}') constructor parameter violation: `);
+
+    // ... id/name validated by base class
+
+    // ... scenes
+    check(scenes,                 'scenes is required');
+    check(Array.isArray(scenes),  'scenes must be a SceneCtxArr');
+    scenes.forEach( (sceneCtx, indx) => {
+      check(sceneCtx.scene instanceof SmartScene, `scenes[${indx}].scene must be a SmartScene instance`);
+      check(sceneCtx.pos,                         `scenes[${indx}].pos is required`);
+      check(Number.isInteger(sceneCtx.pos.x) &&
+            sceneCtx.pos.x >= 0,                  `scenes[${indx}].pos.x must be a positive/zero integer, not: ${sceneCtx.pos.x}`);
+      check(Number.isInteger(sceneCtx.pos.y) &&
+            sceneCtx.pos.y >= 0,                  `scenes[${indx}].pos.y must be a positive/zero integer, not: ${sceneCtx.pos.y}`);
+    });
+
+    // ... unrecognized named parameter
+    const unknownArgKeys = Object.keys(unknownArgs);
+    check(unknownArgKeys.length === 0,  `unrecognized named parameter(s): ${unknownArgKeys}`);
+
+    // ... unrecognized positional parameter
+    check(arguments.length === 1,  'unrecognized positional parameters (only named parameters can be specified)');
+
 
     // retain derivation-specific parameters in self
     this.scenes = scenes; // TODO: need mucho validation and/or a real SceneCtx structure

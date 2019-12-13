@@ -48,7 +48,7 @@ export const scene1 = new SmartScene({
 });
 
 // our View
-const sceneView1 = new SceneView('sceneView1', scene1);
+const sceneView1 = new SceneView({id: 'scene', name: 'Scene 1', scene: scene1});
 //? sceneView1.x = 30; // ?? crude test to see offset (no longer supported in my SceneView)
 //? sceneView1.y = 30;
 

@@ -36,12 +36,14 @@ export default class SmartScene {
    * **Please Note** this constructor uses named parameters.
    *
    * @param {string} id - the unique identifier of this scene.
+   * @param {string} [name=id] - The name of this scene (DEFAULT to id).
    * @param {SmartComp[]} comps - the set of components (SmartComp) that 
    * make up this scene (logically our display list).
    * @param {int} width - the width of this scene (mastered in scene).
    * @param {int} height - the height of this scene (mastered in scene).
    */
   constructor({id,
+               name,
                comps,
                width, // NOTE: we keep as width/height rather than size: {width, height} (for now) ... CONSISTENT with Konva.Stage API (not that that matters ... it is an internal)
                height,
@@ -53,6 +55,11 @@ export default class SmartScene {
     // ... id
     check(id,            'id is required');
     check(isString(id),  'id must be a string');
+
+    // ... name
+    if (name) {
+      check(isString(name), 'name (when supplied) must be a string');
+    }
 
     // ... comps
     check(comps,                'comps is required');
@@ -76,8 +83,9 @@ export default class SmartScene {
     check(arguments.length === 1,  'unrecognized positional parameters (only named parameters can be specified)');
 
     // retain parameters in self
-    this.id     = id;
-    this.comps  = comps;
+    this.id    = id;
+    this.name  = name || id;
+    this.comps = comps;
     this._size = {width, height}; // NOTE: we use _size so as NOT to clash with size() method
   //this.x = 0; // ?? crude test to see offset (no longer supported in my SceneView)
   //this.y = 0; 

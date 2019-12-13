@@ -15,18 +15,19 @@ import collageView1 from './collageView1';
 
 const konvaSandboxCatalog = {
   id:   'konvaSandboxCatalog',
-  desc: 'Konva Sandbox',
+  name: 'Konva Sandbox',
   nodes: [
-    { id: 'basics', desc: 'Basics',
+    { id: 'scenes', name: 'Scenes',
       nodes: [
-        // ?? would be NICE to get desc FROM the SmartView (a new property)
-        //    - ?? while we are at it, SmartView HAS an id, could we (should we) use THAT id?
-        //    - ?? keep in mind, the OTHER nodes would have to specify their id/desc)
-        { id: 'sceneView1',   desc: 'Scene View 1',   view: sceneView1,   },
-        { id: 'sceneView2',   desc: 'Scene View 2',   view: sceneView2,   },
-        { id: 'collageView1', desc: 'Collage View 1', view: collageView1, },
+        sceneView1,
+        sceneView2,
       ],
-    }
+    },
+    { id: 'collages', name: 'Collages',
+      nodes: [
+        collageView1,
+      ],
+    },
   ],
 };
 

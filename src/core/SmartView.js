@@ -1,4 +1,5 @@
-import verify  from 'util/verify';
+import verify    from 'util/verify';
+import isString  from 'lodash.isstring';
 
 /**
  * SmartView is an abstract base class representing the viewport in
@@ -18,11 +19,36 @@ export default class SmartView {
   /**
    * Create a SmartView.
    *
+   * **Please Note** this constructor uses named parameters.
+   *
    * @param {string} id - the unique identifier of this view.
+   * @param {string} [name=id] - The name of this view (DEFAULT to id).
    */
-  constructor(id, scene) {
+  constructor({id, name, ...unknownArgs}={}) {
+
+    // validate SmartView() constructor parameters
+    const check = verify.prefix(`${this.constructor.name}(id:'${id}', name:'${name}') constructor parameter violation: `);
+
+    // ... id
+    check(id,            'id is required');
+    check(isString(id),  'id must be a string');
+
+    // ... name
+    if (name) {
+      check(isString(name), 'name (when supplied) must be a string');
+    }
+
+    // ... unrecognized named parameter
+    const unknownArgKeys = Object.keys(unknownArgs);
+    check(unknownArgKeys.length === 0,  `unrecognized named parameter(s): ${unknownArgKeys}`);
+
+    // ... unrecognized positional parameter
+    check(arguments.length === 1,  'unrecognized positional parameters (only named parameters can be specified)');
+
+
     // retain parameters in self
-    this.id = id;
+    this.id   = id;
+    this.name = name || id;
   }
 
   /**
