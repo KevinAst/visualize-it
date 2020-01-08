@@ -93,6 +93,9 @@ export default class SmartView {
    * Prior to `mount()` execution, the visualize-it object
    * representation is very lightweight.
    *
+   * ?? DOCUMENT what is retained when we are mounted
+   *    ... this.konvaStage ?? however there can be multiple per view instance (or rethink our structure)
+   *
    * @param {HtmlElm} containingHtmlElm - The container of this view
    * (an HTML Element).
    */

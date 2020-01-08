@@ -14,7 +14,8 @@ import AppBar         from '@material-ui/core/AppBar';
 import IconButton     from '@material-ui/core/IconButton';
 import MenuIcon       from '@material-ui/icons/Menu';
 import Toolbar        from '@material-ui/core/Toolbar';
-import Typography     from '@material-ui/core/Typography';
+
+import VitToolBar     from '../../../toolBar/comp/VitToolBar'; // NEW (TEMPORARY)
 
 import {toast}        from 'util/notify';
 
@@ -191,14 +192,16 @@ function resolveCurViewAuxiliaryContent(curView, viewAuxiliaryContent) {
 }
 
 const fallbackViewAuxiliaryContent = ['AppMotif.auxViewContent.FALLBACK', {
-  // TODO: unsure if we need a customizable Title in our header
-  //       - temporarily make "App Motif" "Visualize It" 
-  //       = research further
-  TitleComp: () => (
-    <Typography variant="h6"
-                color="inherit"
-                noWrap>
-      Visualize It
-    </Typography>
-  ),
+  // TODO: ?? do NOT believe we need a customizable Title within our app
+  //       - temporarily inject our CUSTOM "Visualize It" toolbar
+  // ORIGINAL:
+  //?TitleComp: () => (
+  //?  <Typography variant="h6"
+  //?              color="inherit"
+  //?              noWrap>
+  //?    App Motif
+  //?  </Typography>
+  //?),
+  // NEW (TEMPORARY):
+  TitleComp: VitToolBar,
 }];

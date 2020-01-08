@@ -1,7 +1,8 @@
 import {createFeature}    from 'feature-u';
 import _tabManager        from './featureName';
 import _tabManagerAct     from './actions';
-import reducer            from './state';
+import reducer,
+       {getTotalTabs}     from './state';
 import logic              from './logic';
 import route              from './route';
 
@@ -15,6 +16,8 @@ export default createFeature({
     define: {
       'actions.activateTab': _tabManagerAct.activateTab, // activateTab(tabId, preview=true): Action
       'actions.closeTab':    _tabManagerAct.closeTab,    // closeTab(tabId): Action
+
+      'sel.getTotalTabs':    getTotalTabs,
     },
   },
 

@@ -9,7 +9,7 @@ export class Valve1 extends SmartComp {
   //   super({id, name});
   // }
 
-  mount(container) {
+  mount(containingKonvaLayer) {
     const shape = new Konva.Rect({
       x: 20, // TODO: parameterize with defaults (needed for persistence)
       y: 20,
@@ -19,7 +19,7 @@ export class Valve1 extends SmartComp {
       stroke: 'black',
       strokeWidth: 4
     });
-    container.add(shape);
+    containingKonvaLayer.add(shape);
   }
 }
 
@@ -30,7 +30,7 @@ export class Valve2 extends SmartComp {
   //   super({id, name});
   // }
 
-  mount(container) {
+  mount(containingKonvaLayer) {
     const shape = new Konva.Rect({
       x: 150, // TODO: parameterize with defaults (needed for persistence)
       y: 40,
@@ -40,7 +40,7 @@ export class Valve2 extends SmartComp {
       shadowBlur: 10,
       cornerRadius: 10
     });
-    container.add(shape);
+    containingKonvaLayer.add(shape);
   }
 }
 
@@ -51,7 +51,7 @@ export class Valve3 extends SmartComp {
   //   super({id, name});
   // }
 
-  mount(container) {
+  mount(containingKonvaLayer) {
     const shape = new Konva.Rect({
       x: 50,  // TODO: parameterize with defaults (needed for persistence)
       y: 120,
@@ -60,6 +60,6 @@ export class Valve3 extends SmartComp {
       fill: 'blue',
       cornerRadius: [0, 10, 20, 30]
     });
-    container.add(shape);
+    containingKonvaLayer.add(shape);
   }
 }
