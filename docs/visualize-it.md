@@ -45,6 +45,7 @@ anything!  Ultimately it is whatever is on the other end of a
 - a **microcontroller** (MCU/EMCU)
 - a **playback recording** of a physical system _(for analysis)_
 - an **Internet of Things** (**IoT**) house monitor
+- a **dashboard** monitoring a system
 - a **simulation**
 - a **schematic** ... electrical, or mechanical _(driving a simulation)_
 - a **game**
