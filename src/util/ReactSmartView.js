@@ -18,6 +18,7 @@ export default function ReactSmartView({view, ...otherProps}) {
   // ?? AI: the style characteristics (below) will be eventually gleaned from future SmartView API
   //        ex: view.backgroundColor, view.width, view.height 
   //        THE BORDER is provided by US (not sure) to expose the view border and/or ability to edit width/height (unsure about this last one)
+  console.log('here is my view: ', view);
   const {width, height} = view.size();
   return <div ref={stageElm} {...otherProps} style={{backgroundColor: 'gray', width, height, border: '1px solid black'}}/>;
 }

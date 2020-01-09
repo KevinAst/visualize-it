@@ -1,12 +1,18 @@
-import verify    from 'util/verify';
-import isString  from 'lodash.isstring';
+import SmartModel     from './SmartModel';
+import SmartScene     from './SmartScene';
+import Konva          from 'konva';
+import verify         from 'util/verify';
+import {createLogger} from 'util/logger';
+
+// our internal diagnostic logger (normally disabled, but keep enabled for a while)
+const log = createLogger('***DIAG*** <SmartView> ... ').enable();
 
 /**
- * SmartView is an abstract base class representing the viewport in
- * which scene(s) are displayed/visualized.
+ * SmartView is a viewport in which scene(s) are displayed/visualized.
  * 
- * Derivations of SmartView will handle the specifics of visualizing a
- * single scene (SceneView) or multiple scenes (CollageView).
+ * Derivations of the contained SmartScene will handle the specifics
+ * of visualizing a single scene (Scene obj) or multiple scenes
+ * (Collage obj).
  * 
  * In all cases, this visualization can be "displayed":
  *   - in-line:  within the "contained" HTML DOM container
@@ -14,7 +20,7 @@ import isString  from 'lodash.isstring';
  * TODO: this MAY BE more of a run-time consideration (rather than
  *       specified/retained by constructor params driven by our editor)
  */
-export default class SmartView {
+export default class SmartView extends SmartModel {
 
   /**
    * Create a SmartView.
@@ -22,33 +28,34 @@ export default class SmartView {
    * **Please Note** this constructor uses named parameters.
    *
    * @param {string} id - the unique identifier of this view.
-   * @param {string} [name=id] - The name of this view (DEFAULT to id).
+   * @param {string} [name=id] - the human interpretable name of this
+   * view (DEFAULT to id). // ?? UNSURE if we want to DEFAULT this way
+   * @param {SmartScene} scene - the scene visualized in this view
+   * (can be a single scene (Scene obj) or multiple scenes (Collage
+   * obj).
    */
-  constructor({id, name, ...unknownArgs}={}) {
+  constructor({id, name, scene, ...unknownArgs}={}) {
+
+    super({id, name});
 
     // validate SmartView() constructor parameters
     const check = verify.prefix(`${this.constructor.name}(id:'${id}', name:'${name}') constructor parameter violation: `);
+    
+    // ... id/name validated by base class
 
-    // ... id
-    check(id,            'id is required');
-    check(isString(id),  'id must be a string');
-
-    // ... name
-    if (name) {
-      check(isString(name), 'name (when supplied) must be a string');
-    }
-
+    // ... scene
+    check(scene,                       'scene is required');
+    check(scene instanceof SmartScene, 'scene must be a SmartScene instance');
+    
     // ... unrecognized named parameter
     const unknownArgKeys = Object.keys(unknownArgs);
     check(unknownArgKeys.length === 0,  `unrecognized named parameter(s): ${unknownArgKeys}`);
-
+    
     // ... unrecognized positional parameter
     check(arguments.length === 1,  'unrecognized positional parameters (only named parameters can be specified)');
-
-
+    
     // retain parameters in self
-    this.id   = id;
-    this.name = name || id;
+    this.scene = scene;
   }
 
   /**
@@ -68,8 +75,11 @@ export default class SmartView {
    * @returns {Size} our current size.
    */
   size(size) {
-    throw new Error(`***ERROR*** SmartView pseudo-interface-violation: ${this.constructor.name}(id:${this.id}).size() is an abstract method that MUST BE implemented!`);
+    // NOTE: this method does NOT require mounting, because it's contained scene masters the size!
+    verify(size===undefined, `***ERROR*** ${this.constructor.name}.size() can only be invoked as a getter (with no params) ... size is mastered in the scene, AND derived in the view.`);
+    return this.scene.size(); // return current size (from our contained scene)
   }
+
 
   /**
    * Get/set the draggable flag of our contained scene.
@@ -82,7 +92,14 @@ export default class SmartView {
    * chainable setters).
    */
   draggableScene(draggable) {
-    throw new Error(`***ERROR*** SmartView pseudo-interface-violation: ${this.constructor.name}(id:${this.id}).draggableScene() is an abstract method that MUST BE implemented!`);
+    // NOTE: checkMounted() is accomplished at the Scene level
+    if (draggable===undefined) {     // getter:
+      return this.scene.draggable(); // return boolean setting of our scene
+    }
+    else {                             // setter:
+      this.scene.draggable(draggable); //   sets our scene
+      return this;                     // return self (for chaining)
+    }
   }
 
 
@@ -93,17 +110,24 @@ export default class SmartView {
    * Prior to `mount()` execution, the visualize-it object
    * representation is very lightweight.
    *
-   * ?? DOCUMENT what is retained when we are mounted
-   *    ... this.konvaStage ?? however there can be multiple per view instance (or rethink our structure)
-   *
    * @param {HtmlElm} containingHtmlElm - The container of this view
    * (an HTML Element).
    */
   mount(containingHtmlElm) {
-    throw new Error(`***ERROR*** SmartView pseudo-interface-violation: ${this.constructor.name}(id:${this.id}).mount() is an abstract method that MUST BE implemented!`);
+    log(`mounting SmartView id: ${this.id}`);
+    
+    // create our stage where our scene will be mounted
+    const {width, height} = this.size();
+    this.konvaStage = new Konva.Stage({
+      container: containingHtmlElm,
+      x:         0, // we assume an offset at the origin
+      y:         0,
+      width,
+      height,
+    });
+    
+    // mount our scene into this stage
+    this.scene.mount(this.konvaStage);
+
   }
-
-
-  //? persistenceMethods() { // simply persists this view with it's internal state (view-size etc), and EACH comp (data node names ONLY)
-  //? }
 }

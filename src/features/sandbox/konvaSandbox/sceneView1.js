@@ -2,8 +2,8 @@ import Konva             from 'konva';
 
 import * as generalComps from './generalComps';
 
-import SceneView         from 'core/SceneView';
-import SmartScene        from 'core/SmartScene';
+import SmartView         from 'core/SmartView';
+import Scene             from 'core/Scene';
 import SmartComp         from 'core/SmartComp';
 
 import {createLogger}   from 'util/logger';
@@ -13,11 +13,15 @@ const log = createLogger('***DIAG*** sceneView1 ... ').enable();
 
 
 //************************************************************************************
-//*** sceneView1: our first SceneView
+//*** sceneView1: our first SmartView
 //************************************************************************************
 
 // specialty component TODO: ?? eventually replace with global toolbar
-class ToggleDraggableScenesButton extends SmartComp {
+class ToggleDraggableScenesButton extends SmartComp { // ?? THINK I WANT THIS TO BE IN COLLAGE ONLY ??????????????????
+
+  constructor() {
+    super({id: 'trash1', name: 'trash1'});
+  }
 
   mount(containingKonvaLayer) {
     const button = new Konva.Text({
@@ -35,21 +39,19 @@ class ToggleDraggableScenesButton extends SmartComp {
 }
 
 // our Scene
-export const scene1 = new SmartScene({
+export const scene1 = new Scene({
   id: 'scene1',
   comps: [
-    new generalComps.Valve1('myValve1'),
-    new generalComps.Valve2('myValve2'),
-    new generalComps.Valve3('myValve3'),
-    new ToggleDraggableScenesButton('myButton'),
+    new generalComps.Valve1({id: 'myValve1'}),
+    new generalComps.Valve2({id: 'myValve2'}),
+    new generalComps.Valve3({id: 'myValve3'}),
+    new ToggleDraggableScenesButton(),
   ],
   width:  300, // ... see this setting pass through our process
   height: 250,
 });
 
 // our View
-const sceneView1 = new SceneView({id: 'scene', name: 'Scene 1', scene: scene1});
-//? sceneView1.x = 30; // ?? crude test to see offset (no longer supported in my SceneView)
-//? sceneView1.y = 30;
+const sceneView1 = new SmartView({id: 'scene', name: 'Scene 1', scene: scene1});
 
 export default sceneView1;

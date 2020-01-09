@@ -1,3 +1,5 @@
+import SmartModel  from './SmartModel';
+
 /**
  * SmartComp is the abstract base class for all visualize-it
  * components.
@@ -19,17 +21,19 @@
  *                  │                   ... managed by the visualize-it component editor
  *                  └── others      ... for code-based compLibs
  */
-export default class SmartComp {
+export default class SmartComp extends SmartModel {
 
   /**
    * Create a SmartComp.
    *
-   * @param {string} id - The unique identifier of this component.
-   * @param {string} [name=id] - The name of this component (DEFAULT to id).
+   * **Please Note** this constructor uses named parameters.
+   *
+   * @param {string} id - the unique identifier of this component.
+   * @param {string} [name=id] - the human interpretable name of this
+   * component (DEFAULT to id). // ?? UNSURE if we want to DEFAULT this way
    */
-  constructor(id, name) {
-    this.id   = id;
-    this.name = name || id;
+  constructor({id, name}) {
+    super({id, name});
   }
 
   /**
