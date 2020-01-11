@@ -1,9 +1,10 @@
-import {reducerHash}  from 'astx-redux-util';
-import {createLogic}  from 'redux-logic';
-import isEqual        from 'lodash.isequal';
-import isString       from 'lodash.isstring';
-import isFunction     from 'lodash.isfunction';
-import verify         from 'util/verify';
+import {reducerHash}     from 'astx-redux-util';
+import {createLogic}     from 'redux-logic';
+import isEqual           from 'lodash.isequal';
+import isString          from 'lodash.isstring';
+import isFunction        from 'lodash.isfunction';
+import verify            from 'util/verify';
+import checkUnknownArgs  from 'util/checkUnknownArgs';
 
 /**
  * Define the characteristics of an Intelligent Form - a reusable forms
@@ -151,8 +152,7 @@ export default function IFormMeta({formDesc,
   check(formStateSelector,             'formStateSelector is required');
   check(isFunction(formStateSelector), 'invalid formStateSelector (expecting a function)');
 
-  const unknownArgKeys = Object.keys(unknownArgs);
-  check(unknownArgKeys.length===0,  `unrecognized named parameter(s): ${unknownArgKeys}`);
+  checkUnknownArgs(check, unknownArgs, arguments);
 
 
   // ***

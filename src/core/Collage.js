@@ -1,5 +1,6 @@
-import SmartScene  from './SmartScene';
-import verify      from 'util/verify';
+import SmartScene        from './SmartScene';
+import verify            from 'util/verify';
+import checkUnknownArgs  from 'util/checkUnknownArgs';
 
 /**
  * Collage is a SmartScene derivation in which multiple Scenes are displayed/visualized.
@@ -37,12 +38,8 @@ export default class Collage extends SmartScene {
             sceneCtx.pos.y >= 0,                  `scenes[${indx}].pos.y must be a positive/zero integer, not: ${sceneCtx.pos.y}`);
     });
 
-    // ... unrecognized named parameter
-    const unknownArgKeys = Object.keys(unknownArgs);
-    check(unknownArgKeys.length === 0,  `unrecognized named parameter(s): ${unknownArgKeys}`);
-
-    // ... unrecognized positional parameter
-    check(arguments.length === 1,  'unrecognized positional parameters (only named parameters can be specified)');
+    // ... unknown arguments
+    checkUnknownArgs(check, unknownArgs, arguments);
 
     // retain derivation-specific parameters in self
     this.scenes = scenes;

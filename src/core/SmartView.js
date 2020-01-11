@@ -1,8 +1,9 @@
-import SmartModel     from './SmartModel';
-import SmartScene     from './SmartScene';
-import Konva          from 'konva';
-import verify         from 'util/verify';
-import {createLogger} from 'util/logger';
+import SmartModel        from './SmartModel';
+import SmartScene        from './SmartScene';
+import Konva             from 'konva';
+import verify            from 'util/verify';
+import checkUnknownArgs  from 'util/checkUnknownArgs';
+import {createLogger}    from 'util/logger';
 
 // our internal diagnostic logger (normally disabled, but keep enabled for a while)
 const log = createLogger('***DIAG*** <SmartView> ... ').enable();
@@ -46,13 +47,9 @@ export default class SmartView extends SmartModel {
     // ... scene
     check(scene,                       'scene is required');
     check(scene instanceof SmartScene, 'scene must be a SmartScene instance');
-    
-    // ... unrecognized named parameter
-    const unknownArgKeys = Object.keys(unknownArgs);
-    check(unknownArgKeys.length === 0,  `unrecognized named parameter(s): ${unknownArgKeys}`);
-    
-    // ... unrecognized positional parameter
-    check(arguments.length === 1,  'unrecognized positional parameters (only named parameters can be specified)');
+
+    // ... unknown arguments
+    checkUnknownArgs(check, unknownArgs, arguments);
     
     // retain parameters in self
     this.scene = scene;

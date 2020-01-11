@@ -1,6 +1,7 @@
-import Konva       from 'konva';
-import SmartScene  from './SmartScene';
-import verify      from 'util/verify';
+import Konva             from 'konva';
+import SmartScene        from './SmartScene';
+import verify            from 'util/verify';
+import checkUnknownArgs  from 'util/checkUnknownArgs';
 
 /**
  * Scene is a SmartScene derivation that models a single Scene to be
@@ -85,12 +86,8 @@ export default class Scene extends SmartScene {
     check(Number.isInteger(height), `height must be an integer, NOT: ${height}`);
     check(height>0,                 `height must be a positive integer, NOT: ${height}`);
 
-    // ... unrecognized named parameter
-    const unknownArgKeys = Object.keys(unknownArgs);
-    check(unknownArgKeys.length === 0,  `unrecognized named parameter(s): ${unknownArgKeys}`);
-
-    // ... unrecognized positional parameter
-    check(arguments.length === 1,  'unrecognized positional parameters (only named parameters can be specified)');
+    // ... unknown arguments
+    checkUnknownArgs(check, unknownArgs, arguments);
 
     // retain parameters in self
     this.comps = comps;

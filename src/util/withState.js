@@ -1,5 +1,6 @@
-import {connect} from 'react-redux';
-import verify    from 'util/verify';
+import {connect}         from 'react-redux';
+import verify            from 'util/verify';
+import checkUnknownArgs  from 'util/checkUnknownArgs';
 
 /**
  * Promotes a "wrapped" Component (an HoC - Higher-order Component)
@@ -110,13 +111,8 @@ export default function withState({mapStateToProps,
     check(typeof component == 'function',
           'component, when supplied, must be a React Component - to be wrapped');
   }
-  // ... unrecognized named parameter
-  const unknownArgKeys = Object.keys(unknownArgs);
-  check(unknownArgKeys.length === 0,
-        `unrecognized named parameter(s): ${unknownArgKeys}`);
-  // ... unrecognized positional parameter
-  check(arguments.length === 1,
-        'unrecognized positional parameters (only named parameters can be specified)');
+  // ... unknown arguments
+  checkUnknownArgs(check, unknownArgs, arguments);
 
   // define our HoF that when invoked will expose our HoC wrapper
   // ... this "second level of indirection" encapsulates the knowledge of our "mapping"

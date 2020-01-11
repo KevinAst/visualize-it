@@ -1,5 +1,6 @@
-import {toast, alert} from 'util/notify';
-import verify         from 'util/verify';
+import {toast, alert}    from 'util/notify';
+import verify            from 'util/verify';
+import checkUnknownArgs  from 'util/checkUnknownArgs';
 
 const DYNAMIC_DEFAULT = 'DYNAMIC_DEFAULT';
 
@@ -49,11 +50,8 @@ export default function discloseError({err,
     // ... logIt
     logIt = logIt===DYNAMIC_DEFAULT ? err.isUnexpected() : logIt; // dynamic DEFAULT semantics
     check(logIt===true || logIt===false, 'logIt must be a boolean');
-    // ... unrecognized named parameter
-    const unknownArgKeys = Object.keys(unknownArgs);
-    check(unknownArgKeys.length === 0,  `unrecognized named parameter(s): ${unknownArgKeys}`);
-    // ... unrecognized positional parameter (NOTE: when defaulting entire struct, arguments.length is 0)
-    check(arguments.length === 0 || arguments.length === 1, 'unrecognized positional parameters (only named parameters can be specified)');
+    // ... unknown arguments
+    checkUnknownArgs(check, unknownArgs, arguments);
   }
   // NOTE: this handler CANNOT throw an error, 
   //       because it is typically used inside a promise.catch()

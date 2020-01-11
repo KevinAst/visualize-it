@@ -1,5 +1,6 @@
 import React              from 'react';
 import verify             from 'util/verify';
+import checkUnknownArgs   from 'util/checkUnknownArgs';
 import {SnackbarProvider,
         withSnackbar}     from 'notistack';
 import {makeStyles}       from '@material-ui/core/styles';
@@ -181,9 +182,8 @@ class NotifyAPI extends React.Component {
       }
     });
 
-    // ... unknown args
-    const unknownArgKeys = Object.keys(unknownArgs);
-    check(unknownArgKeys.length===0,  `unrecognized named parameter(s): ${unknownArgKeys}`);
+    // ... unknown arguments
+    checkUnknownArgs(check, unknownArgs, arguments);
 
     // maintain our display duration
     const autoHideDuration = duration ? duration*1000 : null; // convert to seconds ... null indicates manual close (via actions [default to OK])

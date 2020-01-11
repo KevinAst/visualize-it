@@ -1,5 +1,6 @@
-import SmartModel  from './SmartModel';
-import verify      from 'util/verify';
+import SmartModel        from './SmartModel';
+import verify            from 'util/verify';
+import checkUnknownArgs  from 'util/checkUnknownArgs';
 
 /**
  * SmartScene is an abstract base class representing the graphical
@@ -27,12 +28,8 @@ export default class SmartScene extends SmartModel {
 
     // ... id/name validated by base class
 
-    // ... unrecognized named parameter
-    const unknownArgKeys = Object.keys(unknownArgs);
-    check(unknownArgKeys.length === 0,  `unrecognized named parameter(s): ${unknownArgKeys}`);
-
-    // ... unrecognized positional parameter
-    check(arguments.length === 1,  'unrecognized positional parameters (only named parameters can be specified)');
+    // ... unknown arguments
+    checkUnknownArgs(check, unknownArgs, arguments);
   }
 
   /**

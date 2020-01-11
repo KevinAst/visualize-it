@@ -1,4 +1,5 @@
-import verify from 'util/verify';
+import verify            from 'util/verify';
+import checkUnknownArgs  from 'util/checkUnknownArgs';
 
 /**
  * The User object representing the active user within an application,
@@ -56,11 +57,8 @@ export default class User {
 
     // validate constructor parameters
     const check = verify.prefix('User() constructor parameter violation: ')
-    // ... unrecognized named parameter
-    const unknownArgKeys = Object.keys(unknownArgs);
-    check(unknownArgKeys.length === 0,  `unrecognized named parameter(s): ${unknownArgKeys}`);
-    // ... unrecognized positional parameter (NOTE: when defaulting entire struct, arguments.length is 0)
-    check(arguments.length === 0 || arguments.length === 1, 'unrecognized positional parameters (only named parameters can be specified)');
+    // ... unknown arguments
+    checkUnknownArgs(check, unknownArgs, arguments);
 
     // retain supplied state in self
     this.name          = name;

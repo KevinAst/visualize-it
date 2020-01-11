@@ -1,5 +1,6 @@
-import verify    from 'util/verify';
-import isString  from 'lodash.isstring';
+import verify            from 'util/verify';
+import isString          from 'lodash.isstring';
+import checkUnknownArgs  from 'util/checkUnknownArgs';
 
 /**
  * SmartModel is the abstract top-level base class for all visualize-it
@@ -35,13 +36,8 @@ export default class SmartModel {
       check(isString(name), 'name (when supplied) must be a string');
     }
 
-    // ... unrecognized named parameter
-    const unknownArgKeys = Object.keys(unknownArgs);
-    check(unknownArgKeys.length === 0,  `unrecognized named parameter(s): ${unknownArgKeys}`);
-
-    // ... unrecognized positional parameter
-    check(arguments.length === 1,  'unrecognized positional parameters (only named parameters can be specified)');
-
+    // ... unknown arguments
+    checkUnknownArgs(check, unknownArgs, arguments);
 
     // retain parameters in self
     this.id   = id;
