@@ -17,7 +17,7 @@ const log = createLogger('***DIAG*** sceneView2 ... ').enable();
 //************************************************************************************
 
 // specialty component TODO: ?? eventually replace with global toolbar
-class ToggleDraggableScenesButton extends SmartComp { //  ?? THINK I WANT THIS TO BE IN COLLAGE ONLY ??????????????????
+class ToggleDraggableScenesButton extends SmartComp { //  ?? CONSIDER: PLACING THIS IN COLLAGE ONLY (minor point as it will be obsoleted shortly)
 
   constructor() {
     super({id: 'trash2', name: 'trash2'});

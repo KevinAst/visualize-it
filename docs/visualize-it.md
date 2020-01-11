@@ -857,20 +857,17 @@ see NOTE (above)
 ### Class Hierarchy
 
 ```
-   SmartModel .............. an abstract top-level base class providing consistency 
-    │                        in name/id and defining common APIs/utils
+   SmartModel .............. a top-level base class providing consistency in common attrs/APIs/utils/etc.
     │
     ├── SmartView .......... a viewport in which scene(s) are displayed/visualized
 isA │
-    ├── SmartScene ......... an abstract base class representing the graphical perspective
-    │    │                   that visualizes a system (either in part or whole).
-    │    ├── Scene ......... a SmartScene derivation that models a single Scene to be displayed/visualized.
-    │    └── Collage ....... a SmartScene derivation in which multiple Scenes are displayed/visualized.
+    ├── SmartScene ......... a graphical abstraction that visualizes a system (either in part or whole)
+    │    ├── Scene ......... a visualization of a single Scene (a container of SmartComps)
+    │    └── Collage ....... a visualization of multiple Scenes (a container of Scenes)
     │
-    └── SmartComp        ... an abstract graphical representation of a system component
-         ├── DynamicComp ... a concrete derivation for dynamic-based resource-loaded compLibs
-         │                   ... managed by the visualize-it component editor
-         └── others      ... for code-based compLibs
+    └── SmartComp        ... a graphical abstraction of a system component
+         ├── DynamicComp ... a resource-based component - maintained by visualize-it's builder
+         └── others      ... class-based components - developed in JavaScript code
 ```
 
 

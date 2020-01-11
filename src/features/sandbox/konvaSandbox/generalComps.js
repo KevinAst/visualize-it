@@ -4,7 +4,6 @@ import SmartComp      from 'core/SmartComp';
 
 export class Valve1 extends SmartComp {
 
-  // ?? useless-constructor ... because no logic besides super() with identical signature
   constructor({id, name}) {
     super({id, name});
   }
@@ -25,7 +24,6 @@ export class Valve1 extends SmartComp {
 
 export class Valve2 extends SmartComp {
 
-  // ?? useless-constructor ... because no logic besides super() with identical signature
   constructor({id, name}) {
     super({id, name});
   }
@@ -46,7 +44,6 @@ export class Valve2 extends SmartComp {
 
 export class Valve3 extends SmartComp {
 
-  // ?? useless-constructor ... because no logic besides super() with identical signature
   constructor({id, name}) {
     super({id, name});
   }
