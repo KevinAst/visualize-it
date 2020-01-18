@@ -8,6 +8,8 @@ import SmartComp         from 'core/SmartComp';
 
 import {createLogger}   from 'util/logger';
 
+import {temporaryLibManagerHACK} from 'core/SmartModel'; // ?? very temp
+
 // our internal diagnostic logger (keep enabled)
 const log = createLogger('***DIAG*** sceneView2 ... ').enable();
 
@@ -17,7 +19,7 @@ const log = createLogger('***DIAG*** sceneView2 ... ').enable();
 //************************************************************************************
 
 // specialty component TODO: ?? eventually replace with global toolbar
-class ToggleDraggableScenesButton extends SmartComp { //  ?? CONSIDER: PLACING THIS IN COLLAGE ONLY (minor point as it will be obsoleted shortly)
+class ToggleDraggableScenesButton2 extends SmartComp { //  ?? CONSIDER: PLACING THIS IN COLLAGE ONLY (minor point as it will be obsoleted shortly)
 
   constructor() {
     super({id: 'trash2', name: 'trash2'});
@@ -40,16 +42,20 @@ class ToggleDraggableScenesButton extends SmartComp { //  ?? CONSIDER: PLACING T
 
 // our Scene
 export const scene2 = new Scene({
-  id: 'aScene',
+  id: 'scene2',
   comps: [
     new generalComps.Valve1({id: 'myValve1'}),
     new generalComps.Valve2({id: 'myValve2'}),
  // new generalComps.Valve3({id: 'myValve3'}), // omit JUST to make it different
-    new ToggleDraggableScenesButton(),
+    new ToggleDraggableScenesButton2(),
   ],
   width:  300, // ... see this setting pass through our process
   height: 250,
 });
+
+// ?? very temporary till we have a library to manage this scene
+temporaryLibManagerHACK['scene2'] = scene2;
+temporaryLibManagerHACK['ToggleDraggableScenesButton2'] = ToggleDraggableScenesButton2;
 
 // our View
 const sceneView2 = new SmartView({id: 'scene2', name: 'Scene 2', scene: scene2});

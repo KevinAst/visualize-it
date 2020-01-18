@@ -1,6 +1,6 @@
-import verify         from 'util/verify';
-import isString       from 'lodash.isstring';
-import isPlainObject  from 'lodash.isplainobject';
+import verify          from 'util/verify';
+import {isString,
+        isPlainObject} from 'util/typeCheck';
 
 
 /**

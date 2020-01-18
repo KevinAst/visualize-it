@@ -1,4 +1,5 @@
 import Konva             from 'konva';
+import PseudoClass       from './PseudoClass';
 import SmartScene        from './SmartScene';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
@@ -36,6 +37,13 @@ import checkUnknownArgs  from 'util/checkUnknownArgs';
  *     - a static layer
  *     - an animation layer
  *     > NEEDS WORK: may want to do things in our static layer (like change component color)
+ *
+ * **NOTE**: Scene objects are pseudoClasses.  In other words Scene
+ *           instances are considered logical types.  Take for example
+ *           `Foo`: a Scene instance with an id of `Foo`.  The master
+ *           `Foo` object can be defined and edited, however `Foo`
+ *           instances (copies of the `Foo` object) may be may created
+ *           and referenced many times within the various Collages.
  */
 export default class Scene extends SmartScene {
 
@@ -52,8 +60,8 @@ export default class Scene extends SmartScene {
    * make up this scene (logically our display list).
    *
    *   TODO: ?? REFACTOR: use pure scenes after refactor of scenes to accept x/y (see below)
-   * @param {int} [x=0] - the optional x offset of this scene within it's container (used by Collage - managing multiple Scenes)
-   * @param {int} [y=0] - the optional y offset of this scene within it's container (used by Collage - managing multiple Scenes)
+   * @param {int} [x=0] - the optional x offset of this scene within it's container (used by Collage container - managing multiple Scenes)
+   * @param {int} [y=0] - the optional y offset of this scene within it's container (used by Collage container - managing multiple Scenes)
    *
    * @param {int} width - the width of this scene (mastered in scene).
    * @param {int} height - the height of this scene (mastered in scene).
@@ -63,6 +71,7 @@ export default class Scene extends SmartScene {
                comps,
                width, // NOTE: we keep as width/height rather than size: {width, height} (for now) ... CONSISTENT with Konva.Stage API (not that that matters ... it is an internal)
                height,
+               _size, // INTERNAL USE ONLY (for rehydration) ?? check this out
                ...unknownArgs}={}) {
 
     super({id, name});
@@ -75,6 +84,12 @@ export default class Scene extends SmartScene {
     // ... comps
     check(comps,                'comps is required');
     check(Array.isArray(comps), 'comps must be a SmartComp[] array');
+
+    // ... INTERNAL USE: _size: {width, height} <<< for rehydration
+    if (_size) { 
+      width  = _size.width;
+      height = _size.height;
+    }
 
     // ... width
     check(width,                   'width is required');
@@ -92,7 +107,31 @@ export default class Scene extends SmartScene {
     // retain parameters in self
     this.comps = comps;
     this._size = {width, height}; // NOTE: we use _size so as NOT to clash with size() method
+
+    // Scene objects are pseudoClasses (see NOTE above)
+    this.pseudoClass = new PseudoClass();
   }
+
+  // support persistance by encoding needed props of self
+  getEncodingProps(forCloning) { // ?? forCloning
+//? //? if (forCloning) {                      // for cloning operation, NO pseudoClass (will be auto created in constructor) ???????????????????????????????????? MUST handle pseudoClass in constructor
+//? //?   return [...super.getEncodingProps(), ...['pseudoClass', 'comps', '_size']]; // id/name handled by super
+//? //? }
+//?     if (this.pseudoClass.isType()) {  // the master TYPE DEFINITION persists EVERYTHING ?? I think pseudoClass is NOT part of cloning ?? but yes on encoding(so It comes back in the same state) ... must add to constructor as INTERNAL USE
+//?       return [...super.getEncodingProps(), ...['pseudoClass', 'comps', '_size']]; // id/name handled by super
+//?     }
+//?     else {                                 // instances of this pseudoClass omit props that are part of the TYPE (will be re-constituted from master TYPE DEFINITION) ?? ditto above
+//?       return [...super.getEncodingProps(), ...['pseudoClass',          '_size']]; // id/name handled by super
+//?     }
+
+    // ?? try omitting pseudoClass in all cases
+    if (this.pseudoClass.isType()) {  // the master TYPE DEFINITION persists EVERYTHING
+      return [...super.getEncodingProps(), ...['comps', '_size']]; // id/name handled by super
+    }
+    else {                                 // instances of this pseudoClass omit props that are part of the TYPE (will be re-constituted from master TYPE DEFINITION)
+      return [...super.getEncodingProps(), ...[         '_size']]; // id/name handled by super
+    }
+  }      
   
   /**
    * Verify self has been mounted.

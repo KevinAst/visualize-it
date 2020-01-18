@@ -8,6 +8,19 @@ import SmartComp         from 'core/SmartComp';
 
 import {createLogger}   from 'util/logger';
 
+import {temporaryLibManagerHACK} from 'core/SmartModel'; // ?? very temp
+
+
+// ?? temporary ... see: temporaryLibManagerHACK
+import Collage     from 'core/Collage';
+import PseudoClass from 'core/PseudoClass';
+//import Scene       from 'core/Scene';
+//import SmartComp   from 'core/SmartComp';
+import SmartScene  from 'core/SmartScene';
+//import SmartView   from 'core/SmartView';
+
+
+
 // our internal diagnostic logger (keep enabled)
 const log = createLogger('***DIAG*** sceneView1 ... ').enable();
 
@@ -17,7 +30,7 @@ const log = createLogger('***DIAG*** sceneView1 ... ').enable();
 //************************************************************************************
 
 // specialty component TODO: ?? eventually replace with global toolbar
-class ToggleDraggableScenesButton extends SmartComp { // ?? CONSIDER: PLACING THIS IN COLLAGE ONLY (minor point as it will be obsoleted shortly)
+class ToggleDraggableScenesButton1 extends SmartComp { // ?? CONSIDER: PLACING THIS IN COLLAGE ONLY (minor point as it will be obsoleted shortly)
 
   constructor() {
     super({id: 'trash1', name: 'trash1'});
@@ -45,11 +58,23 @@ export const scene1 = new Scene({
     new generalComps.Valve1({id: 'myValve1'}),
     new generalComps.Valve2({id: 'myValve2'}),
     new generalComps.Valve3({id: 'myValve3'}),
-    new ToggleDraggableScenesButton(),
+    new ToggleDraggableScenesButton1(),
   ],
   width:  300, // ... see this setting pass through our process
   height: 250,
 });
+
+// ?? very temporary till we have a library to manage this scene
+temporaryLibManagerHACK['scene1'] = scene1;
+temporaryLibManagerHACK['ToggleDraggableScenesButton1'] = ToggleDraggableScenesButton1;
+
+// ?? more temporary: register core classes to avoid circular imports
+temporaryLibManagerHACK['Collage']     = Collage;
+temporaryLibManagerHACK['PseudoClass'] = PseudoClass;
+temporaryLibManagerHACK['Scene']       = Scene;
+temporaryLibManagerHACK['SmartComp']   = SmartComp;
+temporaryLibManagerHACK['SmartScene']  = SmartScene;
+temporaryLibManagerHACK['SmartView']   = SmartView;
 
 // our View
 const sceneView1 = new SmartView({id: 'scene', name: 'Scene 1', scene: scene1});

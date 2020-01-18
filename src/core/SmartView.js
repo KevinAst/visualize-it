@@ -55,6 +55,11 @@ export default class SmartView extends SmartModel {
     this.scene = scene;
   }
 
+  // support persistance by encoding needed props of self
+  getEncodingProps() {
+    return [...super.getEncodingProps(), ...['scene']];
+  }
+
   /**
    * Verify self has been mounted.
    * @param {string} [method] - the method name on which behalf we are checking.

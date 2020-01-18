@@ -5,8 +5,8 @@ import {SnackbarProvider,
         withSnackbar}     from 'notistack';
 import {makeStyles}       from '@material-ui/core/styles';
 import Button             from "@material-ui/core/Button";
-import isString           from 'lodash.isstring';
-import isFunction         from 'lodash.isfunction';
+import {isString,
+        isFunction}       from 'util/typeCheck';
 
 /* eslint-disable react/jsx-pascal-case */  // for: <NotifyAPI_withSnackBar>
 

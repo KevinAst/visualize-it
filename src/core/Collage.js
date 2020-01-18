@@ -1,4 +1,5 @@
 import SmartScene        from './SmartScene';
+import Scene             from './Scene';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
 
@@ -15,7 +16,7 @@ export default class Collage extends SmartScene {
    * @param {string} id - the unique identifier of this view.
    * @param {string} [name=id] - The name of this view (DEFAULT to id).
    * @param {SceneCtxArr} scenes - the scenes/positions visualized by this view.
-   * ... where SceneCtxArr: `[ { scene: SmartScene, pos: {x,y} }, ... ]` ?? REFACTOR: use pure scenes after refactor of scenes to accept x/y
+   * ... where SceneCtxArr: `[ { scene: Scene, pos: {x,y} }, ... ]` ?? REFACTOR: use pure scenes after refactor of scenes to accept x/y
    */
   constructor({id, name, scenes, ...unknownArgs}={}) {
     super({id, name});
@@ -30,7 +31,7 @@ export default class Collage extends SmartScene {
     check(scenes,                 'scenes is required');
     check(Array.isArray(scenes),  'scenes must be a SceneCtxArr');
     scenes.forEach( (sceneCtx, indx) => {
-      check(sceneCtx.scene instanceof SmartScene, `scenes[${indx}].scene must be a SmartScene instance`);
+      check(sceneCtx.scene instanceof Scene,      `scenes[${indx}].scene must be a Scene instance`);
       check(sceneCtx.pos,                         `scenes[${indx}].pos is required`);
       check(Number.isInteger(sceneCtx.pos.x) &&
             sceneCtx.pos.x >= 0,                  `scenes[${indx}].pos.x must be a positive/zero integer, not: ${sceneCtx.pos.x}`);
@@ -44,6 +45,11 @@ export default class Collage extends SmartScene {
     // retain derivation-specific parameters in self
     this.scenes = scenes;
     // TODO: need mucho validation and/or a real SceneCtx structure ?? REFACTOR: use pure scenes after refactor of scenes to accept x/y
+  }
+
+  // support persistance by encoding needed props of self
+  getEncodingProps() {
+    return [...super.getEncodingProps(), ...['scenes']];
   }
 
   /**

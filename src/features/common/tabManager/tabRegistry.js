@@ -1,7 +1,7 @@
 import React          from 'react';
 import verify         from 'util/verify';
-import isString       from 'lodash.isstring';
-import isComponent    from 'util/isComponent';
+import {isString,
+        isComponent}  from 'util/typeCheck';
 import {createLogger} from 'util/logger';
 
 // our internal diagnostic logger (normally disabled)

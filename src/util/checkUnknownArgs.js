@@ -48,5 +48,5 @@ export default function checkUnknownArgs(check, unknownNamedArgs, args) {
   check(unknownArgKeys.length === 0,  `unrecognized named parameter(s): ${unknownArgKeys}`);
 
   // check for any unrecognized positional parameter
-  check(args.length === 1,  'unrecognized positional parameters (only named parameters can be specified)');
+  check(args.length <= 1,  `unrecognized positional parameters (only named parameters can be specified) ... ${args.length} arguments were supplied`);
 }

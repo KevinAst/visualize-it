@@ -1,8 +1,8 @@
 import {reducerHash}     from 'astx-redux-util';
 import {createLogic}     from 'redux-logic';
-import isEqual           from 'lodash.isequal';
-import isString          from 'lodash.isstring';
-import isFunction        from 'lodash.isfunction';
+import {isString,
+        isEqual,
+        isFunction}      from 'util/typeCheck';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
 

@@ -1,5 +1,5 @@
-import verify   from './verify';
-import isString from 'lodash.isstring';
+import verify     from './verify';
+import {isString} from 'util/typeCheck';
 
 /*--------------------------------------------------------------------------------
    Simple logging utility with the following features:

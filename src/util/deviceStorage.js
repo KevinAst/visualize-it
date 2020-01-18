@@ -1,9 +1,9 @@
-import verify         from 'util/verify';
-import isString       from 'lodash.isstring';
-import isPlainObject  from 'lodash.isplainobject';
-import noOp           from 'util/noOp';
+import verify          from 'util/verify';
+import {isString,
+        isPlainObject} from 'util/typeCheck';
+import noOp            from 'util/noOp';
 import {encode,
-        decode}       from 'util/encoder';
+        decode}        from 'util/encoder';
 
 /**
  * Store the supplied entry in local device storage.

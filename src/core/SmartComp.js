@@ -1,4 +1,6 @@
-import SmartModel  from './SmartModel';
+import SmartModel        from './SmartModel';
+import verify            from 'util/verify';
+import checkUnknownArgs  from 'util/checkUnknownArgs';
 
 /**
  * SmartComp is the abstract base class for all visualize-it
@@ -32,8 +34,14 @@ export default class SmartComp extends SmartModel {
    * @param {string} [name=id] - the human interpretable name of this
    * component (DEFAULT to id). // ?? UNSURE if we want to DEFAULT this way
    */
-  constructor({id, name}) {
+  constructor({id, name, ...unknownArgs}={}) {
     super({id, name});
+
+    // validate SmartScene() constructor parameters
+    const check = verify.prefix('SmartScene() constructor parameter violation: ');
+    // ... id/name validated by base class
+    // ... unknown arguments
+    checkUnknownArgs(check, unknownArgs, arguments);
   }
 
   /**
