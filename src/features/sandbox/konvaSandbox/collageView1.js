@@ -38,8 +38,10 @@ const scene2Copy = SmartModel.createSmartObject(scene2, {
 });
 
 // ?? CRUDE TEST: try to encode/hydrate scene2Copy
+const jsonMaster = scene2.toSmartJSON();
+console.log(`?? converted scene2 MASTER to JSON: `, {scene2, jsonMaster});
 const json = scene2Copy.toSmartJSON();
-console.log(`?? converted scene2Copy to JSON: `, {scene2Copy, json});
+console.log(`?? converted scene2Copy INSTANCE to JSON: `, {scene2Copy, json});
 const scene2CopyCopy = SmartModel.fromSmartJSON(json);
 console.log(`?? here is the scene2CopyCopy: `, {scene2CopyCopy});
 

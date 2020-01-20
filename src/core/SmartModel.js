@@ -7,12 +7,33 @@ import checkUnknownArgs  from 'util/checkUnknownArgs';
 
 /**
  * SmartModel is the abstract top-level base class for all visualize-it
- * objects.  A consistent interpretation is defined for:
- *  - id/name
- *  - various common APIs
- *    * ?? expand
- *  - various common utilities
- *    * ?? expand
+ * objects. 
+ *
+ * SmartModel derivations are referred to as "smartObjects".  They
+ * have the following characteristics:
+ *
+ * - The class constructor employs namedProps.  This is KEY aspect to
+ *   make persistence work, because it supports data-driven injection
+ *   from smartJSON.
+ *
+ * The SmartModel base class provides a consistency in:
+ *
+ *  - identification (id/name)
+ *
+ *  - persistance and state management:
+ *    + toSmartJSON():smartJSON ................. transforms self (with depth) into smartJSON
+ *<S> + fromSmartJSON(smartJSON): smartObject ... reconstitutes class-based objects (with depth) from smartJSON
+ *    + getEncodingProps(): string[] ............ polymorphically expose properties required to encode self
+ *    + smartClone(): smartObject ............... creates a deep copy of self
+ *
+ *  - various common utilities:
+ *<S> + createSmartObject(lassRef, namedProps): smartObject ... a value-added constructor
+ *<S> + getClassName(classRef): string ........................ get class name of classRef (either a class or pseudoClass)
+ *    + getMyClassName(): string .............................. get class name of self (interpreting BOTH class or pseudoClass)
+ *    + getMyLibName(): string ................................ get library name of self
+ *<S> + isClass(classRef): boolean ............................ is supplied classRef a real class
+ *<S> + isPseudoClass(classRef): boolean ...................... is supplied classRef a pseudoClass
+ *
  */
 export default class SmartModel {
 
@@ -52,24 +73,43 @@ export default class SmartModel {
    * An instance method that transforms self (with depth) into
    * smartJSON.
    * 
-   * NOTE: The algorithm for this utility is fully implemented here
-   *       (the SmartModel base class), with the polymorphic knowledge
-   *       of which properties should be encoded (see getEncodingProps(),
-   *       and rarely needs to be overwritten.
+   * NOTE: This algorithm is fully implemented within the SmartModel
+   *       base class.  With the polymorphic knowledge of which
+   *       properties to encode (see getEncodingProps()) it rarely
+   *       needs to be overwritten.
    *
-   * REMEMBER: `this` is an object instance of SmartModel,  because we are an
-   *           instance method.  In other words, this method is only handling
-   *           SmartModel types (NOT primitives, etc.)
-   *           As a result, we will end up with a JSON structure like this:
-   *             const myJSON: { // we are striving for THIS
-   *               smartType:  '??SYNC THIS',
-   *               prop1: 'hello',
-   *               prop2: {...smartObj...},
-   *               comps: [
-   *                 {...smartObj...},
-   *                 {...smartObj...},
-   *               ]
-   *             }
+   * REMEMBER: `this` is an object instance of SmartModel (because this is an
+   *           instance method).  In other words, this method only handles
+   *           SmartModel types (NOT primitives, or other objects, etc.)
+   *           As a result, the resulting JSON follows this pattern:
+   *
+   *           - the master definition of the BoilerScene pseudoClass (a type: Scene)
+   *             ```js
+   *               {
+   *                 smartType: 'Scene',
+   *                 smartLib:  'core',
+   *                 id:        'BoilerScene',
+   *                 name:      'A Scene focused on the boiler components of our system',
+   *                 _size:     {width: 300, height: 250},
+   *                 comps: [
+   *                   {...smartObj...},
+   *                   {...smartObj...},
+   *                 ],
+   *               }
+   *             ```
+   *
+   *           - an instance of the BoilerScene pseudoClass (a type: BoilerScene)
+   *             ```js
+   *               {
+   *                 smartType: 'BoilerScene',
+   *                 smartLib:  'ACME',
+   *                 id:        'BoilerScene',
+   *                 name:      'A Scene focused on the boiler components of our system',
+   *                 _size:     {width: 300, height: 250},
+   *                 .... NOTE: all other members are re-constituted from the master definition
+   *                            ... i.e. the pseudoClass
+   *               }
+   *             ```
    *
    * @returns {smartJSON} the smartJSON representation of self.
    */
@@ -82,27 +122,44 @@ export default class SmartModel {
       smartLib:  this.getMyLibName(),
     };
 
-    // encode our instance properties
-    const encodingProps = this.getEncodingProps();
+    // encode self's instance properties
+    const encodingProps = this.getEncodingProps(); // $FOLLOW-UP$: refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
     encodingProps.forEach( (propName) => {
+
       let propValue = this[propName];
+
       // encode SmartModel objects
       if (propValue.toSmartJSON) { // we cheat and do a duck type check here :-)
         propValue = propValue.toSmartJSON();
       }
-      // encode arrays, by encoding all array items
+
+      // encode arrays by encoding all array items
       else if (Array.isArray(propValue)) { 
         propValue = propValue.map( item => item.toSmartJSON ? item.toSmartJSON() : item );
       }
-      // NOTE: all other types pass-through as-is
-      //       ... this supports primitive types (string, number, etc.) 
-      //       ... TODO: may be too permissive for other things (like other NON SmartModel objects
-      //                 - should we throw an exception if this is isObject()
-      //                 - should we allow isPlainObject to pass through as-is?
-      //                 - we could auto-handle things like Date, etc.
-      //                   - OR more generically leverage any object that has the toJSON() method
-      //                     ... is this guaranteed to work when instantiating content with Date()
-      //                     ... certainly would be a special case as IT would NOT work with namedProps (hmmmm)
+
+      // for NON SmartModel objects
+      else if (isObject(propValue)) {
+
+        // we support plain objects ... simply encode each item WITHOUT a `smartType` encoding
+        if (isPlainObject(propValue)) {
+          propValue = Object.entries(propValue).reduce( (accum, [key, value]) => {
+            accum[key] = value.toSmartJSON ? value.toSmartJSON() : value; // ?? L8TR: for value: encapsulate reusable function to handle all types (as above/below)
+            return accum;
+          }, {} );
+        }
+
+        // all other objects are a problem
+        // ... CONSIDER (as needed) adding support for common objects like Date, etc
+        //     OR more generically leverage any object that has the toJSON() method
+        else {
+          throw new Error(`***ERROR*** SmartModel.toSmartJSON() processing self object of type ${this.constructor.name}, whose member object of type ${propValue.constructor.name} is NOT supported ... do NOT know how to encode this member to JSON :-(`);
+        }
+      }
+
+      // NOTE: all other types pass-through as-is, supporting primitive types (string, number, etc.) 
+
+      // accumulate our running JSON structure
       myJSON[propName] = propValue;
     });
 
@@ -110,8 +167,23 @@ export default class SmartModel {
     return myJSON;
   }
 
-  // ?? document
-  // ?? an instance method returning the class name of self (interpreting pseudoClasses too)
+  /**
+   * An instance method returning the library name of self.
+   *
+   * @returns {string} the library name which promotes the class of
+   * object. ?? may be 'core'?
+   */
+  getMyLibName() {
+    return 'TODO'; // ?? temp for now
+  }
+
+  /**
+   * An instance method returning the class name of self (interpreting
+   * BOTH real classes and pseudoClasses).
+   *
+   * @returns {string} the class name for this object (interpreting
+   * BOTH real classes and pseudoClasses).
+   */
   getMyClassName() {
     if (this.pseudoClass && this.pseudoClass.isInstance() ) { // a pseudoClass instance
       return this.pseudoClass.id;
@@ -119,8 +191,15 @@ export default class SmartModel {
     return this.constructor.name; // standard JS class function name
   }
 
-  // ?? document
-  // ?? a static method returning the class name of the supplied classRef (interpreting pseudoClasses too)
+  /**
+   * A static method returning the class name of the supplied classRef
+   * (interpreting BOTH real classes and pseudoClasses).
+   *
+   * @param {classRef} classRef - the class to interpret (either a
+   * real class or a pseudoClass).
+   *
+   * @returns {string} the supplied classRef's class name.
+   */
   static getClassName(classRef) {
     if (classRef.pseudoClass && classRef.pseudoClass.isType() ) { // a pseudo class (an object instance to be cloned)
       return classRef.id;
@@ -128,19 +207,44 @@ export default class SmartModel {
     return classRef.name; // standard JS class function name
   }
 
-  // ?? document
-  getMyLibName() {
-    return 'TODO'; // ?? temp for now
+  /**
+   * A static method that returns an indicator as to whether the
+   * supplied classRef is a real class.
+   *
+   * @param {classRef} classRef - the class to interpret (either a
+   * real class or a pseudoClass).
+   *
+   * @returns {boolean} true: a real class, false: otherwise.
+   */
+  static isClass(classRef) {
+    return isClass(classRef);
   }
 
   /**
-   * Polymorphically reveal self's properties that are used to
-   * encode smartJSON.
+   * A static method that returns an indicator as to whether the
+   * supplied classRef is a pseudoClass.
+   *
+   * @param {classRef} classRef - the class to interpret (either a
+   * real class or a pseudoClass).
+   *
+   * @returns {boolean} true: a pseudoClass, false: otherwise.
+   */
+  static isPseudoClass(classRef) {
+    return classRef.pseudoClass && classRef.pseudoClass.isType();
+  }
+
+  /**
+   * Polymorphically reveal self's properties that should be used to
+   * reconstitute an equivalent object.  This is used by:
+   *  - toSmartJSON() ... driving persistance
+   *  - smartClone() .... in duplicating objects
+   * With this polymorphic knowledge, these methods can be fully
+   * implemented by the SmartModel base class.
    * 
-   * With this knowledge, toSmartJSON() can be fully implemented at
-   * the SmartModel class (and rarely need to be overwritten).
+   * Sub-classes can define their own properties, and include their
+   * base-class as follows:
    * 
-   * Sub-Classes can accumulate their properties by including their
+   * Sub-classes should accumulate their properties by including their
    * parent classes, as follows:
    *
    *   ```js
@@ -152,10 +256,25 @@ export default class SmartModel {
    *   }
    *   ```
    * 
-   * Background: NOT ALL object properties should be encoded to retain
-   * a persistent state.  As an example, temporal working state (such
-   * as mounted visuals) can and should be re-constituted from logic,
-   * NOT from a persistent state.
+   * **Detail**:
+   *
+   * NOT ALL object properties should be encoded. There are cases
+   * where this state should be reconstituted from logic rather from
+   * the content driven by this method.  As an example, temporal
+   * working state (such as mounted visuals) should be omitted.
+   *
+   * Remember this encoding is used to reconstitute an equivalent
+   * object.
+   *
+   * In regard to pseudoClasses, the returned content will vary, based
+   * on whether self is the pseudoClass MASTER definition, or an
+   * INSTANCE of a pseudoClass.
+   * $FOLLOW-UP$: refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
+   *              ... see: "NO WORK (I THINK)" in journal (1/20/2020)
+   *              We may need to interpret different usages in support of BOTH:
+   *                - persistence (toSmartJSON()) -AND-
+   *                - pseudoClass construction (smartClone())
+   *              - may supply param: enum CloningType: forCloning/forJSON
    *
    * @returns {string[]} self's property names that need to be encoded
    * in our smartJSON representation.
@@ -176,12 +295,80 @@ export default class SmartModel {
    * from the supplied smartJSON.
    */
   static fromSmartJSON(smartJSON) {
-    return fromSmartJSON(smartJSON);
+
+    // NOTE: We do NOT validate any characteristic of our supplied smartJSON,
+    //       because the way in which this algorithm is invoked (recursively),
+    //       it can truly be ANY type of data!
+    //       As an example, a sub elm of JSON could be a number or a string.
+
+    // process JSON objects by translating them into real class-based objects
+    // NOTE: This is a "critical" part of our logic, where we interpret classRef, etc.
+    //       ... this logic handles BOTH:
+    //            - smart objects ..... i.e. SmartModel derivations
+    //            - object literals ... {a: 1, b: smartObj}
+    if (isPlainObject(smartJSON)) {
+
+      // determine the classRef (could be a real class or a pseudoClass)
+      const classRef = getClassRefFromSmartJSON(smartJSON);
+
+      // define our namedProps to feed into our constructor (from smartJSON),
+      // recursively resolving each ref into real class-based objects (as needed)
+      const namedProps = {};
+      for (const key in smartJSON) {
+        const val = smartJSON[key];
+
+        // bypass selected keywords that are NOT part of the constructor namedProps
+        if (key === 'smartType' || key === 'smartLib') { // type info is for decoding only
+          continue;
+        }
+
+        // recursively resolve each val into a real class-based object
+        namedProps[key] = SmartModel.fromSmartJSON(val);
+      }
+
+      // when the smartJSON is a plain object literal,
+      // ... we can simply return the namedProps as-is because:
+      //     - it has been newly carved out
+      //     - and it's prop references have been resolved into appropriate objects as needed
+      //       ... see: logic (above)
+      if (classRef === ObjectLiteral) {
+        return namedProps; // KOOL: namedProps IS our object :-)
+      }
+
+      // otherwise our smartJSON represents a true smart object (SmartModel derivation)
+      // ... instantiate a real class-based object using our value-added constructor
+      //     that handles real classes and pseudoClasses
+      else {
+        return SmartModel.createSmartObject(classRef, namedProps);
+      }
+    }
+    
+    // process array types by recursively transforming each item
+    else if (Array.isArray(smartJSON)) {
+      return smartJSON.map( item => SmartModel.fromSmartJSON(item) );
+    }
+
+    // all other types are assumed to be immutable primitives, and simply passed through :-)
+    // ... string, number, etc.
+    return smartJSON;
   }
 
 
   /**
-   * A cloning method that creates a deep copy of self.
+   * An instance method that creates a deep copy of self.
+   * 
+   * Within the cloning process, object creation is still based on
+   * class instantiation ... dynamically performing a `new
+   * Class(namedProps)`.  As such the supported object types are
+   * limited to smartObjects (SmartModel derivations), native types,
+   * arrays, and plain objects.  This heuristic applies not only to
+   * the top-level object, but also it's subordinate objects within
+   * the containment tree.
+   *
+   * NOTE: This algorithm is fully implemented within the SmartModel
+   *       base class.  With the polymorphic knowledge of which
+   *       properties to encode (see getEncodingProps()) it rarely
+   *       needs to be overwritten.
    *
    * @param {ObjectLiteral} [namedProps] - The optional named
    * properties that when supplied will override the members of self
@@ -193,7 +380,7 @@ export default class SmartModel {
 
     // clone our instance properties members by recursively drilling into smartClone() as needed
     // ... handling arrays and object literals too
-    const encodingProps = this.getEncodingProps(); // ??$$$ refactor this to be used by clone/encoding ?? do NOT call encoding (anywhere) USE instanceProps or memberProps
+    const encodingProps = this.getEncodingProps(); // $FOLLOW-UP$: refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
     const clonedProps = {};
     encodingProps.forEach( (instanceName) => {
       const instanceValue = this[instanceName]; // self's instance member
@@ -232,7 +419,7 @@ export default class SmartModel {
           // ... CONSIDER (as needed) adding support for common objects like Date, etc
           //     OR more generically leverage any object that has the toJSON() method
           else {
-            throw new Error(`***ERROR*** SmartModel.smartClone() processing object (of type ${this.constructor.name}) whose member object (of type ${instanceValue.constructor.name}) is NOT supported ... do NOT know how to clone member object :-(`);
+            throw new Error(`***ERROR*** SmartModel.smartClone() processing self object of type ${this.constructor.name}, whose member object of type ${instanceValue.constructor.name} is NOT supported ... do NOT know how to clone this member :-(`);
           }
         }
 
@@ -242,7 +429,7 @@ export default class SmartModel {
         }
       }
 
-      // maintain our running clonedProps
+      // accumulate our running clonedProps
       clonedProps[instanceName] = clonedValue;
 
     });
@@ -256,8 +443,8 @@ export default class SmartModel {
   }
 
   /**
-   * A static method that serves as a constructor to create
-   * smartObjects (SmartModel derivations).
+   * A static method that serves as a value-added constructor to
+   * instantiate smartObjects (SmartModel derivations).
    *
    * @param {classRef} classRef - the class representing the object to
    * create, either:
@@ -275,13 +462,13 @@ export default class SmartModel {
   static createSmartObject(classRef, namedProps) {
 
     // handle a standard class definition
-    if (isClass(classRef)) { // ??$$ DONE: alias this to: ... isClass(classRef)
+    if (SmartModel.isClass(classRef)) {
       console.log(`?? ***INFO** SmartModel.createSmartObject() creating standard class: '${SmartModel.getClassName(classRef)}' ... using namedProps: `, namedProps);
       return new classRef(namedProps);
     }
 
     // handle a pseudoClass (an object that is considered a dynamic class to be instantiated)
-    else if (classRef.pseudoClass && classRef.pseudoClass.isType()) {
+    else if (SmartModel.isPseudoClass(classRef)) {
 
       // clone the pseudoClass (with depth), overriding supplied namedProps
       const newObj = classRef.smartClone(namedProps);
@@ -291,58 +478,6 @@ export default class SmartModel {
       newObj.pseudoClass.name = `a pseudoClass instance of type: '${classRef.id}'`; // for good measure
       console.log(`?? ***INFO** SmartModel.createSmartObject() created pseudoClass: '${SmartModel.getClassName(classRef)}' ... `, {namedProps, newObj});
       return newObj;
-
-      // ?? TRASH BELOW
-      //? // ?? return classRef.clone(namedProps); // implement this too ... kinda a clone with namedProps override
-      //? // ?? not sure what to call it >>> call it smartClone(overriddenNamedProps={}): smartObject
-      //? //      ... NO NO NO: it is DIFFERENT than clone() ... it is a constructor NO NO NO: we are the constructor
-      //? //          NO NO NO: it doesn't have any depth (everything is supplied in the namedProps
-      //? //      >>> KEY: here is what we want to do:
-      //? //           x   1. also check that classRef.pseudoClass.isType() (above)
-      //? //           x   2. instantiate the underlying class (i.e. classRef.constructor WITH params
-      //? //                  ... will we be given all the params needed?
-      //? //                  >>> NOT: this is what we must clone ... and NOTE: should NOT hit any pseudoClass "TYPE", rather ALL pseudoClass "INSTANCES"
-      //? // KEY KEY KEY               SO: I think we are back to clone has NO special case of pseudoClass because ALL pseudoClasses should be instances
-      //? //                               WHAT WE NEED TO DO:
-      //? //                               a. clone the object (with depth) however override the namedProps 
-      //? //                                  classRef.smartClone(namedProps);
-      //? //                               b. 
-      //? //                               c. 
-      //? //                               d. 
-      //? //                               e. 
-      //? //                               f. 
-      //? //           x   3. force the newObj.pseudoClass.id to be: classRef.id
-      //? //      >>> CONFUSING: NOT RIGHT
-      //? //          - THE ONLY DIFF IS: when it sees a pseudoClass TYPE it construct
-      //? //          - consider: pseudoConstruct()? ... it's really private (don't want to call it outside of THIS method)
-      //? //      QUESTION: a scene that 
-      //? 
-      //? // NOTE: we can't intermix our json solution with the clone as it is an infinite recursion (when pseudoClass construction is involved)
-      //? //       ... i.e. we are in the middle of our JSONization and all of a sudden we have to "construct" a pseudoClass which clones it.
-      //? //    HOW? ... return SmartModel.fromSmartJSON( this.toSmartJSON() );
-      //? //? // HERE IT IS QUICK AND DIRTY: ?? NOTE: classRef is really `this`
-      //? //? const newObj = SmartModel.fromSmartJSON( classRef.toSmartJSON() );
-      //? //? for (const key in namedProps) {
-      //? //?   const val = namedProps[key];
-      //? //?   newObj[key] = val; // override namedProps in new object
-      //? //? }
-      //? //? return newObj;
-      //? 
-      //? // ?? SEE IT WORK ...
-      //? // cannot import Scene: ReferenceError: Cannot access 'SmartModel' before initialization
-      //? // return new Scene({...
-      //? // use the class in classRef ... which is a Scene
-      //? return new classRef.constructor({ // use the Scene() constructor ... this is the only type that is pseudo constructed yet
-      //?   id: 'scenePoop',
-      //?   comps: [
-      //?     // new generalComps.Valve1({id: 'myValve1'}),
-      //?     // new generalComps.Valve2({id: 'myValve2'}),
-      //?     // new generalComps.Valve3({id: 'myValve3'}),
-      //?     // new ToggleDraggableScenesButton1(),
-      //?   ],
-      //?   width:  19, // ... see this setting pass through our process
-      //?   height: 56,
-      //? });
     }
 
     // otherwise, could NOT interpret the supplied classRef
@@ -357,7 +492,7 @@ export default class SmartModel {
 
 
 //******************************************************************************
-//*** Specifications:
+//*** Specifications
 //******************************************************************************
 
 /**
@@ -367,10 +502,8 @@ export default class SmartModel {
  * has the following characteristics:
  *
  * - The class constructor employs namedProps.  This is KEY aspect to
- *   make persistance work, because it supports data-driven injection
+ *   make persistence work, because it supports data-driven injection
  *   from smartJSON.
- *
- * - ?? more
  */
 
 
@@ -381,10 +514,10 @@ export default class SmartModel {
  * re-constituted back into a class-based object representation.
  * 
  * - it supports object containment (i.e. objects with depth),
- *   supporting an entire object tree
+ *   allowing an entire object tree to be  JSONized
  * 
  * - it is used for BOTH persistence and functional state management
- *   (i.e. redux).
+ *   (in redux).
  * 
  * - it is created by:
  *   ```
@@ -411,6 +544,9 @@ export default class SmartModel {
  *    be dynamically edited (through the graphical editor), and yet
  *    can be "instantiated" as items of other objects!  Please refer
  *    to PseudoClass.
+ * 
+ *  - ObjectLiteral ... a nomenclature symbolizing an object literal
+ *                      (used only in smartJSON processing)
  */
 
 /**
@@ -424,92 +560,36 @@ const ObjectLiteral = 'ObjectLiteral';
 
 
 //******************************************************************************
-//*** Private Object Creation/JSONization Helpers
+//*** Internal Helper Functions
 //******************************************************************************
 
-// The SmartModel.fromSmartJSON() implementation ... see JavaDocs (above)
-function fromSmartJSON(smartJSON) { // ?? consider just implementing this in the static class
-
-  // NOTE: We don't validate any characteristic of our supplied smartJSON,
-  //       because the way in which this algorithm is invoked (recursively),
-  //       it can truly be ANY type of data!
-  
-  // process array types by recursively transforming each item
-  if (Array.isArray(smartJSON)) {
-    //?? debugger;
-    return smartJSON.map( item => fromSmartJSON(item) );
-  }
-
-  // process JSON objects by translating them into real class-based objects
-  // NOTE: This is a "critical" part of our logic, where we interpret classRef, etc.
-  //       ... this logic handles BOTH:
-  //            - smart objects ..... i.e. SmartModel derivations
-  //            - object literals ... {a: 1, b: smartObj}
-  if (isPlainObject(smartJSON)) {
-
-    //?? debugger;
-
-    // determine the classRef (could be a real class or a pseudoClass)
-    const classRef = getClassRefFromSmartJSON(smartJSON);
-
-    // define our namedProps to feed into our constructor (from smartJSON),
-    // recursively resolving each ref into real class-based objects
-    const namedProps = {};
-    for (const key in smartJSON) {
-      const val = smartJSON[key];
-
-      // bypass selected keywords that are NOT part of the constructor namedProps
-      if (key === 'smartType' || key === 'smartLib') { // type info is for decoding only
-        continue;
-      }
-
-      // recursively resolve each val into a real class-based object
-      //?? debugger;
-      namedProps[key] = fromSmartJSON(val);
-    }
-
-    // when the smartJSON is a plain object literal,
-    // ... we can simply return the namedProps as-is because:
-    //     - it has been newly carved out
-    //     - and it's prop references have been resolved into appropriate objects as needed
-    if (classRef === ObjectLiteral) {
-      return namedProps;
-    }
-
-    // otherwise our smartJSON represents a true smart object (SmartModel derivation)
-    // ... instantiate a real class-based object using our value-added constructor
-    // ... that handles real classes and pseudoClasses
-    else {
-      return SmartModel.createSmartObject(classRef, namedProps);
-    }
-  }
-
-  // all other types are assumed to be immutable primitives, and simply passed through :-)
-  // ... string, number, etc.
-  return smartJSON;
-}
-
-// + getClassRefFromSmartJSON(smartJSON): classRef
-//   ... currently private
-//   ... if needed can expose as static method
+/**
+ * Return the classRef of the supplied smartJSON.
+ *
+ * @param {JSON} smartJSON - the smartJSON to interpret.
+ *
+ * @returns {classRef} the classRef of the supplied smartJSON
+ * (class | pseudoClass | ObjectLiteral)
+ */
 function getClassRefFromSmartJSON(smartJSON) {
 
-  // handle JSON that is NOT a smart object (SmartModel) as an ObjectLiteral
-  if (!smartJSON.smartType) {
+  // glean our className and libName
+  const className = smartJSON.smartType;
+  const libName   = 'L8TR'; // ?? L8TR: smartJSON.smartLib;
+
+  // handle ObjectLiterals
+  // ... for JSON that is NOT a smartObject (i.e. SmartModel)
+  // ... determined by the fact that toSmartJSON() does NOT encode `smartType` for object literals
+  if (!className) {
     return ObjectLiteral;
   }
 
-  const className = smartJSON.smartType;
-//const libName   = 'L8TR'; // ?? L8TR: smartJSON.smartLib;
-
   // resolve our classRef
-  //const classRef = libManager.getClassRef(libName, className); // TODO: ?? eventually this is a lookup in our libManager, but till we have this in place we hard-code a catalog
+  //const classRef = libManager.getClassRef(libName, className); // TODO: ?? when developed, use this (for now use temporaryLibManagerHACK)
   const classRef = temporaryLibManagerHACK[className];
-
-  // error out if we can't resolve our classRef ... ?? really should prob error out in libManager.getClassRef()
-  if (!classRef) {
-    const errMsg = `***ERROR*** SmartModel.getClassRefFromSmartJSON(smartJSON): could not resolve a classRef from className: '${className}' ... see logs for smartJson `;
-    console.error(errMsg, smartJSON);
+  if (!classRef) { // ?? this check may be in libManager.getClassRef() ... PRO TO KEEP HERE: we have the smartJSON in our logs (gives a bit more context on where it was called) ... YES: could try/catch/rethrow and add to attempting to
+    const errMsg = `***ERROR*** SmartModel.fromSmartJSON(smartJSON): could not resolve a classRef from libName/className: '${libName}/${className}' ... see logs for smartJson`;
+    console.error(errMsg, {smartJSON});
     throw new Error(errMsg);
   }
   

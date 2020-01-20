@@ -69,9 +69,9 @@ export default class Scene extends SmartScene {
   constructor({id,
                name,
                comps,
+               _size, // INTERNAL USE (for rehydration) takes precedence over width/height: _size: {width, height}
                width, // NOTE: we keep as width/height rather than size: {width, height} (for now) ... CONSISTENT with Konva.Stage API (not that that matters ... it is an internal)
                height,
-               _size, // INTERNAL USE ONLY (for rehydration) ?? check this out
                ...unknownArgs}={}) {
 
     super({id, name});
@@ -85,7 +85,7 @@ export default class Scene extends SmartScene {
     check(comps,                'comps is required');
     check(Array.isArray(comps), 'comps must be a SmartComp[] array');
 
-    // ... INTERNAL USE: _size: {width, height} <<< for rehydration
+    // ... INTERNAL USE (for rehydration) takes precedence over width/height: _size: {width, height}
     if (_size) { 
       width  = _size.width;
       height = _size.height;
@@ -104,32 +104,45 @@ export default class Scene extends SmartScene {
     // ... unknown arguments
     checkUnknownArgs(check, unknownArgs, arguments);
 
-    // retain parameters in self
-    this.comps = comps;
-    this._size = {width, height}; // NOTE: we use _size so as NOT to clash with size() method
+    //***
+    //*** maintain self state (instance vars)
+    //***
 
     // Scene objects are pseudoClasses (see NOTE above)
     this.pseudoClass = new PseudoClass();
+
+    // retain parameters in self
+    this._size = {width, height}; // NOTE: we use _size so as NOT to clash with size() method
+    this.comps = comps;
   }
 
   // support persistance by encoding needed props of self
-  getEncodingProps(forCloning) { // ?? forCloning
-//? //? if (forCloning) {                      // for cloning operation, NO pseudoClass (will be auto created in constructor) ???????????????????????????????????? MUST handle pseudoClass in constructor
-//? //?   return [...super.getEncodingProps(), ...['pseudoClass', 'comps', '_size']]; // id/name handled by super
-//? //? }
-//?     if (this.pseudoClass.isType()) {  // the master TYPE DEFINITION persists EVERYTHING ?? I think pseudoClass is NOT part of cloning ?? but yes on encoding(so It comes back in the same state) ... must add to constructor as INTERNAL USE
-//?       return [...super.getEncodingProps(), ...['pseudoClass', 'comps', '_size']]; // id/name handled by super
-//?     }
-//?     else {                                 // instances of this pseudoClass omit props that are part of the TYPE (will be re-constituted from master TYPE DEFINITION) ?? ditto above
-//?       return [...super.getEncodingProps(), ...['pseudoClass',          '_size']]; // id/name handled by super
-//?     }
+  // 
+  // $FOLLOW-UP$: refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
+  //              ... see: "NO WORK (I THINK)" in journal (1/20/2020)
+  //              We may need to interpret different usages in support of BOTH:
+  //                - persistence (toSmartJSON()) -AND-
+  //                - pseudoClass construction (smartClone())
+  //              - may supply param: enum CloningType: forCloning/forJSON
+  getEncodingProps() {
 
-    // ?? try omitting pseudoClass in all cases
-    if (this.pseudoClass.isType()) {  // the master TYPE DEFINITION persists EVERYTHING
-      return [...super.getEncodingProps(), ...['comps', '_size']]; // id/name handled by super
+    // NOTE: in all cases, id/name handled by super
+
+    // L8TR: see note above
+    //? if (cloningType === CloningType.forCloning) {
+    //?   return [...super.getEncodingProps(), ...['pseudoClass', '_size', 'comps']]; // ? if we do this, must handle pseudoClass in constructor params
+    //? }
+    //? else if (cloningType === CloningType.forJSON) {
+    //? }
+
+    // NOTE: currently pseudoClass is re-constituted via construction (above)
+    //       and tweaked by SmartModel utils ... hmmm
+
+    if (this.pseudoClass.isType()) { // the master TYPE DEFINITION persists EVERYTHING
+      return [...super.getEncodingProps(), ...['_size', 'comps']];
     }
-    else {                                 // instances of this pseudoClass omit props that are part of the TYPE (will be re-constituted from master TYPE DEFINITION)
-      return [...super.getEncodingProps(), ...[         '_size']]; // id/name handled by super
+    else {                           // instances of this pseudoClass omit props that are part of the TYPE (will be re-constituted from master TYPE DEFINITION)
+      return [...super.getEncodingProps(), ...['_size']];
     }
   }      
   
