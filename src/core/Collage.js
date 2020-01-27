@@ -13,9 +13,9 @@ export default class Collage extends SmartScene {
    *
    * **Please Note** this constructor uses named parameters.
    *
-   * @param {string} id - the unique identifier of this view.
-   * @param {string} [name=id] - The name of this view (DEFAULT to id).
-   * @param {SceneCtxArr} scenes - the scenes/positions visualized by this view.
+   * @param {string} id - the unique identifier of this  collage.
+   * @param {string} [name=id] - The name of this collage (DEFAULT to id).
+   * @param {SceneCtxArr} scenes - the scenes/positions visualized by this collage.
    * ... where SceneCtxArr: `[ { scene: Scene, pos: {x,y} }, ... ]` ?? REFACTOR: use pure scenes after refactor of scenes to accept x/y
    */
   constructor({id, name, scenes, ...unknownArgs}={}) {

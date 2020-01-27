@@ -5,6 +5,8 @@ import {isString,
         isPlainObject}   from 'util/typeCheck';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
 
+// ?? rename lib to pkg (everywhere)
+
 /**
  * SmartModel is the abstract top-level base class for all visualize-it
  * objects. 
@@ -115,7 +117,7 @@ export default class SmartModel {
    */
   toSmartJSON() {
 
-    // encode our type information
+    // prime our JSON by encoding our smart type information
     // ... these methods take into account BOTH real types/classes AND pseudoClasses
     const myJSON = {
       smartType: this.getMyClassName(),
@@ -125,46 +127,75 @@ export default class SmartModel {
     // encode self's instance properties
     const encodingProps = this.getEncodingProps(); // $FOLLOW-UP$: refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
     encodingProps.forEach( (propName) => {
-
-      let propValue = this[propName];
-
-      // encode SmartModel objects
-      if (propValue.toSmartJSON) { // we cheat and do a duck type check here :-)
-        propValue = propValue.toSmartJSON();
-      }
-
-      // encode arrays by encoding all array items
-      else if (Array.isArray(propValue)) { 
-        propValue = propValue.map( item => item.toSmartJSON ? item.toSmartJSON() : item );
-      }
-
-      // for NON SmartModel objects
-      else if (isObject(propValue)) {
-
-        // we support plain objects ... simply encode each item WITHOUT a `smartType` encoding
-        if (isPlainObject(propValue)) {
-          propValue = Object.entries(propValue).reduce( (accum, [key, value]) => {
-            accum[key] = value.toSmartJSON ? value.toSmartJSON() : value; // ?? L8TR: for value: encapsulate reusable function to handle all types (as above/below)
-            return accum;
-          }, {} );
-        }
-
-        // all other objects are a problem
-        // ... CONSIDER (as needed) adding support for common objects like Date, etc
-        //     OR more generically leverage any object that has the toJSON() method
-        else {
-          throw new Error(`***ERROR*** SmartModel.toSmartJSON() processing self object of type ${this.constructor.name}, whose member object of type ${propValue.constructor.name} is NOT supported ... do NOT know how to encode this member to JSON :-(`);
-        }
-      }
-
-      // NOTE: all other types pass-through as-is, supporting primitive types (string, number, etc.) 
-
-      // accumulate our running JSON structure
-      myJSON[propName] = propValue;
+      myJSON[propName] = encodeRef(this[propName]); // accumulate our running JSON structure
     });
 
     // beam me up Scotty :-)
     return myJSON;
+
+
+    // internal function that encodes the supplied `ref` into JSON.
+    // - this algorithm is needed to support additional types over and
+    //   above smartObjs
+    // - the algorithm is recursive, picking up all sub-references
+    //   (with depth)
+    // - ALL data types are handled (EXCEPT for class-based objects
+    //   that are NOT smartObjs):
+    //   * arrays
+    //   * plain objects (as in object literals)
+    //   * smartObjs (class-based object derivations of SmartModel)
+    //   * primitives (string, number, boolean, etc.)
+    //   * NOT SUPPORTED: class-based objects that are NOT smartObjs
+    function encodeRef(ref) {
+
+      // handle NO ref
+      // ... simply pass it through (null, undefined, etc. ... even false is OK :-)
+      if (!ref) {
+        return ref;
+      }
+
+      // handle arrays ... simply encode all array items
+      else if (Array.isArray(ref)) {
+        const  arrayJSON = ref.map( item => encodeRef(item) );
+        return arrayJSON;
+      }
+
+      // handle objects
+      // ... various object types (see below)
+      else if (isObject(ref)) {
+        
+        // handle smartObjs (class-based object derivations of SmartModel)
+        if (ref instanceof SmartModel) {
+          return ref.toSmartJSON();
+        }
+
+        // handle plain objects
+        // ... simply encode each item WITHOUT the smartObj connotation
+        else if (isPlainObject(ref)) {
+          const plainObjJSON = Object.entries(ref).reduce( (accum, [subRefName, subRef]) => {
+            accum[subRefName] = encodeRef(subRef);
+            return accum;
+          }, {} );
+          return plainObjJSON;
+        }
+
+        // UNSUPPORTED: class-based objects that are NOT smartObjs
+        // ... CONSIDER (as needed) adding support for common objects like Date, etc
+        //     OR more generically leverage any object that has the toJSON() method
+        else {
+          throw new Error(`***ERROR*** SmartModel.toSmartJSON() processing ref object of type ${ref.constructor.name} is NOT supported ... only SmartModel derivations support the smartJSON format :-(`);
+        }
+
+      }
+
+      // handle primitives (string, number, boolean, etc.)
+      // ... simply pas-through as-is
+      else {
+        return ref;
+      }
+
+    } // end of ... encodeRef(ref)
+
   }
 
   /**
@@ -291,65 +322,77 @@ export default class SmartModel {
    * @param {JSON} smartJSON - the smartJSON structure representing
    * the object(s) to create.
    *
+   * @param {function} [extraClassResolver] - an optional
+   * function to supplement the standard class resolver, used in
+   * hydrating self-referencing pseudoClasses found in SmartPkg (ex:
+   * collage referencing scene instances).
+   *
    * @returns {smartObject} a newly instantiated class-based object
    * from the supplied smartJSON.
    */
-  static fromSmartJSON(smartJSON) {
+  static fromSmartJSON(smartJSON, extraClassResolver) {
 
     // NOTE: We do NOT validate any characteristic of our supplied smartJSON,
     //       because the way in which this algorithm is invoked (recursively),
     //       it can truly be ANY type of data!
     //       As an example, a sub elm of JSON could be a number or a string.
 
-    // process JSON objects by translating them into real class-based objects
-    // NOTE: This is a "critical" part of our logic, where we interpret classRef, etc.
-    //       ... this logic handles BOTH:
-    //            - smart objects ..... i.e. SmartModel derivations
-    //            - object literals ... {a: 1, b: smartObj}
-    if (isPlainObject(smartJSON)) {
+    // handle NO smartJSON
+    // ... simply pass it through (null, undefined, etc. ... even false is OK :-)
+    if (!smartJSON) {
+      return smartJSON;
+    }
 
-      // determine the classRef (could be a real class or a pseudoClass)
-      const classRef = getClassRefFromSmartJSON(smartJSON);
+    // handle arrays ... simply recursively decode all array items
+    else if (Array.isArray(smartJSON)) {
+      return smartJSON.map( item => SmartModel.fromSmartJSON(item, extraClassResolver) );
+    }
 
-      // define our namedProps to feed into our constructor (from smartJSON),
-      // recursively resolving each ref into real class-based objects (as needed)
-      const namedProps = {};
-      for (const key in smartJSON) {
-        const val = smartJSON[key];
+    // handle JSON objects
+    // ... two types (see below)
+    else if (isPlainObject(smartJSON)) {
 
-        // bypass selected keywords that are NOT part of the constructor namedProps
-        if (key === 'smartType' || key === 'smartLib') { // type info is for decoding only
-          continue;
+      // handle smartObjs (class-based object derivations of SmartModel)
+      if (smartJSON.smartType) {
+
+        // define our namedProps to feed into our constructor (from smartJSON),
+        // recursively resolving each ref into real class-based objects (as needed)
+        const namedProps = {};
+        for (const key in smartJSON) {
+          const val = smartJSON[key];
+
+          // bypass selected keywords that are NOT part of the constructor namedProps
+          if (key === 'smartType' || key === 'smartLib') { // type info is for decoding only
+            continue;
+          }
+
+          // recursively resolve each val into a real class-based object
+          namedProps[key] = SmartModel.fromSmartJSON(val, extraClassResolver);
         }
 
-        // recursively resolve each val into a real class-based object
-        namedProps[key] = SmartModel.fromSmartJSON(val);
-      }
+        // determine the classRef (could be a real class or a pseudoClass)
+        const classRef = getClassRefFromSmartJSON(smartJSON, extraClassResolver);
 
-      // when the smartJSON is a plain object literal,
-      // ... we can simply return the namedProps as-is because:
-      //     - it has been newly carved out
-      //     - and it's prop references have been resolved into appropriate objects as needed
-      //       ... see: logic (above)
-      if (classRef === ObjectLiteral) {
-        return namedProps; // KOOL: namedProps IS our object :-)
-      }
-
-      // otherwise our smartJSON represents a true smart object (SmartModel derivation)
-      // ... instantiate a real class-based object using our value-added constructor
-      //     that handles real classes and pseudoClasses
-      else {
+        // instantiate a real class-based object using our value-added constructor
+        // that handles real classes and pseudoClasses
         return SmartModel.createSmartObject(classRef, namedProps);
+      }
+
+      // handle plain NON class-based objects
+      // ... simply decode each item recursively
+      else {
+        const plainObj = Object.entries(smartJSON).reduce( (accum, [subName, subRef]) => {
+          accum[subName] = SmartModel.fromSmartJSON(subRef, extraClassResolver) ;
+          return accum;
+        }, {} );
+        return plainObj;
       }
     }
     
-    // process array types by recursively transforming each item
-    else if (Array.isArray(smartJSON)) {
-      return smartJSON.map( item => SmartModel.fromSmartJSON(item) );
-    }
-
     // all other types are assumed to be immutable primitives, and simply passed through :-)
     // ... string, number, etc.
+    // ... ALSO passes through class-based objects that are pre-hydrated
+    //     USED in SmartPkg.fromSmartJSON(smartJSON) with it's 2-phase hydration
     return smartJSON;
   }
 
@@ -463,7 +506,7 @@ export default class SmartModel {
 
     // handle a standard class definition
     if (SmartModel.isClass(classRef)) {
-      console.log(`?? ***INFO** SmartModel.createSmartObject() creating standard class: '${SmartModel.getClassName(classRef)}' ... using namedProps: `, namedProps);
+      // console.log(`xx ***INFO** SmartModel.createSmartObject() creating standard class: '${SmartModel.getClassName(classRef)}' ... using namedProps: `, namedProps);
       return new classRef(namedProps);
     }
 
@@ -476,7 +519,7 @@ export default class SmartModel {
       // mark the cloned object as an instance (NOT a type)
       newObj.pseudoClass.id   = classRef.id;
       newObj.pseudoClass.name = `a pseudoClass instance of type: '${classRef.id}'`; // for good measure
-      console.log(`?? ***INFO** SmartModel.createSmartObject() created pseudoClass: '${SmartModel.getClassName(classRef)}' ... `, {namedProps, newObj});
+      // console.log(`xx ***INFO** SmartModel.createSmartObject() created pseudoClass: '${SmartModel.getClassName(classRef)}' ... `, {namedProps, newObj});
       return newObj;
     }
 
@@ -544,18 +587,14 @@ export default class SmartModel {
  *    be dynamically edited (through the graphical editor), and yet
  *    can be "instantiated" as items of other objects!  Please refer
  *    to PseudoClass.
- * 
- *  - ObjectLiteral ... a nomenclature symbolizing an object literal
- *                      (used only in smartJSON processing)
  */
 
 /**
  * @typedef {ref} ObjectLiteral
  * 
- * A nomenclature that symbolizes a type which is an object literal,
- * such as `{a: 1, b: 2}` used in JSON structures, namedProps, etc.
+ * A plain object, such as an object literal ...  `{a: 1, b: 2}` used
+ * in JSON structures, namedProps, etc.
  */
-const ObjectLiteral = 'ObjectLiteral';
 
 
 
@@ -568,25 +607,34 @@ const ObjectLiteral = 'ObjectLiteral';
  *
  * @param {JSON} smartJSON - the smartJSON to interpret.
  *
+ * @param {function} [extraClassResolver] - an optional
+ * function to supplement the standard class resolver, used in
+ * hydrating self-referencing pseudoClasses found in SmartPkg (ex:
+ * collage referencing scene instances).
+ *
  * @returns {classRef} the classRef of the supplied smartJSON
- * (class | pseudoClass | ObjectLiteral)
+ * (class | pseudoClass)
  */
-function getClassRefFromSmartJSON(smartJSON) {
+function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
 
   // glean our className and libName
   const className = smartJSON.smartType;
   const libName   = 'L8TR'; // ?? L8TR: smartJSON.smartLib;
 
-  // handle ObjectLiterals
-  // ... for JSON that is NOT a smartObject (i.e. SmartModel)
-  // ... determined by the fact that toSmartJSON() does NOT encode `smartType` for object literals
-  if (!className) {
-    return ObjectLiteral;
+  // resolve our classRef
+  let classRef = null;
+
+  // ... use extraClassResolver (when supplied)
+  if (extraClassResolver) {
+    classRef = extraClassResolver(className, libName);
+    if (classRef) {
+      return classRef;
+    }
   }
 
-  // resolve our classRef
+  // ... use standard class resolver
   //const classRef = libManager.getClassRef(libName, className); // TODO: ?? when developed, use this (for now use temporaryLibManagerHACK)
-  const classRef = temporaryLibManagerHACK[className];
+  classRef = temporaryLibManagerHACK[className];
   if (!classRef) { // ?? this check may be in libManager.getClassRef() ... PRO TO KEEP HERE: we have the smartJSON in our logs (gives a bit more context on where it was called) ... YES: could try/catch/rethrow and add to attempting to
     const errMsg = `***ERROR*** SmartModel.fromSmartJSON(smartJSON): could not resolve a classRef from libName/className: '${libName}/${className}' ... see logs for smartJson`;
     console.error(errMsg, {smartJSON});

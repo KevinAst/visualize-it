@@ -24,7 +24,7 @@ const scene1Copy = SmartModel.createSmartObject(scene1, {
 });
 
 // create an instance of type scene2
-console.log(`?? here is our scene2 master pseudoClass: `, {scene2});
+// console.log(`?? here is our scene2 master pseudoClass: `, {scene2});
 const scene2Copy = SmartModel.createSmartObject(scene2, {
   id: 'scene2Copy',
   //? comps: [ // ?? do NOT think we need comps ... should be cloned from scene2 pseudoClass
@@ -38,19 +38,19 @@ const scene2Copy = SmartModel.createSmartObject(scene2, {
 });
 
 // ?? CRUDE TEST: try to encode/hydrate scene2Copy
-const jsonMaster = scene2.toSmartJSON();
-console.log(`?? converted scene2 MASTER to JSON: `, {scene2, jsonMaster});
-const json = scene2Copy.toSmartJSON();
-console.log(`?? converted scene2Copy INSTANCE to JSON: `, {scene2Copy, json});
-const scene2CopyCopy = SmartModel.fromSmartJSON(json);
-console.log(`?? here is the scene2CopyCopy: `, {scene2CopyCopy});
+//? const jsonMaster = scene2.toSmartJSON();
+//? console.log(`?? converted scene2 MASTER to JSON: `, {scene2, jsonMaster});
+//? const json = scene2Copy.toSmartJSON();
+//? console.log(`?? converted scene2Copy INSTANCE to JSON: `, {scene2Copy, json});
+//? const scene2CopyCopy = SmartModel.fromSmartJSON(json);
+//? console.log(`?? here is the scene2CopyCopy: `, {scene2CopyCopy});
 
-const collageView1 = 
-  new SmartView({id: 'collage1', name: 'Collage 1', // ?? is it OK to have same id for view/scene ... would be nice to allow this (I think)
-                 scene: new Collage({id: 'collage1', name: 'Collage 1', scenes: [
-                   {scene: scene1Copy, pos: {x:0,   y:0}},   // ??? retrofit this to be JUST scene's with their own x/y
-                   {scene: scene2CopyCopy, pos: {x:300, y:250}}, // ... WowZee: to support this we need our clone() ... REALLY the pseudoClass create ... could temporarily manually dup the Scene
-                 ]})
-  });
+// our Collage
+export const collage1 = new Collage({id: 'collage1', name: 'Collage 1', scenes: [
+  {scene: scene1Copy, pos: {x:0,   y:0}},   // ??? retrofit this to be JUST scene's with their own x/y
+  {scene: scene2Copy, pos: {x:300, y:250}}, // ... WowZee: to support this we need our clone() ... REALLY the pseudoClass create ... could temporarily manually dup the Scene
+]});
+
+const collageView1 = new SmartView({id: 'collage1', name: 'Collage 1', scene: collage1}); // ?? is it OK to have same id for view/scene ... would be nice to allow this (I think)
 
 export default collageView1;

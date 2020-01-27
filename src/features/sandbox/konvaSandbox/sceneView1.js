@@ -12,6 +12,7 @@ import {temporaryLibManagerHACK} from 'core/SmartModel'; // ?? very temp
 
 
 // ?? temporary ... see: temporaryLibManagerHACK
+import SmartPkg    from 'core/SmartPkg';
 import Collage     from 'core/Collage';
 import PseudoClass from 'core/PseudoClass';
 //import Scene       from 'core/Scene';
@@ -69,6 +70,7 @@ temporaryLibManagerHACK['scene1'] = scene1;
 temporaryLibManagerHACK['ToggleDraggableScenesButton1'] = ToggleDraggableScenesButton1;
 
 // ?? more temporary: register core classes to avoid circular imports
+temporaryLibManagerHACK['SmartPkg']    = SmartPkg;
 temporaryLibManagerHACK['Collage']     = Collage;
 temporaryLibManagerHACK['PseudoClass'] = PseudoClass;
 temporaryLibManagerHACK['Scene']       = Scene;

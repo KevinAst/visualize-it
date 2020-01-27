@@ -1,4 +1,6 @@
+import LeftNavMenuPallet       from 'features/common/baseUI/comp/LeftNavMenuPallet';
 import LeftNavCollapsibleItem  from 'features/common/baseUI/comp/LeftNavCollapsibleItem';
+
 import {registerTab,
         getTabName,
         getTabCreator}         from 'features/common/tabManager/tabRegistry';
@@ -17,6 +19,7 @@ import {registerTab,
 //         import * as featureResources from 'featureResources';
 export {
 
+  LeftNavMenuPallet,
   LeftNavCollapsibleItem,
 
   registerTab,
@@ -32,6 +35,7 @@ export {
 //         const featureResources = require('featureResources');
 export default {
 
+  LeftNavMenuPallet,
   LeftNavCollapsibleItem,
 
   registerTab,
