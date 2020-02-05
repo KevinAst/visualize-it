@@ -5,7 +5,7 @@ It accomplishes the following:
 
  - starts authorization process through appDidStart() application-life-cycle-hook
    ```js
-   appDidStart({fassets, appState, dispatch}) {
+   appDidStart({fassets, getState, dispatch}) {
      // kick-start our authorization process
      dispatch( _authAct.autoSignIn() );
    }

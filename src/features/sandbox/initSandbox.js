@@ -11,7 +11,7 @@ import konvaSandboxSmartPkg     from './konvaSandbox/konvaSandboxSmartPkg';
 // *** Initialize the sandbox feature, via the feature-u appInit() life-cycle-hook.
 // ***
 
-export default function initSandbox({showStatus, fassets, appState, dispatch}) {
+export default function initSandbox({showStatus, fassets, getState, dispatch}) {
 
   // register our SampleMenuPallet to the LeftNav
   // ?? OLD: PURGE (once we obsolete referenced code)

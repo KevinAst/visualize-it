@@ -8,7 +8,7 @@ accommodate the wide free-format content).
 
 NOTE: Following dispatch occurs from 'auth' feature application-life-cycle-hook
 
-      appDidStart({fassets, appState, dispatch}) {
+      appDidStart({fassets, getState, dispatch}) {
         // kick-start our authorization process
         dispatch( _authAct.autoSignIn() );
       }

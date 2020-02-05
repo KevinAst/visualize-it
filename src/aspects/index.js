@@ -16,9 +16,10 @@ const reducerAspect = createReducerAspect();
 const logicAspect   = createLogicAspect();
 
 // Feature Routes - extending: Feature.route
-const routeAspect   = createRouteAspect();
-// ... define fallback screen (used when no routes are in effect)
-routeAspect.config.fallbackElm$ = <SplashScreen msg="I'm trying to think but it hurts!"/>;
+const routeAspect   = createRouteAspect({
+  // ... define fallback screen (used when no routes are in effect)
+  fallbackElm: <SplashScreen msg="I'm trying to think but it hurts!"/>,
+});
 
 
 //***
