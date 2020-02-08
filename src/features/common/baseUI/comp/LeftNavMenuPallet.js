@@ -4,7 +4,7 @@ import PropTypes                from 'prop-types';
 import {useDispatch}            from 'react-redux';
 import {useFassets}             from 'feature-u';
 
-import {registerTab}            from 'featureResources';
+import {registerTab}            from 'features';
 import genDualClickHandler      from 'util/genDualClickHandler';
 import {createLogger}           from 'util/logger';
 import ReactSmartView           from 'util/ReactSmartView';
@@ -13,7 +13,7 @@ import {isPlainObject}          from 'util/typeCheck';
 import SmartModel               from 'core/SmartModel';
 import SmartView                from 'core/SmartView';
 
-import {LeftNavCollapsibleItem} from 'featureResources';
+import {LeftNavCollapsibleItem} from 'features';
 import ExpandLessIcon           from '@material-ui/icons/ExpandMore';   // in effect WHEN EXPANDED  ... i.e. clicking will collapse
 import ExpandMoreIcon           from '@material-ui/icons/ChevronRight'; // in effect WHEN COLLAPSED ... i.e. clicking will expand
 import TreeItem                 from '@material-ui/lab/TreeItem';

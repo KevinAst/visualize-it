@@ -3,8 +3,8 @@ import React           from 'react';
 import {useDispatch}   from 'react-redux';
 import {useFassets}    from 'feature-u';
 
-import {LeftNavCollapsibleItem} from 'featureResources';
-import {registerTab}            from 'featureResources';
+import {LeftNavCollapsibleItem} from 'features';
+import {registerTab}            from 'features';
 import genDualClickHandler      from 'util/genDualClickHandler';
 import {createLogger}           from 'util/logger';
 

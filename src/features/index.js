@@ -1,3 +1,4 @@
+// import ALL features that make up our app
 import sandbox                from './sandbox/feature';
 //import auth                   from './common/auth/feature';    // AI: DECIDE_AUTH_USER_NEEDED
 //import authService            from './common/auth/subFeatures/authService/feature';
@@ -9,19 +10,25 @@ import tabManager             from './common/tabManager/feature';
 import logActions             from './common/diagnostic/logActions/feature';
 import pwa                    from './common/pwa/feature';
 
-// accumulate/promote ALL features that make up our app
+// import feature public assets
+import LeftNavMenuPallet       from 'features/common/baseUI/comp/LeftNavMenuPallet';
+import LeftNavCollapsibleItem  from 'features/common/baseUI/comp/LeftNavCollapsibleItem';
+import {registerTab,
+        getTabName,
+        getTabCreator}         from 'features/common/tabManager/tabRegistry';
+
+
+//***
+//*** Promote ALL features that make up our app
+//***
+
 export default [
 
-
-  //***
-  //*** app-specific features
-  //***
+  // app-specific features
 
   sandbox,
 
-  //***
-  //*** common app-neutral features
-  //***
+  // common app-neutral features
 
   baseUI,
   tabManager,
@@ -38,3 +45,18 @@ export default [
   // diagnostic features ...
   logActions,
 ];
+
+
+//*** 
+//*** Promote feature public assets
+//*** ... aliased to minimize feature coupling
+//*** 
+
+export {
+  LeftNavMenuPallet,
+  LeftNavCollapsibleItem,
+
+  registerTab,
+  getTabName,
+  getTabCreator,
+};

@@ -3,7 +3,7 @@ import React                    from 'react';
 //import SampleMenuPallet         from './sampleSandbox/SampleMenuPallet';
 //import KonvaMenuPallet          from './konvaSandbox/KonvaMenuPallet';
 
-import {LeftNavMenuPallet}      from 'featureResources';
+import {LeftNavMenuPallet}      from 'features';
 
 import konvaSandboxSmartPkg     from './konvaSandbox/konvaSandboxSmartPkg';
 
