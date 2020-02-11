@@ -284,7 +284,7 @@ export default class SmartPkg extends SmartModel {
   static fromSmartJSON(smartJSON) {
 
     // validate supplied parameters
-    const check = verify.prefix(`${this.constructor.name}.fromSmartJSON(smartJSON) parameter violation: `);
+    const check = verify.prefix(`${this.name}.fromSmartJSON(smartJSON) parameter violation: `);
 
     // ... smartJSON
     check(smartJSON,                 'smartJSON is required');
