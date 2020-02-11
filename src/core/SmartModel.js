@@ -4,8 +4,8 @@ import {isString,
         isObject,
         isPlainObject}   from 'util/typeCheck';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
+import pkgManager        from './PkgManager';
 
-// ?? rename lib to pkg (everywhere)
 
 /**
  * SmartModel is the abstract top-level base class for all visualize-it
@@ -32,7 +32,7 @@ import checkUnknownArgs  from 'util/checkUnknownArgs';
  *<S> + createSmartObject(lassRef, namedProps): smartObject ... a value-added constructor
  *<S> + getClassName(classRef): string ........................ get class name of classRef (either a class or pseudoClass)
  *    + getMyClassName(): string .............................. get class name of self (interpreting BOTH class or pseudoClass)
- *    + getMyLibName(): string ................................ get library name of self
+ *    + getMyPkgName(): string ................................ get package name of self
  *<S> + isClass(classRef): boolean ............................ is supplied classRef a real class
  *<S> + isPseudoClass(classRef): boolean ...................... is supplied classRef a pseudoClass
  *
@@ -89,7 +89,7 @@ export default class SmartModel {
    *             ```js
    *               {
    *                 smartType: 'Scene',
-   *                 smartLib:  'core',
+   *                 smartPkg:  'core',
    *                 id:        'BoilerScene',
    *                 name:      'A Scene focused on the boiler components of our system',
    *                 _size:     {width: 300, height: 250},
@@ -104,7 +104,7 @@ export default class SmartModel {
    *             ```js
    *               {
    *                 smartType: 'BoilerScene',
-   *                 smartLib:  'ACME',
+   *                 smartPkg:  'ACME',
    *                 id:        'BoilerScene',
    *                 name:      'A Scene focused on the boiler components of our system',
    *                 _size:     {width: 300, height: 250},
@@ -121,7 +121,7 @@ export default class SmartModel {
     // ... these methods take into account BOTH real types/classes AND pseudoClasses
     const myJSON = {
       smartType: this.getMyClassName(),
-      smartLib:  this.getMyLibName(),
+      smartPkg:  this.getMyPkgName(),
     };
 
     // encode self's instance properties
@@ -199,12 +199,12 @@ export default class SmartModel {
   }
 
   /**
-   * An instance method returning the library name of self.
+   * An instance method returning the package name of self.
    *
-   * @returns {string} the library name which promotes the class of
+   * @returns {string} the package name which promotes the class of
    * object. ?? may be 'core'?
    */
-  getMyLibName() {
+  getMyPkgName() { // L8TR: currently only used internally
     return 'TODO'; // ?? temp for now
   }
 
@@ -362,7 +362,7 @@ export default class SmartModel {
           const val = smartJSON[key];
 
           // bypass selected keywords that are NOT part of the constructor namedProps
-          if (key === 'smartType' || key === 'smartLib') { // type info is for decoding only
+          if (key === 'smartType' || key === 'smartPkg') { // type info is for decoding only
             continue;
           }
 
@@ -617,26 +617,26 @@ export default class SmartModel {
  */
 function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
 
-  // glean our className and libName
+  // glean our className and pkgName
   const className = smartJSON.smartType;
-  const libName   = 'L8TR'; // ?? L8TR: smartJSON.smartLib;
+  const pkgName   = 'L8TR'; // ?? L8TR: smartJSON.smartPkg;
 
   // resolve our classRef
   let classRef = null;
 
   // ... use extraClassResolver (when supplied)
   if (extraClassResolver) {
-    classRef = extraClassResolver(className, libName);
+    classRef = extraClassResolver(className, pkgName);
     if (classRef) {
       return classRef;
     }
   }
 
-  // ... use standard class resolver
-  //const classRef = libManager.getClassRef(libName, className); // TODO: ?? when developed, use this (for now use temporaryLibManagerHACK)
-  classRef = temporaryLibManagerHACK[className];
-  if (!classRef) { // ?? this check may be in libManager.getClassRef() ... PRO TO KEEP HERE: we have the smartJSON in our logs (gives a bit more context on where it was called) ... YES: could try/catch/rethrow and add to attempting to
-    const errMsg = `***ERROR*** SmartModel.fromSmartJSON(smartJSON): could not resolve a classRef from libName/className: '${libName}/${className}' ... see logs for smartJson`;
+  // ... use standard pkgManager class resolver
+  classRef = pkgManager.getClassRef(className, pkgName); // ?? NEWLY IMPLEMENTED PRODUCTION
+  //? classRef = temporaryLibManagerHACK[className];     // ?? TRASH (temporary solution)
+  if (!classRef) { // ?? this check may be in pkgManager.getClassRef() ... PRO TO KEEP HERE: we have the smartJSON in our logs (gives a bit more context on where it was called) ... YES: could try/catch/rethrow and add to attempting to
+    const errMsg = `***ERROR*** SmartModel.fromSmartJSON(smartJSON): could not resolve a classRef from pkgName/className: '${pkgName}/${className}' ... see logs for smartJson`;
     console.error(errMsg, {smartJSON});
     throw new Error(errMsg);
   }
@@ -644,14 +644,15 @@ function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
   return classRef;
 }
 
-// TODO: eventually this is a lookup in our libManager, but till we have this in place we hard-code a catalog
-//       exported to support external registration ... temporaryLibManagerHACK['MyClass'] = MyClass;
-export const temporaryLibManagerHACK = {
-  // initialized in src/features/sandbox/konvaSandbox/sceneView1.js to avoid circular imports
-//?   Collage,
-//?   PseudoClass,
-//?   Scene,
-//?   SmartComp,
-//?   SmartScene,
-//?   SmartView,
-};
+// ?? TRASH (temporary solution)
+//? // TODO: eventually this is a lookup in our pkgManager, but till we have this in place we hard-code a catalog
+//? //       exported to support external registration ... temporaryLibManagerHACK['MyClass'] = MyClass;
+//? export const temporaryLibManagerHACK = {
+//?   // initialized in src/features/sandbox/konvaSandbox/sceneView1.js to avoid circular imports
+//? //?   Collage,
+//? //?   PseudoClass,
+//? //?   Scene,
+//? //?   SmartComp,
+//? //?   SmartScene,
+//? //?   SmartView,
+//? };

@@ -1,5 +1,6 @@
 import SmartModel        from './SmartModel';
-import {isPlainObject}   from 'util/typeCheck';
+import {isPlainObject,
+        isClass}         from 'util/typeCheck';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
 
@@ -164,12 +165,67 @@ export default class SmartPkg extends SmartModel {
       this._entryCatalog    = {};
     }
 
-    // ?? MUST IMPLEMENT THIS ... needed for pkgManager feature
-    // ?? recurse over entries
-
     // ?? L8TR: we may want to set a top-level state: entriesContainCode (so we know we can't persist)
     // ... ? would need to be checked in: SmartPkg.fromSmartJSON()
     // ... ? without this check, how would it error out (with classes)
+
+    // recurse over entries
+    // ... for plain objects, each member is a directory node
+    if (isPlainObject(entries)) {
+      // pass through through all directory nodes (object members),
+      // ... and recurse into each
+      for (const dirName in entries) {
+        const dirContent = entries[dirName];
+        this.initializeCatalogs(dirContent);
+      }
+    }
+    // ... for array entries,
+    else if (Array.isArray(entries)) {
+      entries.forEach( (arrItem) => {
+
+        // normally this is a smartObj
+        if (arrItem instanceof SmartModel) {
+          const smartObj = arrItem;
+
+          // catalog any pseudoClasses in our _classRefCatalog
+          if (SmartModel.isPseudoClass(smartObj)) {
+            const className = SmartModel.getClassName(smartObj);
+            this._classRefCatalog[className] = smartObj;
+          }
+
+          // catalog all entries in our _entryCatalog
+          this._entryCatalog[smartObj.id] = smartObj;
+        }
+
+        // can be a real class reference
+        else if (isClass(arrItem)) {
+          const realClass = arrItem;
+         
+          // catalog classes in our _classRefCatalog
+          const className = SmartModel.getClassName(realClass);
+          this._classRefCatalog[className] = realClass;
+        }
+
+        // can be a nested sub-directory (mixed in with our tab activation entries)
+        else if (isPlainObject(arrItem)) {
+          this.initializeCatalogs(arrItem);
+        }
+
+        // other items are NOT supported (should not happen - defensive only)
+        else {
+          const errMsg = '***ERROR*** SmartPkg.initializeCatalogs() found UNSUPPORTED array entry ... must be a smartObj or class or plain nested directory object ... see logs for entry';
+          console.error(errMsg, {arrItem});
+          throw new Error(errMsg);
+        }
+      });
+    }
+
+    // ... other entries are NOT supported (should not happen - defensive only)
+    else {
+      const errMsg = '***ERROR*** SmartPkg.initializeCatalogs() found UNSUPPORTED entries ... must be a plain directory object or an array of smartObjs ... see logs for entry';
+      console.error(errMsg, {entries});
+      throw new Error(errMsg);
+    }
   }
 
   /**
@@ -184,8 +240,10 @@ export default class SmartPkg extends SmartModel {
    * @returns {classRef} the classRef matching the supplied params
    * (either a real class or a pseudoClass), undefined for not-found.
    */
-  getClassRef(className, pkgName) {
-    return (pkgName === this.getPkgName()) ? this._classRefCatalog(className) : undefined;
+  getClassRef(className, pkgName) { // AI: do we assume that pkgName is already resolved to this SmartPkg, and NOT pass it in here
+    // L8TR_pkgName: temporarily do resolution without pkgName so we can move forward (requires all entries to be globally unique)
+    //? return (pkgName === this.getPkgName()) ? this._classRefCatalog[className] : undefined;
+    return this._classRefCatalog[className];
   }
 
   /**
@@ -201,8 +259,10 @@ export default class SmartPkg extends SmartModel {
    * @returns {entry} the entry matching the supplied params,
    * undefined for not-found.
    */
-  getEntry(entryId, pkgName) {
-    return (pkgName === this.getPkgName()) ? this._entryCatalog(entryId) : undefined;
+  getEntry(entryId, pkgName) { // AI: do we assume that pkgName is already resolved to this SmartPkg, and NOT pass it in here
+    // L8TR_pkgName: temporarily do resolution without pkgName so we can move forward (requires all entries to be globally unique)
+    //? return (pkgName === this.getPkgName()) ? this._entryCatalog[entryId] : undefined;
+    return this._entryCatalog[entryId];
   }
 
   /**

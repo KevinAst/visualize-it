@@ -7,6 +7,7 @@ import _baseUIAct             from './actions';
 import reducer                from './state';
 import * as _baseUISel        from './state';
 import logic                  from './logic';
+import leftNavManager         from './LeftNavManager';
 
 import MainLayout             from './comp/MainLayout';
 import ToggleUITheme          from './comp/ToggleUITheme';
@@ -66,6 +67,11 @@ export default createFeature({
         {curRootAppElm}
       </MainLayout>
     );
+  },
+
+  // inject operational dependencies into leftNavManager
+  appInit({showStatus, fassets, getState, dispatch}) {
+    leftNavManager.injectDependency(fassets, dispatch);
   },
 
 });

@@ -19,6 +19,11 @@ import VitToolBar     from '../../../toolBar/comp/VitToolBar'; // NEW (TEMPORARY
 
 import {toast}        from 'util/notify';
 
+import {pkgManager}     from 'features';
+import {leftNavManager} from 'features';
+
+
+
 /**
  * AppMotif is a re-usable top-level component that establishes
  * the following application characteristics:
@@ -86,14 +91,22 @@ export default function AppMotif({children}) {
                       onClick={ async () => {
                           // toast.warn({msg: 'App Menu NOT implemented yet (coming soon)!'}) // ?? original
                           try {
-                            const fileHandle  = await window.chooseFileSystemEntries(); // AI: eventually retain this in outer scope IF you need to reuse
-                            const file        = await fileHandle.getFile();
-                            const fileContent = await file.text();
-                            toast({msg: `local fileContent:\n\n${fileContent}`});
-                            //? toast({msg: 'see console for file content :-)'});
-                            //? console.log(`local fileContent:\n\n${fileContent}`);
+
+                            // ?? load a REAL visulize-it smartPkg
+                            const smartPkg = await pkgManager.loadPkg();
+                            leftNavManager.addLeftNav(smartPkg);
+
+                            // ?? process a text file:
+                            //? const fileHandle  = await window.chooseFileSystemEntries(); // AI: eventually retain this in outer scope IF you need to reuse
+                            //? console.log(`?? fileHandle: `, {fileHandle, name: fileHandle.name});
+                            //? const file        = await fileHandle.getFile();
+                            //? console.log('?? file: ', file);
+                            //? const fileContent = await file.text();
+                            //? toast({msg: `local fileContent:\n\n${fileContent}`});
+                            //? //? toast({msg: 'see console for file content :-)'});
+                            //? console.log(`?? local fileContent:\n\n${fileContent}`);
                           }
-                          catch (err) {
+                          catch (err) { // ?? doesn't appear to be needed
                             if (err.message !== 'The user aborted a request.') {
                               toast.error({msg: `err in local file handler: ${err.message}`});
                               console.log('err in local file handler: ', err);

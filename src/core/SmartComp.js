@@ -13,15 +13,15 @@ import checkUnknownArgs  from 'util/checkUnknownArgs';
  *  - their graphics are atomically managed (selection and transformation)
  *    ... using a single rooted Konva.Group
  *
- *  - NOTE: SmartComp is abstract requiring derivation (for code-based compLibs)
+ *  - NOTE: SmartComp is abstract requiring derivation (for code-based compPkgs)
  *          HOWEVER: there is a concrete derivation that supports 
- *                   dynamic-based resource-loaded compLibs
+ *                   dynamic-based resource-loaded compPkgs
  *                   (maintained by the visualize-it component editor)
  *  
  *                 SmartComp        ... abstract
- *             isA  ├── DynamicComp ... a concrete derivation for dynamic-based resource-loaded compLibs
+ *             isA  ├── DynamicComp ... a concrete derivation for dynamic-based resource-loaded compPkgs
  *                  │                   ... managed by the visualize-it component editor
- *                  └── others      ... for code-based compLibs
+ *                  └── others      ... for code-based compPkgs
  */
 export default class SmartComp extends SmartModel {
 

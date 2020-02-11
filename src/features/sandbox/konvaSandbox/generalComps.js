@@ -1,7 +1,9 @@
 import Konva          from 'konva';
 import SmartComp      from 'core/SmartComp';
 
-import {temporaryLibManagerHACK} from 'core/SmartModel'; // ?? very temp
+// import {temporaryLibManagerHACK} from 'core/SmartModel'; // ?? very temp
+import pkgManager from 'core/PkgManager'; // ?? find a more common place to do this
+import SmartPkg  from 'core/SmartPkg';
 
 export class Valve1 extends SmartComp {
 
@@ -63,6 +65,18 @@ export class Valve3 extends SmartComp {
 }
 
 // ?? very temporary till we have a library to manage this scene
-temporaryLibManagerHACK['Valve1']     = Valve1;
-temporaryLibManagerHACK['Valve2']     = Valve2;
-temporaryLibManagerHACK['Valve3']     = Valve3;
+//? temporaryLibManagerHACK['Valve1']     = Valve1;
+//? temporaryLibManagerHACK['Valve2']     = Valve2;
+//? temporaryLibManagerHACK['Valve3']     = Valve3;
+// ?? can these be self-contained in the promoted SmartPkg?
+pkgManager.registerPkg( new SmartPkg({
+  id:   'generalComps',
+  name: 'generalComps classes',
+  entries: {
+    generalComps: [
+      Valve1,
+      Valve2,
+      Valve3,
+    ],
+  },
+}) );

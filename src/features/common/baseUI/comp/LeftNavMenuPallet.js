@@ -8,7 +8,8 @@ import {registerTab}            from 'features';
 import genDualClickHandler      from 'util/genDualClickHandler';
 import {createLogger}           from 'util/logger';
 import ReactSmartView           from 'util/ReactSmartView';
-import {isPlainObject}          from 'util/typeCheck';
+import {isPlainObject,
+        /*isClass*/}                from 'util/typeCheck';
 
 import SmartModel               from 'core/SmartModel';
 import SmartView                from 'core/SmartView';
@@ -140,6 +141,12 @@ function genTreeItems(smartPkg, handleActivateTab) {
                       onClick={() => handleActivateTab(id, smartObj.name)}/>
           );
         }
+
+        // can be a real class reference
+        //? else if (isClass(arrItem)) {
+        //?   const realClass = arrItem;
+        //?   console.error('?? LeftNavMenuPallet IS NOT YET handling real classes :-(');
+        //? }
 
         // can be a nested sub-directory (mixed in with our tab activation entries)
         else if (isPlainObject(arrItem)) {

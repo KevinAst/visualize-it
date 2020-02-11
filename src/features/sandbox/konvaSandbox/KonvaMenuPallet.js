@@ -17,6 +17,10 @@ import TreeItem                 from '@material-ui/lab/TreeItem';
 import TreeView                 from '@material-ui/lab/TreeView';
 import {makeStyles}             from '@material-ui/core/styles';
 
+// ?? OBSOLETE: replaced by LeftNavMenuPallet.js -and- SmartPkg.js
+// ... src/features/common/baseUI/comp/LeftNavMenuPallet.js
+// ... src/core/SmartPkg.js
+
 // our internal diagnostic logger (normally disabled)
 const log = createLogger('***DIAG*** <KonvaMenuPallet> ... ').disable();
 

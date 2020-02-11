@@ -8,8 +8,8 @@ import SmartComp         from 'core/SmartComp';
 
 import {createLogger}   from 'util/logger';
 
-import {temporaryLibManagerHACK} from 'core/SmartModel'; // ?? very temp
-
+//import {temporaryLibManagerHACK} from 'core/SmartModel'; // ?? very temp
+import pkgManager from 'core/PkgManager'; // ?? find a more common place to do this
 
 // ?? temporary ... see: temporaryLibManagerHACK
 import SmartPkg    from 'core/SmartPkg';
@@ -66,17 +66,46 @@ export const scene1 = new Scene({
 });
 
 // ?? very temporary till we have a library to manage this scene
-temporaryLibManagerHACK['scene1'] = scene1;
-temporaryLibManagerHACK['ToggleDraggableScenesButton1'] = ToggleDraggableScenesButton1;
+//? temporaryLibManagerHACK['scene1'] = scene1;
+//? temporaryLibManagerHACK['ToggleDraggableScenesButton1'] = ToggleDraggableScenesButton1;
+// ?? can these be self-contained in the promoted SmartPkg?
+pkgManager.registerPkg( new SmartPkg({
+  id:   'sceneView1',
+  name: 'sceneView1 classes',
+  entries: {
+    sceneView1: [
+      scene1,
+      ToggleDraggableScenesButton1,
+    ],
+  },
+}) );
 
 // ?? more temporary: register core classes to avoid circular imports
-temporaryLibManagerHACK['SmartPkg']    = SmartPkg;
-temporaryLibManagerHACK['Collage']     = Collage;
-temporaryLibManagerHACK['PseudoClass'] = PseudoClass;
-temporaryLibManagerHACK['Scene']       = Scene;
-temporaryLibManagerHACK['SmartComp']   = SmartComp;
-temporaryLibManagerHACK['SmartScene']  = SmartScene;
-temporaryLibManagerHACK['SmartView']   = SmartView;
+//?temporaryLibManagerHACK['SmartPkg']    = SmartPkg;
+//?temporaryLibManagerHACK['Collage']     = Collage;
+//?temporaryLibManagerHACK['PseudoClass'] = PseudoClass;
+//?temporaryLibManagerHACK['Scene']       = Scene;
+//?temporaryLibManagerHACK['SmartComp']   = SmartComp;
+//?temporaryLibManagerHACK['SmartScene']  = SmartScene;
+//?temporaryLibManagerHACK['SmartView']   = SmartView;
+// ?? find a more common place to do this
+pkgManager.registerPkg( new SmartPkg({
+  id:   'core',
+  name: 'core classes',
+  entries: {
+    core: [
+      Collage,
+      PseudoClass,
+      Scene,
+      SmartComp,
+      // SmartModel, NOT: an abstract class (prob wouldn't hurt to registerPkg)
+      SmartPkg,
+      SmartScene,
+      SmartView,
+    ],
+  },
+}) );
+
 
 // our View
 const sceneView1 = new SmartView({id: 'scene', name: 'Scene 1', scene: scene1});

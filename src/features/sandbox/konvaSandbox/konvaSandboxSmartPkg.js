@@ -36,7 +36,7 @@ const konvaSandboxSmartPkg = new SmartPkg({
 // ... just JSONize and back
 log(`PERSISTENT TEST: JSONIZE smartPkg: `, {konvaSandboxSmartPkg});
 const smartJSON = konvaSandboxSmartPkg.toSmartJSON();
-log(`PERSISTENT TEST: HERE is the json: `, {smartJSON});
+log(`PERSISTENT TEST: HERE is the json: `, {smartJSON, str: JSON.stringify(smartJSON) });
 const rehydratedSmartPkg = SmartPkg.fromSmartJSON(smartJSON);
 log(`PERSISTENT TEST: HERE is the RE-HYDRATED smartPkg: `, {rehydratedSmartPkg});
 

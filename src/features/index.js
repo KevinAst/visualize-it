@@ -11,6 +11,8 @@ import logActions             from './common/diagnostic/logActions/feature';
 import pwa                    from './common/pwa/feature';
 
 // import feature public assets
+import pkgManager              from 'core/PkgManager';
+import leftNavManager          from 'features/common/baseUI/LeftNavManager';
 import LeftNavMenuPallet       from 'features/common/baseUI/comp/LeftNavMenuPallet';
 import LeftNavCollapsibleItem  from 'features/common/baseUI/comp/LeftNavCollapsibleItem';
 import {registerTab,
@@ -53,6 +55,8 @@ export default [
 //*** 
 
 export {
+  pkgManager,
+  leftNavManager,
   LeftNavMenuPallet,
   LeftNavCollapsibleItem,
 

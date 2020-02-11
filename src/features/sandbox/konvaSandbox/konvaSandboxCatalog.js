@@ -2,6 +2,8 @@ import sceneView1   from './sceneView1';
 import sceneView2   from './sceneView2';
 import collageView1 from './collageView1';
 
+// ?? ONLY USED BY KonvaMenuPallet.js
+
 //******************************************************************************
 //*** konvaSandboxCatalog: the resource catalog driving our Konva demonstrations.
 //*** 
