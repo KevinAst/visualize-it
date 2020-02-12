@@ -43,9 +43,8 @@ class PkgManager {
    * invalid params, etc.).
    */
   async loadPkg(pkgResourcePath) {
-
     // validate parameters
-    const check = verify.prefix(`${this.constructor.name}.loadPkg() parameter violation: `);
+    const check = verify.prefix(`${this.constructor.unmangledName}.loadPkg() parameter violation: `);
 
     // ... pkgResourcePath (when supplied)
     if (pkgResourcePath) {
@@ -55,7 +54,7 @@ class PkgManager {
     else {
       // insure we have access to the "Native File System API TRIAL"
       if (!window.chooseFileSystemEntries) {
-        throw new Error(`***ERROR*** ${this.constructor.name}.loadPkg() the "Native File System API TRIAL" is NOT available in this environment :-(`)
+        throw new Error(`***ERROR*** ${this.constructor.unmangledName}.loadPkg() the "Native File System API TRIAL" is NOT available in this environment :-(`)
           .defineAttemptingToMsg('display an interactive resource picker dialog');
       }
     }
@@ -108,7 +107,7 @@ class PkgManager {
       smartJSON = JSON.parse(fileContent);
     }
     catch(err) { // SyntaxError
-      throw err.defineAttemptingToMsg(`interpret resource as smartJSON in ${this.constructor.name}.loadPkg()`);
+      throw err.defineAttemptingToMsg(`interpret resource as smartJSON in ${this.constructor.unmangledName}.loadPkg()`);
 
     }
 
@@ -150,7 +149,7 @@ class PkgManager {
   registerPkg(smartPkg) { // AI: handle 2nd pkgResourcePath param ... I think we want pkgResourcePath to be part of SmartPkg
 
     // validate parameters
-    const check = verify.prefix(`${this.constructor.name}.registerPkg() parameter violation: `);
+    const check = verify.prefix(`${this.constructor.unmangledName}.registerPkg() parameter violation: `);
 
     // ... smartPkg
     check(smartPkg,                     'smartPkg is required');
@@ -178,7 +177,7 @@ class PkgManager {
   getClassRef(className, pkgName) {
 
     // validate parameters
-    const check = verify.prefix(`${this.constructor.name}.getEntry() parameter violation: `);
+    const check = verify.prefix(`${this.constructor.unmangledName}.getEntry() parameter violation: `);
     // ... className
     check(className,           'className is required');
     check(isString(className), 'className must be a string');
@@ -222,7 +221,7 @@ class PkgManager {
   getEntry(entryId, pkgName) {
 
     // validate parameters
-    const check = verify.prefix(`${this.constructor.name}.getEntry() parameter violation: `);
+    const check = verify.prefix(`${this.constructor.unmangledName}.getEntry() parameter violation: `);
     // ... entryId
     check(entryId,           'entryId is required');
     check(isString(entryId), 'entryId must be a string');

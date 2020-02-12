@@ -51,7 +51,7 @@ export default class SmartModel {
   constructor({id, name, ...unknownArgs}={}) {
 
     // validate parameters
-    const check = verify.prefix(`${this.constructor.name}(id:'${id}', name:'${name}') constructor parameter violation: `);
+    const check = verify.prefix(`${this.getMyClassName()}(id:'${id}', name:'${name}') constructor parameter violation: `);
 
     // ... id
     check(id,            'id is required');
@@ -216,12 +216,13 @@ export default class SmartModel {
    * BOTH real classes and pseudoClasses).
    */
   getMyClassName() {
-    if (this.pseudoClass && this.pseudoClass.isInstance() ) { // a pseudoClass instance
+    // interpret a pseudoClass instance
+    if (this.pseudoClass && this.pseudoClass.isInstance() ) {
       return this.pseudoClass.id;
     }
-  //return this.constructor.name;          // standard JS class function name
-    return this.constructor.unmangledName; // supports obfuscation in production build
-    
+
+    // interpret our real class name
+    return getRealClassName(this.constructor);
   }
 
   /**
@@ -234,11 +235,13 @@ export default class SmartModel {
    * @returns {string} the supplied classRef's class name.
    */
   static getClassName(classRef) {
-    if (classRef.pseudoClass && classRef.pseudoClass.isType() ) { // a pseudo class (an object instance to be cloned)
+    // interpret a pseudo class (an object instance to be cloned)
+    if (classRef.pseudoClass && classRef.pseudoClass.isType() ) {
       return classRef.id;
     }
-  //return classRef.name;          // standard JS class function name
-    return classRef.unmangledName; // supports obfuscation in production build
+
+    // interpret our real class name
+    return getRealClassName(classRef);
   }
 
   /**
@@ -465,7 +468,7 @@ export default class SmartModel {
           // ... CONSIDER (as needed) adding support for common objects like Date, etc
           //     OR more generically leverage any object that has the toJSON() method
           else {
-            throw new Error(`***ERROR*** SmartModel.smartClone() processing self object of type ${this.constructor.name}, whose member object of type ${instanceValue.constructor.name} is NOT supported ... do NOT know how to clone this member :-(`);
+            throw new Error(`***ERROR*** SmartModel.smartClone() processing self object of type ${this.getMyClassName()}, whose member object of type ${instanceValue.constructor.name} is NOT supported ... do NOT know how to clone this member :-(`);
           }
         }
 
@@ -605,6 +608,37 @@ SmartModel.unmangledName = 'SmartModel';
 //******************************************************************************
 //*** Internal Helper Functions
 //******************************************************************************
+
+/**
+ * Return the real class name of the supplied "real" clazz.
+ *
+ * IMPORTANT: This routine utilizes the clazz.unmangledName -and-
+ *            verifies it's existence!
+ * - class name is crucial for our persistence (hydration invokes
+ *   constructor matching registered classes)
+ * - the standard class.name is mangled in our production build (ex:
+ *   yielding 't' for 'SmartComp')
+ * - this is a central spot that will highlight issues very early
+ *
+ * @param {class} clazz - the real class to interpret.
+ *
+ * @returns {string} the supplied clazz's class name.
+ */
+function getRealClassName(clazz) {
+
+  // verify there is an unmangledName property (see IMPORTANT above)
+  // NOTE: MUST USE hasOwnProperty() because static class references
+  //       will walk the hierarchy chain (as of ES6 classes)
+  //       We MUST insure this concrete class has defined it's own
+  //       unique unmangledName!!
+  if (!clazz.hasOwnProperty('unmangledName')) {
+    throw new Error(`***ERROR*** class ${clazz.name} MUST have an "unmangledName" property (supporting persistence in obfuscated production build).`);
+  }
+
+  // that's all folks :-)
+  return clazz.unmangledName;
+}
+
 
 /**
  * Return the classRef of the supplied smartJSON.

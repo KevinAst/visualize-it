@@ -38,7 +38,7 @@ export default class SmartScene extends SmartModel {
    * this scene (a Konva.Stage).
    */
   mount(containingKonvaStage) {
-    throw new Error(`***ERROR*** SmartScene pseudo-interface-violation: ${this.constructor.name}(id:${this.id}).mount() is an abstract method that MUST BE implemented!`);
+    throw new Error(`***ERROR*** SmartScene pseudo-interface-violation: ${this.getMyClassName()}(id:${this.id}).mount() is an abstract method that MUST BE implemented!`);
   }
 
   /**
@@ -51,7 +51,7 @@ export default class SmartScene extends SmartModel {
    * for setter: self (supporting chainable setters).
    */
   size(size) {
-    throw new Error(`***ERROR*** SmartScene pseudo-interface-violation: ${this.constructor.name}(id:${this.id}).size() is an abstract method that MUST BE implemented!`);
+    throw new Error(`***ERROR*** SmartScene pseudo-interface-violation: ${this.getMyClassName()}(id:${this.id}).size() is an abstract method that MUST BE implemented!`);
   }
 
   /**
@@ -64,7 +64,7 @@ export default class SmartScene extends SmartModel {
    * setting, for setter: self (supporting chainable setters).
    */
   draggable(draggable) {
-    throw new Error(`***ERROR*** SmartScene pseudo-interface-violation: ${this.constructor.name}(id:${this.id}).draggable() is an abstract method that MUST BE implemented!`);
+    throw new Error(`***ERROR*** SmartScene pseudo-interface-violation: ${this.getMyClassName()}(id:${this.id}).draggable() is an abstract method that MUST BE implemented!`);
   }
 }
 SmartScene.unmangledName = 'SmartScene';

@@ -55,7 +55,7 @@ export default class SmartComp extends SmartModel {
    * this component (a Konva.Layer).
    */
   mount(containingKonvaLayer) {
-    throw new Error(`***ERROR*** SmartComp pseudo-interface-violation: ${this.constructor.name}(id:${this.id}).mount() is an abstract method that MUST BE implemented!`);
+    throw new Error(`***ERROR*** SmartComp pseudo-interface-violation: ${this.getMyClassName()}(id:${this.id}).mount() is an abstract method that MUST BE implemented!`);
   }
 
   //? persistenceMethods() {

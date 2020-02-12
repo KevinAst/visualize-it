@@ -22,7 +22,7 @@ export default class Collage extends SmartScene {
     super({id, name});
 
     // validate Collage() constructor parameters
-    const check = verify.prefix(`${this.constructor.name}(id:'${id}', name:'${name}') constructor parameter violation: `);
+    const check = verify.prefix(`${this.getMyClassName()}(id:'${id}', name:'${name}') constructor parameter violation: `);
 
     // ... id/name validated by base class
 
@@ -81,7 +81,7 @@ export default class Collage extends SmartScene {
    */
   size(size) {
     // NOTE: this method does NOT require mounting, because it's contained scene's masters the size!
-    verify(size===undefined, `***ERROR*** ${this.constructor.name}.size() can only be invoked as a getter (with no params) ... size is mastered in the scene, AND derived in the collage.`);
+    verify(size===undefined, `***ERROR*** ${this.getMyClassName()}.size() can only be invoked as a getter (with no params) ... size is mastered in the scene, AND derived in the collage.`);
 
     // compute our size accumulated from all our scenes
     const viewSize = this.scenes.reduce( (accum, scene) => {

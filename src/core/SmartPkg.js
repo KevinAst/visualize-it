@@ -112,7 +112,7 @@ export default class SmartPkg extends SmartModel {
     super({id, name});
 
     // validate SmartPkg() constructor parameters
-    const check = verify.prefix(`${this.constructor.name}(id:'${id}', name:'${name}') constructor parameter violation: `);
+    const check = verify.prefix(`${this.getMyClassName()}(id:'${id}', name:'${name}') constructor parameter violation: `);
 
     // ... id/name validated by base class
 
@@ -200,11 +200,6 @@ export default class SmartPkg extends SmartModel {
         // can be a real class reference
         else if (isClass(arrItem)) {
           const realClass = arrItem;
-
-          // verify we have an unmangledName ... throw error: cannot catalog a class that does NOT have an unmangled name 
-          if (!realClass.unmangledName) {
-            throw new Error(`***ERROR*** SmartPkg.initializeCatalogs() real class ${realClass.name} MUST have an unmangledName property to support production build obfuscation.`);
-          }
          
           // catalog classes in our _classRefCatalog
           const className = SmartModel.getClassName(realClass);
@@ -289,7 +284,7 @@ export default class SmartPkg extends SmartModel {
   static fromSmartJSON(smartJSON) {
 
     // validate supplied parameters
-    const check = verify.prefix(`${this.name}.fromSmartJSON(smartJSON) parameter violation: `);
+    const check = verify.prefix(`${SmartModel.getClassName(this)}.fromSmartJSON(smartJSON) parameter violation: `);
 
     // ... smartJSON
     check(smartJSON,                 'smartJSON is required');
