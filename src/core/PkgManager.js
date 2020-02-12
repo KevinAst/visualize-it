@@ -250,6 +250,7 @@ class PkgManager {
   }
 
 }
+PkgManager.unmangledName = 'PkgManager';
 
 // expose our single pkgManager utility ... AI: singleton code smell
 const pkgManager = new PkgManager();

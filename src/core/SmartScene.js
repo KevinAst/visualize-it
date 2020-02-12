@@ -67,3 +67,4 @@ export default class SmartScene extends SmartModel {
     throw new Error(`***ERROR*** SmartScene pseudo-interface-violation: ${this.constructor.name}(id:${this.id}).draggable() is an abstract method that MUST BE implemented!`);
   }
 }
+SmartScene.unmangledName = 'SmartScene';

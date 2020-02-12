@@ -61,3 +61,4 @@ export default class SmartComp extends SmartModel {
   //? persistenceMethods() {
   //? }
 }
+SmartComp.unmangledName = 'SmartComp';

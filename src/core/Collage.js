@@ -119,3 +119,4 @@ export default class Collage extends SmartScene {
   }
 
 }
+Collage.unmangledName = 'Collage';

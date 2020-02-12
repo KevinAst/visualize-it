@@ -231,3 +231,4 @@ export default class Scene extends SmartScene {
   }
 
 }
+Scene.unmangledName = 'Scene';

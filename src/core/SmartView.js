@@ -133,3 +133,4 @@ export default class SmartView extends SmartModel {
 
   }
 }
+SmartView.unmangledName = 'SmartView';

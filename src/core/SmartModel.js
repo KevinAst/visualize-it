@@ -219,7 +219,9 @@ export default class SmartModel {
     if (this.pseudoClass && this.pseudoClass.isInstance() ) { // a pseudoClass instance
       return this.pseudoClass.id;
     }
-    return this.constructor.name; // standard JS class function name
+  //return this.constructor.name;          // standard JS class function name
+    return this.constructor.unmangledName; // supports obfuscation in production build
+    
   }
 
   /**
@@ -235,7 +237,8 @@ export default class SmartModel {
     if (classRef.pseudoClass && classRef.pseudoClass.isType() ) { // a pseudo class (an object instance to be cloned)
       return classRef.id;
     }
-    return classRef.name; // standard JS class function name
+  //return classRef.name;          // standard JS class function name
+    return classRef.unmangledName; // supports obfuscation in production build
   }
 
   /**
@@ -532,6 +535,7 @@ export default class SmartModel {
   }
 
 } // end of ... SmartModel class
+SmartModel.unmangledName = 'SmartModel';
 
 
 //******************************************************************************

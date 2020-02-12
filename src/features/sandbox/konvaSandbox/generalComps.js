@@ -24,6 +24,7 @@ export class Valve1 extends SmartComp {
     containingKonvaLayer.add(shape);
   }
 }
+Valve1.unmangledName = 'Valve1';
 
 export class Valve2 extends SmartComp {
 
@@ -44,6 +45,7 @@ export class Valve2 extends SmartComp {
     containingKonvaLayer.add(shape);
   }
 }
+Valve2.unmangledName = 'Valve2';
 
 export class Valve3 extends SmartComp {
 
@@ -63,6 +65,7 @@ export class Valve3 extends SmartComp {
     containingKonvaLayer.add(shape);
   }
 }
+Valve3.unmangledName = 'Valve3';
 
 // ?? very temporary till we have a library to manage this scene
 //? temporaryLibManagerHACK['Valve1']     = Valve1;

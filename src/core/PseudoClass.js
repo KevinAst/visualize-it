@@ -111,3 +111,4 @@ export default class PseudoClass extends SmartModel {
   isInstance() { return !this.isType(); }
 
 }
+PseudoClass.unmangledName = 'PseudoClass';

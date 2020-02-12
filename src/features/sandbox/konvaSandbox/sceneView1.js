@@ -51,6 +51,7 @@ class ToggleDraggableScenesButton1 extends SmartComp { // ?? CONSIDER: PLACING T
     containingKonvaLayer.add(button);
   }
 }
+ToggleDraggableScenesButton1.unmangledName = 'ToggleDraggableScenesButton1';
 
 // our Scene
 export const scene1 = new Scene({

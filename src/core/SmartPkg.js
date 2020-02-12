@@ -200,6 +200,11 @@ export default class SmartPkg extends SmartModel {
         // can be a real class reference
         else if (isClass(arrItem)) {
           const realClass = arrItem;
+
+          // verify we have an unmangledName ... throw error: cannot catalog a class that does NOT have an unmangled name 
+          if (!realClass.unmangledName) {
+            throw new Error(`***ERROR*** SmartPkg.initializeCatalogs() real class ${realClass.name} MUST have an unmangledName property to support production build obfuscation.`);
+          }
          
           // catalog classes in our _classRefCatalog
           const className = SmartModel.getClassName(realClass);
@@ -289,8 +294,8 @@ export default class SmartPkg extends SmartModel {
     // ... smartJSON
     check(smartJSON,                 'smartJSON is required');
     check(isPlainObject(smartJSON),  'smartJSON must be a JSON object');
-    check(smartJSON.smartType === this.name,
-          `smartJSON does NOT represent a ${this.name} object, rather a ${smartJSON.smartType} object.`);
+    check(smartJSON.smartType === SmartModel.getClassName(this),
+          `smartJSON does NOT represent a ${SmartModel.getClassName(this)} object, rather a ${smartJSON.smartType} object.`);
 
 
     //***
@@ -409,3 +414,4 @@ export default class SmartPkg extends SmartModel {
   }
 
 }
+SmartPkg.unmangledName = 'SmartPkg';
