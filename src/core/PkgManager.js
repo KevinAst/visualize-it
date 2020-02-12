@@ -33,10 +33,10 @@ class PkgManager {
    *
    * @param {YetUnknown} [pkgResourcePath] - the optional resource
    * path of the package to retrieve.  When not supplied, an
-   * interactive resource picker dialog will be presented.
+   * interactive file picker dialog will be presented.
    *
    * @returns {SmartPkg via Promise} the newly loaded package
-   * (undefined when operation canceled).
+   * (undefined when user cancels the picker dialog).
    * 
    * @throws {Error} an Error is thrown in various scenarios
    * (pkgResourcePath not found, uninterpretable resource content,
@@ -48,38 +48,20 @@ class PkgManager {
 
     // ... pkgResourcePath (when supplied)
     if (pkgResourcePath) {
-      check(pkgResourcePath,       'currently only handles "interactive resource picker dialog" ... do NOT know how to handle a pkgResourcePath param :-('); // AI: temp for now
+      check(pkgResourcePath,       'currently only handles "interactive file picker dialog" ... do NOT know how to handle a pkgResourcePath param yet :-('); // AI: temp for now
       check(pkgResourcePath===123, 'pkgResourcePath (when supplied) must be a YetUnknown'); // AI: future TEMPLATE
     }
     else {
       // insure we have access to the "Native File System API TRIAL"
       if (!window.chooseFileSystemEntries) {
         throw new Error(`***ERROR*** ${this.constructor.unmangledName}.loadPkg() the "Native File System API TRIAL" is NOT available in this environment :-(`)
-          .defineAttemptingToMsg('use the interactive resource picker dialog');
+          .defineAttemptingToMsg('use the interactive file picker dialog');
       }
     }
 
     // define our fileHandle
     // ... AI: determine how to retain a neutral version of this resource, for "save" operations (possibly in loaded SmartPkg)
     let fileHandle = null;
-
-    // ... when pkgResourcePath IS supplied, AI: figure this out
-    if (pkgResourcePath) {
-      // NOTE: currently errors out (in parameter validation above)
-    }
-    // ... when pkgResourcePath NOT supplied, define our fileHandle via an interactive resource picker dialog
-    else {
-      fileHandle = await window.chooseFileSystemEntries();
-      // ?? handle user cancel operation
-    }
-
-    // load the file blob
-    // ... NOTE: file is w3c - https://w3c.github.io/FileAPI/#dfn-file
-    const file = await fileHandle.getFile();
-
-    // resolve the file content
-    // ... see: https://w3c.github.io/FileAPI/#text-method-algo
-    const fileContent = await file.text();
 
     /* AI: need pkgResourcePath out of fileHandle
            PROBLEM: can only get fileName ('textData.txt') NOT it's containing path/directory
@@ -101,17 +83,51 @@ class PkgManager {
                - FileSystemDirectoryHandle ... handle.isDirectory
     */
 
+    // ... when pkgResourcePath IS supplied, AI: figure this out
+    if (pkgResourcePath) {
+      // NOTE: currently errors out (in parameter validation above)
+    }
+    // ... when pkgResourcePath NOT supplied, select the fileHandle via an interactive file picker dialog
+    else {
+      try {
+        fileHandle = await window.chooseFileSystemEntries();
+      }
+      catch(err) {
+        // prune expected errors
+        if (err.message === 'The user aborted a request.') { // ... user canceled request
+          return; // return undefined when user cancels the picker dialog (as documented above)
+        }
+        // re-throw "qualified" unexpected errors
+        throw err.defineAttemptingToMsg('use the file picker dialog');
+      }
+    }
+
+    // load the file blob
+    // ... NOTE: file is w3c - https://w3c.github.io/FileAPI/#dfn-file
+    // ... for now, just pass through unexpected errors
+    const file = await fileHandle.getFile();
+
+    // resolve the file content
+    // ... see: https://w3c.github.io/FileAPI/#text-method-algo
+    // ... for now, just pass through unexpected errors
+    const fileContent = await file.text();
+
     // resolve content to json
     let smartJSON = null
     try {
       smartJSON = JSON.parse(fileContent);
     }
     catch(err) { // SyntaxError
-      throw err.defineAttemptingToMsg(`interpret resource as smartJSON in ${this.constructor.unmangledName}.loadPkg()`);
-
+      // something about err emitted from JSON, doesn't show attemptingToMsg in discloseError() detail
+      // >>> throw err.defineAttemptingToMsg(`interpret resource as smartJSON in ${this.constructor.unmangledName}.loadPkg()`);
+      // ... suspect it is somehow NOT purely Error based (not really sure what this is)
+      // ... for now re-create it, but concerned may loose something out of the original
+      throw new Error(`INVALID JSON - ${err.message}`)
+        .defineUserMsg('Please select a valid visualize-it package'); // consider this a user error (in their selection)
     }
 
     // resolve to a SmartPkg
+    // ... this auto adorns .defineAttemptingToMsg()
     const smartPkg = SmartPkg.fromSmartJSON(smartJSON);
 
     // register this package in self
@@ -145,6 +161,8 @@ class PkgManager {
    *   code expansion of core classes).
    *
    * @param {SmartPkg} smartPkg - the package to register.
+   *
+   * @throws {Error} an Error is thrown when the package is already loaded
    */
   registerPkg(smartPkg) { // AI: handle 2nd pkgResourcePath param ... I think we want pkgResourcePath to be part of SmartPkg
 
@@ -156,8 +174,13 @@ class PkgManager {
     check(smartPkg instanceof SmartPkg, 'smartPkg must be a SmartPkg instance');
 
     // maintain our package catalog
-    this.pkgCatalog[smartPkg.getPkgName()] = smartPkg;
-    // console.log(`?? PkgManager.registerPkg() registering smartPkg: `, smartPkg);
+    const pkgName = smartPkg.getPkgName();
+    // console.log(`xx PkgManager.registerPkg() registering smartPkg(${pkgName}): `, smartPkg);
+    if (this.pkgCatalog[pkgName]) { // verify smartPkg is not already loaded
+      throw new Error(`***ERROR*** ${this.constructor.unmangledName}.registerPkg() pkgName: ${pkgName} is already registered :-(`)
+        .defineUserMsg(`The visualize-it '${pkgName}' package is already loaded`); // AI: we may need to conditionally refresh existing packages (per user confirmation)
+    }
+    this.pkgCatalog[pkgName] = smartPkg;
     this.pkgCatalogArrTemp.push(smartPkg); // L8TR_pkgName: temporarily do resolution without pkgName so we can move forward (requires all entries to be globally unique)
   }
 

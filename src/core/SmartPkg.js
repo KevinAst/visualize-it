@@ -279,6 +279,9 @@ export default class SmartPkg extends SmartModel {
    *
    * @returns {SmartPkg} a newly instantiated SmartPkg object from the
    * supplied smartJSON.
+   *
+   * @throws {Error} an Error is thrown in various scenarios
+   * (unresolved class references, invalid params, etc.).
    */
   // ?? when complete, determine if this logic can (or should) be implemented in SmartModel
   static fromSmartJSON(smartJSON) {

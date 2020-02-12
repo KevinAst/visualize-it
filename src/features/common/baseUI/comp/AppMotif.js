@@ -95,8 +95,12 @@ export default function AppMotif({children}) {
 
                             // load the visualize-it smartPkg
                             const smartPkg = await pkgManager.loadPkg();
+                            if (!smartPkg) {
+                              return; // no-op when user canceled the pick dialog
+                            }
 
                             // register it in our LeftNav
+                            // ... this dispatches an action, so any error cannot be caught here
                             leftNavManager.addLeftNav(smartPkg);
 
                             // process a text file (temporary sandbox)
@@ -110,10 +114,8 @@ export default function AppMotif({children}) {
                             //? console.log(`?? local fileContent:\n\n${fileContent}`);
                           }
                           catch (err) {
-                            // report unexpected conditions to user
-                            if (err.message !== 'The user aborted a request.') { // ... user canceled request is expected
-                              discloseError({err});
-                            }
+                            // gracefully report unexpected conditions to user
+                            discloseError({err, logIt:true});
                           }
                       }}>
             <MenuIcon/>
