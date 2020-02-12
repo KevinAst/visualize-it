@@ -335,6 +335,9 @@ export default class SmartModel {
    *
    * @returns {smartObject} a newly instantiated class-based object
    * from the supplied smartJSON.
+   *
+   * @throws {Error} an Error is thrown when the process could not
+   * successfully complete.
    */
   static fromSmartJSON(smartJSON, extraClassResolver) {
 
@@ -652,6 +655,8 @@ function getRealClassName(clazz) {
  *
  * @returns {classRef} the classRef of the supplied smartJSON
  * (class | pseudoClass)
+ *
+ * @throws {Error} an Error is thrown when the class was not resolved.
  */
 function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
 
@@ -671,14 +676,15 @@ function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
   }
 
   // ... use standard pkgManager class resolver
-  classRef = pkgManager.getClassRef(className, pkgName); // ?? NEWLY IMPLEMENTED PRODUCTION
-  //? classRef = temporaryLibManagerHACK[className];     // ?? TRASH (temporary solution)
-  if (!classRef) { // ?? this check may be in pkgManager.getClassRef() ... PRO TO KEEP HERE: we have the smartJSON in our logs (gives a bit more context on where it was called) ... YES: could try/catch/rethrow and add to attempting to
-    const errMsg = `***ERROR*** SmartModel.fromSmartJSON(smartJSON): could not resolve a classRef from pkgName/className: '${pkgName}/${className}' ... see logs for smartJson`;
-    console.error(errMsg, {smartJSON});
-    throw new Error(errMsg);
+  try {
+    classRef = pkgManager.getClassRef(className, pkgName); // ?? NEWLY IMPLEMENTED PRODUCTION
+    //? classRef = temporaryLibManagerHACK[className];     // ?? TRASH (temporary solution)
   }
-  
+  catch (err) {
+    console.log(`***ERROR*** SmartModel.fromSmartJSON() could not resolve className: ${className} / pkgName: ${pkgName}
+... smartJSON: ${JSON.stringify(smartJSON, null, 2)}`);
+    throw err.defineAttemptingToMsg('hydrate smartObj (see logs for smartJson)');
+  }
   return classRef;
 }
 

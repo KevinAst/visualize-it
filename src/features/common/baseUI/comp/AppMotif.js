@@ -17,7 +17,8 @@ import Toolbar        from '@material-ui/core/Toolbar';
 
 import VitToolBar     from '../../../toolBar/comp/VitToolBar'; // NEW (TEMPORARY)
 
-import {toast}        from 'util/notify';
+// import {toast}        from 'util/notify'; //? commented out in template code 
+import discloseError  from 'util/discloseError';
 
 import {pkgManager}     from 'features';
 import {leftNavManager} from 'features';
@@ -92,11 +93,13 @@ export default function AppMotif({children}) {
                           // toast.warn({msg: 'App Menu NOT implemented yet (coming soon)!'}) // ?? original
                           try {
 
-                            // ?? load a REAL visulize-it smartPkg
+                            // load the visualize-it smartPkg
                             const smartPkg = await pkgManager.loadPkg();
+
+                            // register it in our LeftNav
                             leftNavManager.addLeftNav(smartPkg);
 
-                            // ?? process a text file:
+                            // process a text file (temporary sandbox)
                             //? const fileHandle  = await window.chooseFileSystemEntries(); // AI: eventually retain this in outer scope IF you need to reuse
                             //? console.log(`?? fileHandle: `, {fileHandle, name: fileHandle.name});
                             //? const file        = await fileHandle.getFile();
@@ -106,10 +109,10 @@ export default function AppMotif({children}) {
                             //? //? toast({msg: 'see console for file content :-)'});
                             //? console.log(`?? local fileContent:\n\n${fileContent}`);
                           }
-                          catch (err) { // ?? doesn't appear to be needed
-                            if (err.message !== 'The user aborted a request.') {
-                              toast.error({msg: `err in local file handler: ${err.message}`});
-                              console.log('err in local file handler: ', err);
+                          catch (err) {
+                            // report unexpected conditions to user
+                            if (err.message !== 'The user aborted a request.') { // ... user canceled request is expected
+                              discloseError({err});
                             }
                           }
                       }}>

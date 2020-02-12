@@ -55,7 +55,7 @@ class PkgManager {
       // insure we have access to the "Native File System API TRIAL"
       if (!window.chooseFileSystemEntries) {
         throw new Error(`***ERROR*** ${this.constructor.unmangledName}.loadPkg() the "Native File System API TRIAL" is NOT available in this environment :-(`)
-          .defineAttemptingToMsg('display an interactive resource picker dialog');
+          .defineAttemptingToMsg('use the interactive resource picker dialog');
       }
     }
 
@@ -172,12 +172,14 @@ class PkgManager {
    * @param {string} pkgName - the package name that the class belongs to.
    *
    * @returns {classRef} the resolved classRef (either a
-   * real class or a pseudoClass), undefined for not-found.
+   * real class or a pseudoClass).
+   *
+   * @throws {Error} an Error is thrown when the class was not resolved.
    */
   getClassRef(className, pkgName) {
 
     // validate parameters
-    const check = verify.prefix(`${this.constructor.unmangledName}.getEntry() parameter violation: `);
+    const check = verify.prefix(`${this.constructor.unmangledName}.getClassRef() parameter violation: `);
     // ... className
     check(className,           'className is required');
     check(isString(className), 'className must be a string');
@@ -189,11 +191,12 @@ class PkgManager {
     //? // resolve the package containing the class
     //? const smartPkg = this.pkgCatalog[pkgName];
     //? if (!smartPkg) {
-    //?   return; // AI: consider throwing error if this package is NOT cataloged?
+    //?   return; // AI: consider throwing error if this package is NOT cataloged? ?? YES THROW THIS ERROR
     //? }
     //? 
     //? // resolve the classRef, if any (when defined in package)
     //? return smartPkg.getClassRef(className, pkgName); // AI: may NOT need pkgName here
+    // ?? throw different error if className is NOT found in desired pkg
 
     // L8TR_pkgName: temporarily do resolution without pkgName so we can move forward (requires all entries to be globally unique)
     for (const smartPkg of this.pkgCatalogArrTemp) {
@@ -204,6 +207,7 @@ class PkgManager {
         return classRef;
       }
     }
+    throw new Error(`***ERROR*** ${this.constructor.unmangledName}.getClassRef(className:${className}, pkgName:${pkgName}) unresolved class reference :-(`);
   }
 
   /**
