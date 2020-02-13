@@ -157,10 +157,10 @@ export default class SmartPkg extends SmartModel {
    *
    * @param {Object} entry - the current entry node being processed.
    */
-  initializeCatalogs(entries) {
+  initializeCatalogs(entry) {
 
     // reset our catalogs on the top-level invocation
-    if (entries === this.entries) {
+    if (entry === this.entries) {
       this._classRefCatalog = {};
       this._entryCatalog    = {};
     }
@@ -169,19 +169,19 @@ export default class SmartPkg extends SmartModel {
     // ... ? would need to be checked in: SmartPkg.fromSmartJSON()
     // ... ? without this check, how would it error out (with classes)
 
-    // recurse over entries
+    // recurse over entry
     // ... for plain objects, each member is a directory node
-    if (isPlainObject(entries)) {
+    if (isPlainObject(entry)) {
       // pass through through all directory nodes (object members),
       // ... and recurse into each
-      for (const dirName in entries) {
-        const dirContent = entries[dirName];
+      for (const dirName in entry) {
+        const dirContent = entry[dirName];
         this.initializeCatalogs(dirContent);
       }
     }
-    // ... for array entries,
-    else if (Array.isArray(entries)) {
-      entries.forEach( (arrItem) => {
+    // ... for array entry,
+    else if (Array.isArray(entry)) {
+      entry.forEach( (arrItem) => {
 
         // normally this is a smartObj
         if (arrItem instanceof SmartModel) {
@@ -222,8 +222,8 @@ export default class SmartPkg extends SmartModel {
 
     // ... other entries are NOT supported (should not happen - defensive only)
     else {
-      const errMsg = '***ERROR*** SmartPkg.initializeCatalogs() found UNSUPPORTED entries ... must be a plain directory object or an array of smartObjs ... see logs for entry';
-      console.error(errMsg, {entries});
+      const errMsg = '***ERROR*** SmartPkg.initializeCatalogs() found UNSUPPORTED entry ... must be a plain directory object or an array of smartObjs ... see logs for entry';
+      console.error(errMsg, {entry});
       throw new Error(errMsg);
     }
   }
