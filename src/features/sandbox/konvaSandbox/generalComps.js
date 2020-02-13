@@ -1,9 +1,7 @@
 import Konva          from 'konva';
 import SmartComp      from 'core/SmartComp';
-
-// import {temporaryLibManagerHACK} from 'core/SmartModel'; // ?? very temp
-import pkgManager from 'core/PkgManager'; // ?? find a more common place to do this
-import SmartPkg  from 'core/SmartPkg';
+import SmartPkg       from 'core/SmartPkg';
+import pkgManager     from 'core/PkgManager';
 
 export class Valve1 extends SmartComp {
 
@@ -67,19 +65,20 @@ export class Valve3 extends SmartComp {
 }
 Valve3.unmangledName = 'Valve3';
 
-// ?? very temporary till we have a library to manage this scene
-//? temporaryLibManagerHACK['Valve1']     = Valve1;
-//? temporaryLibManagerHACK['Valve2']     = Valve2;
-//? temporaryLibManagerHACK['Valve3']     = Valve3;
-// ?? can these be self-contained in the promoted SmartPkg?
-pkgManager.registerPkg( new SmartPkg({
+// our sandbox code-based component package
+// ... registered in our sandbox feature appInit()
+const generalCompsPkg = new SmartPkg({
   id:   'generalComps',
-  name: 'generalComps classes',
+  name: 'SandBox Comps',
   entries: {
-    generalComps: [
+    "Class Comps": [
       Valve1,
       Valve2,
       Valve3,
     ],
   },
-}) );
+});
+export default generalCompsPkg;
+
+// register these components, supporting persistent file resolution
+pkgManager.registerPkg(generalCompsPkg);

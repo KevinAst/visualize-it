@@ -677,8 +677,7 @@ function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
 
   // ... use standard pkgManager class resolver
   try {
-    classRef = pkgManager.getClassRef(className, pkgName); // ?? NEWLY IMPLEMENTED PRODUCTION
-    //? classRef = temporaryLibManagerHACK[className];     // ?? TRASH (temporary solution)
+    classRef = pkgManager.getClassRef(className, pkgName);
   }
   catch (err) {
     console.log(`***ERROR*** SmartModel.fromSmartJSON() could not resolve className: ${className} / pkgName: ${pkgName}
@@ -687,16 +686,3 @@ function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
   }
   return classRef;
 }
-
-// ?? TRASH (temporary solution)
-//? // TODO: eventually this is a lookup in our pkgManager, but till we have this in place we hard-code a catalog
-//? //       exported to support external registration ... temporaryLibManagerHACK['MyClass'] = MyClass;
-//? export const temporaryLibManagerHACK = {
-//?   // initialized in src/features/sandbox/konvaSandbox/sceneView1.js to avoid circular imports
-//? //?   Collage,
-//? //?   PseudoClass,
-//? //?   Scene,
-//? //?   SmartComp,
-//? //?   SmartScene,
-//? //?   SmartView,
-//? };

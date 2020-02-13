@@ -1,6 +1,7 @@
 import 'util/ErrorExtensionPolyfill';
 import 'core/SmartPkg';      // see "Resolve Circular Dependency" below
-export {default} from 'app'; // redirect to app.js
+import 'core/preregisterCoreClasses';
+export {default}  from 'app'; // redirect to app.js
 
 /*
   ***********************************

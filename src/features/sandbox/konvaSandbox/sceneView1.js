@@ -2,25 +2,13 @@ import Konva             from 'konva';
 
 import * as generalComps from './generalComps';
 
-import SmartView         from 'core/SmartView';
+import pkgManager        from 'core/PkgManager';
 import Scene             from 'core/Scene';
 import SmartComp         from 'core/SmartComp';
+import SmartPkg          from 'core/SmartPkg';
+import SmartView         from 'core/SmartView';
 
-import {createLogger}   from 'util/logger';
-
-//import {temporaryLibManagerHACK} from 'core/SmartModel'; // ?? very temp
-import pkgManager from 'core/PkgManager'; // ?? find a more common place to do this
-
-// ?? temporary ... see: temporaryLibManagerHACK
-import SmartPkg    from 'core/SmartPkg';
-import Collage     from 'core/Collage';
-import PseudoClass from 'core/PseudoClass';
-//import Scene       from 'core/Scene';
-//import SmartComp   from 'core/SmartComp';
-import SmartScene  from 'core/SmartScene';
-//import SmartView   from 'core/SmartView';
-
-
+import {createLogger}    from 'util/logger';
 
 // our internal diagnostic logger (keep enabled)
 const log = createLogger('***DIAG*** sceneView1 ... ').enable();
@@ -66,10 +54,7 @@ export const scene1 = new Scene({
   height: 250,
 });
 
-// ?? very temporary till we have a library to manage this scene
-//? temporaryLibManagerHACK['scene1'] = scene1;
-//? temporaryLibManagerHACK['ToggleDraggableScenesButton1'] = ToggleDraggableScenesButton1;
-// ?? can these be self-contained in the promoted SmartPkg?
+// register these components, supporting persistent file resolution
 pkgManager.registerPkg( new SmartPkg({
   id:   'sceneView1',
   name: 'sceneView1 classes',
@@ -81,34 +66,6 @@ pkgManager.registerPkg( new SmartPkg({
   },
 }) );
 
-// ?? more temporary: register core classes to avoid circular imports
-//?temporaryLibManagerHACK['SmartPkg']    = SmartPkg;
-//?temporaryLibManagerHACK['Collage']     = Collage;
-//?temporaryLibManagerHACK['PseudoClass'] = PseudoClass;
-//?temporaryLibManagerHACK['Scene']       = Scene;
-//?temporaryLibManagerHACK['SmartComp']   = SmartComp;
-//?temporaryLibManagerHACK['SmartScene']  = SmartScene;
-//?temporaryLibManagerHACK['SmartView']   = SmartView;
-// ?? find a more common place to do this
-pkgManager.registerPkg( new SmartPkg({
-  id:   'core',
-  name: 'core classes',
-  entries: {
-    core: [
-      Collage,
-      PseudoClass,
-      Scene,
-      SmartComp,
-      // SmartModel, NOT: an abstract class (prob wouldn't hurt to registerPkg)
-      SmartPkg,
-      SmartScene,
-      SmartView,
-    ],
-  },
-}) );
-
-
 // our View
 const sceneView1 = new SmartView({id: 'scene', name: 'Scene 1', scene: scene1});
-
 export default sceneView1;

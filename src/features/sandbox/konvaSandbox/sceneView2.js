@@ -2,15 +2,14 @@ import Konva             from 'konva';
 
 import * as generalComps from './generalComps';
 
-import SmartView         from 'core/SmartView';
+import pkgManager        from 'core/PkgManager';
 import Scene             from 'core/Scene';
 import SmartComp         from 'core/SmartComp';
+import SmartPkg          from 'core/SmartPkg';
+import SmartView         from 'core/SmartView';
 
-import {createLogger}   from 'util/logger';
+import {createLogger}    from 'util/logger';
 
-//import {temporaryLibManagerHACK} from 'core/SmartModel'; // ?? very temp
-import pkgManager from 'core/PkgManager'; // ?? find a more common place to do this
-import SmartPkg  from 'core/SmartPkg';
 
 // our internal diagnostic logger (keep enabled)
 const log = createLogger('***DIAG*** sceneView2 ... ').enable();
@@ -56,10 +55,7 @@ export const scene2 = new Scene({
   height: 250,
 });
 
-// ?? very temporary till we have a library to manage this scene
-//? temporaryLibManagerHACK['scene2'] = scene2;
-//? temporaryLibManagerHACK['ToggleDraggableScenesButton2'] = ToggleDraggableScenesButton2;
-// ?? can these be self-contained in the promoted SmartPkg?
+// register these components, supporting persistent file resolution
 pkgManager.registerPkg( new SmartPkg({
   id:   'sceneView2',
   name: 'sceneView2 classes',
@@ -71,8 +67,6 @@ pkgManager.registerPkg( new SmartPkg({
   },
 }) );
 
-
 // our View
 const sceneView2 = new SmartView({id: 'scene2', name: 'Scene 2', scene: scene2});
-
 export default sceneView2;
