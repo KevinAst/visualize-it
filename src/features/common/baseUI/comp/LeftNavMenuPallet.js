@@ -9,10 +9,11 @@ import genDualClickHandler      from 'util/genDualClickHandler';
 import {createLogger}           from 'util/logger';
 import ReactSmartView           from 'util/ReactSmartView';
 import {isPlainObject,
-        /*isClass*/}                from 'util/typeCheck';
+        isClass}                from 'util/typeCheck';
 
 import SmartModel               from 'core/SmartModel';
 import SmartView                from 'core/SmartView';
+import Scene                    from 'core/Scene';
 
 import {LeftNavCollapsibleItem} from 'features';
 import ExpandLessIcon           from '@material-ui/icons/ExpandMore';   // in effect WHEN EXPANDED  ... i.e. clicking will collapse
@@ -126,7 +127,6 @@ function genTreeItems(smartPkg, handleActivateTab) {
           const id       = `${accumulativeId}-${smartObj.id}`;
 
           // register this entry to our tabManager (allowing it to be visualized)
-          // TODO: currently SmartView only supports SmartScene (either a Scene or Collage) ... need to open up somehow to display/edit components
           const view = new SmartView({id: `view-${smartObj.id}`, name: `view-${smartObj.name}`, scene: smartObj});
           // TODO: ?? for re-renders, registerTab validation may need to be relaxed (so we can override this)
           registerTab(id, smartObj.name, () => (
@@ -143,10 +143,53 @@ function genTreeItems(smartPkg, handleActivateTab) {
         }
 
         // can be a real class reference
-        //? else if (isClass(arrItem)) {
-        //?   const realClass = arrItem;
-        //?   console.error('?? LeftNavMenuPallet IS NOT YET handling real classes :-(');
-        //? }
+        else if (isClass(arrItem)) {
+          const compClass = arrItem;
+
+
+          const compName = SmartModel.getClassName(compClass);
+          
+          const id = `${accumulativeId}-${compName}`;
+
+          // NOTE: Components visualization is very restricted
+          //       - within the builder to simply verify it's visuals
+          //       - an isolated read-only view
+          //       Because of this, we simply piggy-back off the production
+          //       code that supports a scene.
+          //       - using the Scene, we merely
+          //       - instantiate a single component in it
+          //       - and mark it as a component render
+          //         ... providing the distinction that this is a component view
+
+          // wrap our single component in a scene (see NOTE above)
+          const comp  = new compClass({id: `comp-${compName}`}); // ?? hopefully these components don't need any other parameter context
+          const scene = new Scene({
+            id: `view-${compName}`,
+            comps: [comp], // 
+            width:  300,   // ?? we need a way for the comp to tell us it's size
+            height: 300,
+          });
+
+          // ?? somehow demark something as a read-only component
+
+          // KEY: from this point, we can pick up with the normal SmartView logic (see prior case above)
+
+          // register this entry to our tabManager (allowing it to be visualized)
+          const view = new SmartView({id: `view-${compName}`, scene});
+          // TODO: ?? for re-renders, registerTab validation may need to be relaxed (so we can override this)
+          registerTab(id, compName, () => (
+            <ReactSmartView view={view}/>
+          ));
+
+          log(`genTreeItems(): TreeItem tabManager node ... id: ${id}`);
+          return (
+            <TreeItem key={id}
+                      nodeId={id}
+                      label={compName}
+                      onClick={() => handleActivateTab(id, compName)}/>
+          );
+
+        }
 
         // can be a nested sub-directory (mixed in with our tab activation entries)
         else if (isPlainObject(arrItem)) {
