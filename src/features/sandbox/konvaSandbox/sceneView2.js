@@ -2,7 +2,7 @@ import Konva             from 'konva';
 
 import * as generalComps from './generalComps';
 
-import pkgManager        from 'core/PkgManager';
+import pkgManager        from 'core/pkgManager';
 import Scene             from 'core/Scene';
 import SmartComp         from 'core/SmartComp';
 import SmartPkg          from 'core/SmartPkg';

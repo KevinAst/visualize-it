@@ -6,7 +6,7 @@ import checkUnknownArgs  from 'util/checkUnknownArgs';
 
 /**
  * SmartPkg models visualize-it packages, which are cataloged
- * by PkgManager, and optionally viewed in the LeftNav. ??$$ pull in refined description
+ * by pkgManager, and optionally viewed in the LeftNav. ??$$ pull in refined description
  *
  * It is a concrete class that can model ANY visualize-it package:
  * - a component package (holding component definitions)

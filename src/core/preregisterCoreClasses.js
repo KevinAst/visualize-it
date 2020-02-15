@@ -3,7 +3,7 @@ import PseudoClass from './PseudoClass';
 import Scene       from './Scene';
 import SmartPkg    from './SmartPkg';
 import SmartView   from './SmartView';
-import pkgManager  from './PkgManager';
+import pkgManager  from './pkgManager';
 
 // register a silent package that resolves the core classes
 // ... needed for resource-based rehydration (i.e. persistance)

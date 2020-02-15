@@ -1,7 +1,7 @@
 import Konva          from 'konva';
 import SmartComp      from 'core/SmartComp';
 import SmartPkg       from 'core/SmartPkg';
-import pkgManager     from 'core/PkgManager';
+import pkgManager     from 'core/pkgManager';
 
 export class Valve1 extends SmartComp {
 

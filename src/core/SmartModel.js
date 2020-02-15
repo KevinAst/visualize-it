@@ -4,7 +4,7 @@ import {isString,
         isObject,
         isPlainObject}   from 'util/typeCheck';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
-import pkgManager        from './PkgManager';
+import pkgManager        from './pkgManager';
 
 
 /**

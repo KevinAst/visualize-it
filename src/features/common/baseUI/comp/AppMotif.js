@@ -20,7 +20,7 @@ import VitToolBar     from '../../../toolBar/comp/VitToolBar'; // NEW (TEMPORARY
 // import {toast}        from 'util/notify'; //? commented out in template code 
 import discloseError  from 'util/discloseError';
 
-import {pkgManager}     from 'features';
+import pkgManager       from 'core/pkgManager';
 import {leftNavManager} from 'features';
 
 
