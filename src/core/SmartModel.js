@@ -29,10 +29,10 @@ import pkgManager        from './PkgManager';
  *    + smartClone(): smartObject ............... creates a deep copy of self
  *
  *  - various common utilities:
- *<S> + createSmartObject(lassRef, namedProps): smartObject ... a value-added constructor
+ *<S> + createSmartObject(classRef, namedProps): smartObject .. a value-added constructor
  *<S> + getClassName(classRef): string ........................ get class name of classRef (either a class or pseudoClass)
  *    + getMyClassName(): string .............................. get class name of self (interpreting BOTH class or pseudoClass)
- *    + getMyPkgName(): string ................................ get package name of self
+ *    + getMyPkgName(): string ................................ get package name of self ??$$
  *<S> + isClass(classRef): boolean ............................ is supplied classRef a real class
  *<S> + isPseudoClass(classRef): boolean ...................... is supplied classRef a pseudoClass
  *
@@ -121,7 +121,7 @@ export default class SmartModel {
     // ... these methods take into account BOTH real types/classes AND pseudoClasses
     const myJSON = {
       smartType: this.getMyClassName(),
-      smartPkg:  this.getMyPkgName(),
+      smartPkg:  this.getMyPkgName(), //??$$
     };
 
     // encode self's instance properties
@@ -202,9 +202,9 @@ export default class SmartModel {
    * An instance method returning the package name of self.
    *
    * @returns {string} the package name which promotes the class of
-   * object. ?? may be 'core'?
+   * object. ??$$ may be 'core'?
    */
-  getMyPkgName() { // L8TR: currently only used internally
+  getMyPkgName() { // ??$$ currently only used internally
     return 'TODO'; // ?? temp for now
   }
 
@@ -662,14 +662,14 @@ function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
 
   // glean our className and pkgName
   const className = smartJSON.smartType;
-  const pkgName   = 'L8TR'; // ?? L8TR: smartJSON.smartPkg;
+  const pkgName   = 'L8TR'; // ??$$ L8TR: smartJSON.smartPkg;
 
   // resolve our classRef
   let classRef = null;
 
   // ... use extraClassResolver (when supplied)
   if (extraClassResolver) {
-    classRef = extraClassResolver(className, pkgName);
+    classRef = extraClassResolver(className, pkgName); // ??$$
     if (classRef) {
       return classRef;
     }
@@ -677,7 +677,7 @@ function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
 
   // ... use standard pkgManager class resolver
   try {
-    classRef = pkgManager.getClassRef(className, pkgName);
+    classRef = pkgManager.getClassRef(className, pkgName); // ??$$
   }
   catch (err) {
     console.log(`***ERROR*** SmartModel.fromSmartJSON() could not resolve className: ${className} / pkgName: ${pkgName}

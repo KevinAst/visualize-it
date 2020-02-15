@@ -5,7 +5,8 @@ import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
 
 /**
- * SmartPkg encapsulates a visualize-it run-time package.
+ * SmartPkg models visualize-it packages, which are cataloged
+ * by PkgManager, and optionally viewed in the LeftNav. ??$$ pull in refined description
  *
  * It is a concrete class that can model ANY visualize-it package:
  * - a component package (holding component definitions)
