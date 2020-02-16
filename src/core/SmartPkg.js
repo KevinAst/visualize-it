@@ -1,4 +1,5 @@
 import SmartModel        from './SmartModel';
+import SmartClassRef     from './SmartClassRef';
 import {isPlainObject,
         isClass}         from 'util/typeCheck';
 import verify            from 'util/verify';
@@ -91,8 +92,8 @@ import checkUnknownArgs  from 'util/checkUnknownArgs';
  * visual structure with depth).  The two catalogs are:
  * 
  * ```
- *  + getClassRef(className, pkgName): classRef ... used by pkgManager
- *  + getEntry(entryId, pkgName): entry         ... used by tabManager
+ *  + getClassRef(className): SmartClassRef ... used by pkgManager
+ *  + getEntry(entryId):      entry         ... used by tabManager (currently NOT used)
  * ```
  */
 export default class SmartPkg extends SmartModel {
@@ -127,8 +128,16 @@ export default class SmartPkg extends SmartModel {
     // retain derivation-specific parameters in self
     this.entries = entries;
 
+    // remaining logic
+    // ... hook into the standard SmartModel.constructorConfig()
+    //     so this will be accomplished in pseudo construction too!
+    // ??$$ DO THIS -and- call it in our pseudo construction
+
     // initialize our catalogs
     this.initializeCatalogs(this.entries);
+
+    // introduce the value-added meta API to all our classes (including package registration)
+    this.adornContainedClasses();
   }
 
   // support persistance by encoding needed props of self
@@ -229,40 +238,52 @@ export default class SmartPkg extends SmartModel {
     }
   }
 
+
   /**
-   * Return the classRef matching the supplied params (undefined for
+   * Introduce the `.smartClassRef` on all our classes, providing
+   * value-added utility that unifies the meta API for both real
+   * classes and pseudoClasses.
+   *
+   * It also ties this package to the each class for the first time
+   * (registering self's package name)!
+   */
+  adornContainedClasses() {
+    Object.values(this._classRefCatalog).forEach( (clazz) => {
+      clazz.smartClassRef = new SmartClassRef(clazz, this.getPkgName());
+    });
+  }
+
+  /**
+   * Return self's classRef matching the supplied `className` (undefined for
    * not-found).
    *
    * NOTE: This method is a key aspect that makes pkgManager work.
    *
    * @param {string} className - the class name of the classRef to return.
-   * @param {string} pkgName - the package name that the class belongs to.
    *
-   * @returns {classRef} the classRef matching the supplied params
-   * (either a real class or a pseudoClass), undefined for not-found.
+   * @returns {SmartClassRef} the classRef matching the supplied `className`
+   * (undefined for not-found).
    */
-  getClassRef(className, pkgName) { // AI: do we assume that pkgName is already resolved to this SmartPkg, and NOT pass it in here
-    // L8TR_pkgName: temporarily do resolution without pkgName so we can move forward (requires all entries to be globally unique)
-    //? return (pkgName === this.getPkgName()) ? this._classRefCatalog[className] : undefined;
+  getClassRef(className) {
     return this._classRefCatalog[className];
+    // ?? eventually change ABOVE to return the .smartClassRef (docs already changed)
   }
 
   /**
-   * Return the entry matching the supplied params (undefined for
+   * Return the entry matching the supplied `entryId` (undefined for
    * not-found).
    *
    * NOTE: This method is a key aspect that integrates with the
    *       visuals (displayed in the tab manager).
+   *       HOWEVER however it is currently not needed.
+   *       ... as of 2/16/2020, this method NOT being used.
    *
    * @param {string} entryId - the entry ID of the entry to return.
-   * @param {string} pkgName - the package name that the entry belongs to.
    *
-   * @returns {entry} the entry matching the supplied params,
+   * @returns {entry} the entry matching the supplied `entryId`,
    * undefined for not-found.
    */
-  getEntry(entryId, pkgName) { // AI: do we assume that pkgName is already resolved to this SmartPkg, and NOT pass it in here
-    // L8TR_pkgName: temporarily do resolution without pkgName so we can move forward (requires all entries to be globally unique)
-    //? return (pkgName === this.getPkgName()) ? this._entryCatalog[entryId] : undefined;
+  getEntry(entryId) {
     return this._entryCatalog[entryId];
   }
 
@@ -288,14 +309,13 @@ export default class SmartPkg extends SmartModel {
   static fromSmartJSON(smartJSON) {
 
     // validate supplied parameters
-    const check = verify.prefix(`${SmartModel.getClassName(this)}.fromSmartJSON(smartJSON) parameter violation: `);
+    const check = verify.prefix('SmartPkg.fromSmartJSON(smartJSON) parameter violation: ');
 
     // ... smartJSON
     check(smartJSON,                 'smartJSON is required');
     check(isPlainObject(smartJSON),  'smartJSON must be a JSON object');
-    check(smartJSON.smartType === SmartModel.getClassName(this),
-          `smartJSON does NOT represent a ${SmartModel.getClassName(this)} object, rather a ${smartJSON.smartType} object.`);
-
+    check(smartJSON.smartType === 'SmartPkg',
+          `smartJSON does NOT represent a SmartPkg object, rather a ${smartJSON.smartType} object.`);
 
     //***
     //*** PHASE-1: pre-process the smartJSON to resolve pseudoClass MASTER definitions
@@ -303,11 +323,16 @@ export default class SmartPkg extends SmartModel {
     //***     (ex: collage referencing scene instances)
     //***
 
-    // NOTE: We currently mutate smartJSON.
+    // NOTE: We currently mutate smartJSON with real objects (resolving pseudoClass MASTER TYPEs).
     //       While this should work, may want to consider making a copy.
 
     // the catalog of pseudoClass MASTERs (supporting the extraClassResolver)
     const pseudoClassMasters = {};
+
+    // retain the pkgName being resolved (used in our extraClassResolver)
+    // ... NOTE: for SmartPkg JSON, the top-level id IS the package name
+    //           see: getPkgName()
+    const pkgNameBeingResolved = smartJSON.id;
 
     // our recursive function that performs the pre-processing
     function resolvePseudoClassMasters(jsonEntry) {
@@ -318,18 +343,20 @@ export default class SmartPkg extends SmartModel {
         // entry is a smartObject
         if (jsonEntry.smartType) {
 
-          // handle pseudoClass MASTER TYPE
+          // hydrate our pseudoClass MASTERs early
           // ... IMPORTANT: this is the reason we are pre-processing!
           // ... NOTE: All our pseudoClass MASTER will appear in the root of any entries directory!
           //           In other words, no need to drill any further deep!
-          if (SmartModel.isPseudoClass(jsonEntry)) {
+          if (jsonEntry.isPseudoClassMaster) {
+
             // morph into a real object
-            const resolvedObj = SmartModel.fromSmartJSON(jsonEntry);
+            const resolvedObj = SmartModel.fromSmartJSON(jsonEntry); // ... no need for extraClassResolver (pseudoClass Masters resove via core classes)
 
             // catalog in pseudoClassMasters
             pseudoClassMasters[resolvedObj.id] = resolvedObj;
 
             // pass it through
+            // ... see note on "mutate smartJSON with real objects" (above)
             return resolvedObj;
           }
           
@@ -397,11 +424,11 @@ export default class SmartPkg extends SmartModel {
 
     // utilize an extraClassResolver that can resolve self-referencing pseudoClasses
     // ... ex: collage referencing scene instances
-    function extraClassResolver(className, pkgName) {
-      // ?? L8TR: when pkgName is used
-      //? return (pkgName === this.getPkgName()) ? pseudoClassMasters[className] : undefined;
-      // ?? temp (without pkgName)
-      return pseudoClassMasters[className];
+    function extraClassResolver(pkgName, className) {
+      const clazz = (pkgName === pkgNameBeingResolved) ? pseudoClassMasters[className] : undefined;
+      //console.log(`xx TEMP ... in extraClassResolver(pkgName:'${pkgName}', className:'${className}') ... compairing pkgNameBeingResolved:'${pkgNameBeingResolved}'` +
+      //            ` >>> ${clazz ? 'FOUND IT' : 'NOT FOUND'} ... pseudoClassMasters: `, pseudoClassMasters);
+      return clazz;
     }
 
     // use the normal SmartModel.fromSmartJSON() to do this work

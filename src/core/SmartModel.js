@@ -29,10 +29,11 @@ import pkgManager        from './pkgManager';
  *    + smartClone(): smartObject ............... creates a deep copy of self
  *
  *  - various common utilities:
+ *    ??? most replaced with new SmartClassRef
  *<S> + createSmartObject(classRef, namedProps): smartObject .. a value-added constructor
  *<S> + getClassName(classRef): string ........................ get class name of classRef (either a class or pseudoClass)
  *    + getMyClassName(): string .............................. get class name of self (interpreting BOTH class or pseudoClass)
- *    + getMyPkgName(): string ................................ get package name of self ??$$
+ *    + getMyClassPkgName(): string ........................... get package name of self
  *<S> + isClass(classRef): boolean ............................ is supplied classRef a real class
  *<S> + isPseudoClass(classRef): boolean ...................... is supplied classRef a pseudoClass
  *
@@ -121,8 +122,14 @@ export default class SmartModel {
     // ... these methods take into account BOTH real types/classes AND pseudoClasses
     const myJSON = {
       smartType: this.getMyClassName(),
-      smartPkg:  this.getMyPkgName(), //??$$
+      smartPkg:  this.getMyClassPkgName(),
     };
+
+    // demark the pseudoClass MASTERs in our JSON, so they can be hydrated early
+    // ... see SmartPkg.fromSmartJSON()
+    if (SmartModel.isPseudoClass(this)) { // ... using `this` to determine if our object instance is a pseudoClass MASTER
+      myJSON.isPseudoClassMaster = true;
+    }
 
     // encode self's instance properties
     const encodingProps = this.getEncodingProps(); // $FOLLOW-UP$: refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
@@ -198,14 +205,62 @@ export default class SmartModel {
 
   }
 
+
+  /**
+   * Return the classRef from which self was created.
+   *
+   * This is a meta object that accommodates type/class information
+   * for ALL smartObjects, unifying both real classes and pseudo
+   * classes!
+   *
+   * @returns {SmartClassRef} the classRef from which self was
+   * created.
+   */
+  getSmartClassRef() {
+
+    // validation checks
+    // ... we use plain `this.constructor.name`, even though it may be mangled in production build
+    //     to avoid reliance on the value-added classRef we are accessing "in this method" :-)
+    const check = verify.prefix(`${this.constructor.name}.getSmartClassRef() id:'${this.id}', name:'${this.name}') ... `);
+
+    // interpret pseudoClass instances
+    // ... once again, we interpret this structure directly
+    //     to avoid reliance on the value-added classRef we are accessing "in this method" :-)
+    if (this.pseudoClass && this.pseudoClass.isInstance() ) {
+
+      // the pseudoClass master (it's type) is maintained by the pseudo constructor
+      // ... see: SmartClassRef.createSmartObject()
+      const pseudoClass = this.pseudoClass.pseudoClassMaster;
+      check(pseudoClass, 'this pseudoClass instance has NO pseudoClassMaster reference ... you must create it with SmartClassRef.createSmartObject()');
+
+      // the smartClassRef is maintained by the SmartPkg package manager
+      const pseudoClassRef = pseudoClass.smartClassRef;
+      check(pseudoClassRef, 'this pseudoClass instance has NO smartClassRef reference ... it must be managed by a SmartPkg');
+
+      return pseudoClassRef;
+    }
+
+    // interpret a real class instances (the only other case)
+    // ... NOTE: even pseudoClass Masters revert to their real class :-)
+
+    // the real class is defined by standard JavaScript constructs
+    const realClass = this.constructor;
+
+    // the smartClassRef is maintained by the SmartPkg package manager
+    const realClassRef = realClass.smartClassRef;
+    check(realClassRef, 'this real class instance has NO smartClassRef reference ... it must be managed by a SmartPkg');
+
+    return realClassRef;
+  }
+
   /**
    * An instance method returning the package name of self.
    *
    * @returns {string} the package name which promotes the class of
-   * object. ??$$ may be 'core'?
+   * object.
    */
-  getMyPkgName() { // ??$$ currently only used internally
-    return 'TODO'; // ?? temp for now
+  getMyClassPkgName() { // ??%% soon to be obsolete (think ONLY used internally)
+    return this.getSmartClassRef().getClassPkgName();
   }
 
   /**
@@ -215,7 +270,7 @@ export default class SmartModel {
    * @returns {string} the class name for this object (interpreting
    * BOTH real classes and pseudoClasses).
    */
-  getMyClassName() {
+  getMyClassName() {// ??%% soon to be obsolete
     // interpret a pseudoClass instance
     if (this.pseudoClass && this.pseudoClass.isInstance() ) {
       return this.pseudoClass.id;
@@ -234,7 +289,7 @@ export default class SmartModel {
    *
    * @returns {string} the supplied classRef's class name.
    */
-  static getClassName(classRef) {
+  static getClassName(classRef) {// ??%% soon to be obsolete
     // interpret a pseudo class (an object instance to be cloned)
     if (classRef.pseudoClass && classRef.pseudoClass.isType() ) {
       return classRef.id;
@@ -253,7 +308,7 @@ export default class SmartModel {
    *
    * @returns {boolean} true: a real class, false: otherwise.
    */
-  static isClass(classRef) {
+  static isClass(classRef) {// ??%% soon to be obsolete
     return isClass(classRef);
   }
 
@@ -266,7 +321,7 @@ export default class SmartModel {
    *
    * @returns {boolean} true: a pseudoClass, false: otherwise.
    */
-  static isPseudoClass(classRef) {
+  static isPseudoClass(classRef) {// ??%% soon to be obsolete
     return classRef.pseudoClass && classRef.pseudoClass.isType();
   }
 
@@ -371,7 +426,7 @@ export default class SmartModel {
           const val = smartJSON[key];
 
           // bypass selected keywords that are NOT part of the constructor namedProps
-          if (key === 'smartType' || key === 'smartPkg') { // type info is for decoding only
+          if (key === 'smartType' || key === 'smartPkg' || key === 'isPseudoClassMaster') { // type info is for decoding only
             continue;
           }
 
@@ -380,10 +435,12 @@ export default class SmartModel {
         }
 
         // determine the classRef (could be a real class or a pseudoClass)
+        // ??$$ eventually want this to be a SmartClassRef
         const classRef = getClassRefFromSmartJSON(smartJSON, extraClassResolver);
 
         // instantiate a real class-based object using our value-added constructor
         // that handles real classes and pseudoClasses
+        // ??$$ eventually make this ... classRef.createSmartObject(namedProps)
         return SmartModel.createSmartObject(classRef, namedProps);
       }
 
@@ -511,7 +568,7 @@ export default class SmartModel {
    * @returns {smartObject} a newly instantiated class-based object
    * of type `classRef` initialized with `namedProps`.
    */
-  static createSmartObject(classRef, namedProps) {
+  static createSmartObject(classRef, namedProps) {// ??%% soon to be obsolete
 
     // handle a standard class definition
     if (SmartModel.isClass(classRef)) {
@@ -529,6 +586,11 @@ export default class SmartModel {
       newObj.pseudoClass.id   = classRef.id;
       newObj.pseudoClass.name = `a pseudoClass instance of type: '${classRef.id}'`; // for good measure
       // console.log(`xx ***INFO** SmartModel.createSmartObject() created pseudoClass: '${SmartModel.getClassName(classRef)}' ... `, {namedProps, newObj});
+
+      // retain the pseudoClassMaster
+      newObj.pseudoClass.pseudoClassMaster = classRef;
+      // ?? TEST ABOVE ... HMMMMM: I commented this out and rehydration still works (in both dup functions) ... more research needed
+
       return newObj;
     }
 
@@ -584,7 +646,7 @@ SmartModel.unmangledName = 'SmartModel';
  */
 
 /**
- * @typedef {ref} classRef
+ * @typedef {ref} classRef // ??%% soon to be obsolete ... replaced by the REAL SmartClassRef ?? does anything in these docs need to move over?
  * 
  * classRef is a class (physically or logically) that can be
  * instantiated.  It can either be:
@@ -627,7 +689,7 @@ SmartModel.unmangledName = 'SmartModel';
  *
  * @returns {string} the supplied clazz's class name.
  */
-function getRealClassName(clazz) {
+function getRealClassName(clazz) { // ??%% soon to be obsolete
 
   // verify there is an unmangledName property (see IMPORTANT above)
   // NOTE: MUST USE hasOwnProperty() because static class references
@@ -655,21 +717,23 @@ function getRealClassName(clazz) {
  *
  * @returns {classRef} the classRef of the supplied smartJSON
  * (class | pseudoClass)
+ * ??$$ eventually this will be a SmartClassRef
  *
  * @throws {Error} an Error is thrown when the class was not resolved.
  */
 function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
 
-  // glean our className and pkgName
+  // glean our pkgName and className
+  const pkgName   = smartJSON.smartPkg;
   const className = smartJSON.smartType;
-  const pkgName   = 'L8TR'; // ??$$ L8TR: smartJSON.smartPkg;
 
   // resolve our classRef
   let classRef = null;
 
   // ... use extraClassResolver (when supplied)
   if (extraClassResolver) {
-    classRef = extraClassResolver(className, pkgName); // ??$$
+    // ??$$ eventually want this to be a SmartClassRef ... how does this function do it?
+    classRef = extraClassResolver(pkgName, className);
     if (classRef) {
       return classRef;
     }
@@ -677,10 +741,11 @@ function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
 
   // ... use standard pkgManager class resolver
   try {
-    classRef = pkgManager.getClassRef(className, pkgName); // ??$$
+    // ??$$ eventually want this to be a SmartClassRef ... I think pkgManager should promote this (NOT US)
+    classRef = pkgManager.getClassRef(pkgName, className);
   }
   catch (err) {
-    console.log(`***ERROR*** SmartModel.fromSmartJSON() could not resolve className: ${className} / pkgName: ${pkgName}
+    console.log(`***ERROR*** SmartModel.fromSmartJSON() could not resolve pkgName: ${pkgName} / className: ${className} 
 ... smartJSON: ${JSON.stringify(smartJSON, null, 2)}`);
     throw err.defineAttemptingToMsg('hydrate smartObj (see logs for smartJson)');
   }

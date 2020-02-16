@@ -21,7 +21,6 @@ class PkgManager {
       // [pkgName]: smartPkg, // AI: I think we want pkgResourcePath to be part of SmartPkg
       // ...
     };
-    this.pkgCatalogArrTemp = []; // L8TR_pkgName: temporarily do resolution without pkgName so we can move forward (requires all entries to be globally unique)
   }
 
   /**
@@ -181,7 +180,6 @@ class PkgManager {
         .defineUserMsg(`The visualize-it '${pkgName}' package is already loaded`); // AI: we may need to conditionally refresh existing packages (per user confirmation)
     }
     this.pkgCatalog[pkgName] = smartPkg;
-    this.pkgCatalogArrTemp.push(smartPkg); // L8TR_pkgName: temporarily do resolution without pkgName so we can move forward (requires all entries to be globally unique)
   }
 
 
@@ -191,88 +189,72 @@ class PkgManager {
    * NOTE: This accessor is commonly used in the rehydration process
    *       (SmartModel.fromSmartJSON()) to resolve classes at a low level.
    *
-   * @param {string} className - the class name of the classRef to return.
    * @param {string} pkgName - the package name that the class belongs to.
+   * @param {string} className - the class name of the classRef to return.
    *
-   * @returns {classRef} the resolved classRef (either a
-   * real class or a pseudoClass).
+   * @returns {SmartClassRef} the classRef matching the supplied `pkgName`/`className`
    *
    * @throws {Error} an Error is thrown when the class was not resolved.
    */
-  getClassRef(className, pkgName) {
+  getClassRef(pkgName, className) {
 
     // validate parameters
-    const check = verify.prefix(`${this.constructor.unmangledName}.getClassRef() parameter violation: `);
-    // ... className
-    check(className,           'className is required');
-    check(isString(className), 'className must be a string');
+    const check = verify.prefix('PkgManager.getClassRef() parameter violation: ');
     // ... pkgName
     check(pkgName,             'pkgName is required');
     check(isString(pkgName),   'pkgName must be a string');
+    // ... className
+    check(className,           'className is required');
+    check(isString(className), 'className must be a string');
 
-    // L8TR_pkgName: PRODUCTION IMPLEMENTATION, WITH pkgName
-    //? // resolve the package containing the class
-    //? const smartPkg = this.pkgCatalog[pkgName];
-    //? if (!smartPkg) {
-    //?   return; // AI: consider throwing error if this package is NOT cataloged? ?? YES THROW THIS ERROR
-    //? }
-    //? 
-    //? // resolve the classRef, if any (when defined in package)
-    //? return smartPkg.getClassRef(className, pkgName); // AI: may NOT need pkgName here
-    // ?? throw different error if className is NOT found in desired pkg
-
-    // L8TR_pkgName: temporarily do resolution without pkgName so we can move forward (requires all entries to be globally unique)
-    for (const smartPkg of this.pkgCatalogArrTemp) {
-      //console.log(`?? searching for className: ${className} in smartPkg: `, smartPkg);
-      const classRef = smartPkg.getClassRef(className, pkgName);
-      if (classRef) {
-        //console.log(`?? FOUND IT`);
-        return classRef;
-      }
+    // resolve the package containing the class
+    const smartPkg = this.pkgCatalog[pkgName];
+    if (!smartPkg) { // this is an expected condition (communicate to user via defineUserMsg())
+      throw new Error(`***ERROR*** PkgManager.getClassRef(pkgName:${pkgName}, className:${className}) package is NOT cataloged ... did you forget to load a dependent package?`)
+        .defineUserMsg(`The '${pkgName}/${className}' class has been referenced, but the '${pkgName}' package has NOT been loaded ... did you forget to load this dependent package?`);
     }
-    throw new Error(`***ERROR*** ${this.constructor.unmangledName}.getClassRef(className:${className}, pkgName:${pkgName}) unresolved class reference :-(`);
+    
+    // resolve the classRef
+    // ??$$ eventually we want to derefernce this classRef to the REAL SmartClassRef
+    const classRef = smartPkg.getClassRef(className);
+    if (!classRef) { // this is more of an unexpected condition
+      throw new Error(`***ERROR*** PkgManager.getClassRef(pkgName:${pkgName}, className:${className}) class NOT in package :-(`);
+    }
+    return classRef;
   }
 
   /**
    * Resolve entries managed in self's packages.
    *
-   * NOTE: This accessor is commonly used by the tabManager to resolve
-   *       entries at a low level.
+   * NOTE: This accessor was thought to be used by the tabManager to resolve
+   *       entries at a low level, however it is currently not needed.
+   *       ... as of 2/16/2020, this method NOT being used.
    *
-   * @param {string} entryId - the entry ID of the entry to return.
    * @param {string} pkgName - the package name that the entry belongs to.
+   * @param {string} entryId - the entry ID of the entry to return.
    *
    * @returns {entry} the entry matching the supplied params,
    * undefined for not-found.
    */
-  getEntry(entryId, pkgName) {
+  getEntry(pkgName, entryId) {
 
     // validate parameters
-    const check = verify.prefix(`${this.constructor.unmangledName}.getEntry() parameter violation: `);
-    // ... entryId
-    check(entryId,           'entryId is required');
-    check(isString(entryId), 'entryId must be a string');
+    const check = verify.prefix('PkgManager.getEntry() parameter violation: ');
     // ... pkgName
     check(pkgName,           'pkgName is required');
     check(isString(pkgName), 'pkgName must be a string');
+    // ... entryId
+    check(entryId,           'entryId is required');
+    check(isString(entryId), 'entryId must be a string');
 
-    // L8TR_pkgName: PRODUCTION IMPLEMENTATION, WITH pkgName
-    //? // resolve the package containing the entry
-    //? const smartPkg = this.pkgCatalog[pkgName];
-    //? if (!smartPkg) {
-    //?   return; // AI: consider throwing error if this package is NOT cataloged?
-    //? }
-    //? 
-    //? // resolve the entry, if any (when defined in package)
-    //? return smartPkg.getEntry(entryId, pkgName); // AI: may NOT need pkgName here
-
-    // L8TR_pkgName: temporarily do resolution without pkgName so we can move forward (requires all entries to be globally unique)
-    for (const smartPkg of this.pkgCatalogArrTemp) {
-      const entry = smartPkg.getEntry(entryId, pkgName);
-      if (entry) {
-        return entry;
-      }
+    // resolve the package containing the entry
+    const smartPkg = this.pkgCatalog[pkgName];
+    if (!smartPkg) {
+      return;
     }
+    
+    // resolve the entry, if any (when defined in package)
+    return smartPkg.getEntry(entryId);
   }
 
 }
