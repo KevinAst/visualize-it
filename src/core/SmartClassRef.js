@@ -174,7 +174,7 @@ export default class SmartClassRef {
 
       // retain the pseudoClassMaster
       // ... used to locate the pseudoClass from which an object was created :-)
-      // ... see: SmartModel.getSmartClassRef()
+      // ... see: SmartModel.getClassRef()
       newObj.pseudoClass.pseudoClassMaster = pseudoClassContainer;
     }
 
