@@ -1,11 +1,10 @@
 import verify            from 'util/verify';
 import {isString,
-        isClass,
         isObject,
         isPlainObject}   from 'util/typeCheck';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
 import pkgManager        from './pkgManager';
-
+import PseudoClass       from './PseudoClass';
 
 /**
  * SmartModel is the abstract top-level base class for all visualize-it
@@ -127,7 +126,7 @@ export default class SmartModel {
 
     // demark the pseudoClass MASTERs in our JSON, so they can be hydrated early
     // ... see SmartPkg.fromSmartJSON()
-    if (SmartModel.isPseudoClass(this)) { // ... using `this` to determine if our object instance is a pseudoClass MASTER
+    if (PseudoClass.isPseudoClassMaster(this)) {
       myJSON.isPseudoClassMaster = true;
     }
 
@@ -229,7 +228,7 @@ export default class SmartModel {
     if (this.pseudoClass && this.pseudoClass.isInstance() ) {
 
       // the pseudoClass master (it's type) is maintained by the pseudo constructor
-      // ... see: SmartClassRef.createSmartObject()
+      // ... see: SmartClassRef.createSmartObject(namedParams)
       const pseudoClass = this.pseudoClass.pseudoClassMaster;
       check(pseudoClass, 'this pseudoClass instance has NO pseudoClassMaster reference ... you must create it with SmartClassRef.createSmartObject()');
 
@@ -297,32 +296,6 @@ export default class SmartModel {
 
     // interpret our real class name
     return getRealClassName(classRef);
-  }
-
-  /**
-   * A static method that returns an indicator as to whether the
-   * supplied classRef is a real class.
-   *
-   * @param {classRef} classRef - the class to interpret (either a
-   * real class or a pseudoClass).
-   *
-   * @returns {boolean} true: a real class, false: otherwise.
-   */
-  static isClass(classRef) {// ??%% soon to be obsolete
-    return isClass(classRef);
-  }
-
-  /**
-   * A static method that returns an indicator as to whether the
-   * supplied classRef is a pseudoClass.
-   *
-   * @param {classRef} classRef - the class to interpret (either a
-   * real class or a pseudoClass).
-   *
-   * @returns {boolean} true: a pseudoClass, false: otherwise.
-   */
-  static isPseudoClass(classRef) {// ??%% soon to be obsolete
-    return classRef.pseudoClass && classRef.pseudoClass.isType();
   }
 
   /**
@@ -435,13 +408,11 @@ export default class SmartModel {
         }
 
         // determine the classRef (could be a real class or a pseudoClass)
-        // ??$$ eventually want this to be a SmartClassRef
         const classRef = getClassRefFromSmartJSON(smartJSON, extraClassResolver);
 
         // instantiate a real class-based object using our value-added constructor
-        // that handles real classes and pseudoClasses
-        // ??$$ eventually make this ... classRef.createSmartObject(namedProps)
-        return SmartModel.createSmartObject(classRef, namedProps);
+        // that handles BOTH real classes and pseudoClasses
+        return classRef.createSmartObject(namedProps);
       }
 
       // handle plain NON class-based objects
@@ -551,57 +522,6 @@ export default class SmartModel {
     return clonedCopy;
   }
 
-  /**
-   * A static method that serves as a value-added constructor to
-   * instantiate smartObjects (SmartModel derivations).
-   *
-   * @param {classRef} classRef - the class representing the object to
-   * create, either:
-   * - a real class of type SmartModel whose constructor supports
-   *   namedProps
-   * - or a pseudoClass ... an object instance that logically
-   *   represents a class
-   *
-   * @param {ObjectLiteral} namedProps - The named properties used to
-   * passed into the constructor.
-   *
-   * @returns {smartObject} a newly instantiated class-based object
-   * of type `classRef` initialized with `namedProps`.
-   */
-  static createSmartObject(classRef, namedProps) {// ??%% soon to be obsolete
-
-    // handle a standard class definition
-    if (SmartModel.isClass(classRef)) {
-      // console.log(`xx ***INFO** SmartModel.createSmartObject() creating standard class: '${SmartModel.getClassName(classRef)}' ... using namedProps: `, namedProps);
-      return new classRef(namedProps);
-    }
-
-    // handle a pseudoClass (an object that is considered a dynamic class to be instantiated)
-    else if (SmartModel.isPseudoClass(classRef)) {
-
-      // clone the pseudoClass (with depth), overriding supplied namedProps
-      const newObj = classRef.smartClone(namedProps);
-
-      // mark the cloned object as an instance (NOT a type)
-      newObj.pseudoClass.id   = classRef.id;
-      newObj.pseudoClass.name = `a pseudoClass instance of type: '${classRef.id}'`; // for good measure
-      // console.log(`xx ***INFO** SmartModel.createSmartObject() created pseudoClass: '${SmartModel.getClassName(classRef)}' ... `, {namedProps, newObj});
-
-      // retain the pseudoClassMaster
-      newObj.pseudoClass.pseudoClassMaster = classRef;
-      // ?? TEST ABOVE ... HMMMMM: I commented this out and rehydration still works (in both dup functions) ... more research needed
-
-      return newObj;
-    }
-
-    // otherwise, could NOT interpret the supplied classRef
-    else {
-      const errMsg = `***ERROR*** SmartModel.createSmartObject(classRef, namedProps): invalid classRef parameter ... must be a JS Class or a PseudoClass (an object instance to be cloned) ... see logs for parameters`
-      console.error(errMsg, {classRef, namedProps});
-      throw new Error(errMsg);
-    }
-  }
-
 } // end of ... SmartModel class
 SmartModel.unmangledName = 'SmartModel';
 
@@ -691,14 +611,15 @@ SmartModel.unmangledName = 'SmartModel';
  */
 function getRealClassName(clazz) { // ??%% soon to be obsolete
 
-  // verify there is an unmangledName property (see IMPORTANT above)
-  // NOTE: MUST USE hasOwnProperty() because static class references
-  //       will walk the hierarchy chain (as of ES6 classes)
-  //       We MUST insure this concrete class has defined it's own
-  //       unique unmangledName!!
-  if (!clazz.hasOwnProperty('unmangledName')) {
-    throw new Error(`***ERROR*** class ${clazz.name} MUST have an "unmangledName" property (supporting persistence in obfuscated production build).`);
-  }
+  // ?? NOW DONE IN SmartClassRef
+  //? // verify there is an unmangledName property (see IMPORTANT above)
+  //? // NOTE: MUST USE hasOwnProperty() because static class references
+  //? //       will walk the hierarchy chain (as of ES6 classes)
+  //? //       We MUST insure this concrete class has defined it's own
+  //? //       unique unmangledName!!
+  //? if (!clazz.hasOwnProperty('unmangledName')) {
+  //?   throw new Error(`***ERROR*** class ${clazz.name} MUST have an "unmangledName" property (supporting persistence in obfuscated production build).`);
+  //? }
 
   // that's all folks :-)
   return clazz.unmangledName;
@@ -715,9 +636,7 @@ function getRealClassName(clazz) { // ??%% soon to be obsolete
  * hydrating self-referencing pseudoClasses found in SmartPkg (ex:
  * collage referencing scene instances).
  *
- * @returns {classRef} the classRef of the supplied smartJSON
- * (class | pseudoClass)
- * ??$$ eventually this will be a SmartClassRef
+ * @returns {SmartClassRef} the classRef of the supplied smartJSON
  *
  * @throws {Error} an Error is thrown when the class was not resolved.
  */
@@ -732,7 +651,6 @@ function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
 
   // ... use extraClassResolver (when supplied)
   if (extraClassResolver) {
-    // ??$$ eventually want this to be a SmartClassRef ... how does this function do it?
     classRef = extraClassResolver(pkgName, className);
     if (classRef) {
       return classRef;
@@ -741,7 +659,6 @@ function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
 
   // ... use standard pkgManager class resolver
   try {
-    // ??$$ eventually want this to be a SmartClassRef ... I think pkgManager should promote this (NOT US)
     classRef = pkgManager.getClassRef(pkgName, className);
   }
   catch (err) {

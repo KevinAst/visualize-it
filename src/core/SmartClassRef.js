@@ -1,6 +1,10 @@
-import verify     from 'util/verify';
+import verify          from 'util/verify';
 import {isClass,
-        isString} from 'util/typeCheck';
+        isString}      from 'util/typeCheck';
+import {createLogger}  from 'util/logger';
+
+// our internal diagnostic logger (normally disabled)
+const log = createLogger('***DIAG*** SmartClassRef:').disable();
 
 /**
  * SmartClassRef is a meta object that accommodates type/class
@@ -37,6 +41,14 @@ export default class SmartClassRef {
     // ... a realClass
     if (isClass(classRef)) {
       this.realClass = classRef;
+
+      // verify there is an unmangledName property (see IMPORTANT above)
+      // NOTE: MUST USE hasOwnProperty() because static class references
+      //       will walk the hierarchy chain (as of ES6 classes)
+      //       We MUST insure this concrete class has defined it's own
+      //       unique unmangledName!!
+      check(classRef.hasOwnProperty('unmangledName'), `real class ${classRef.name} MUST have an "unmangledName" property (supporting persistence in obfuscated production build)`);
+
     }
     // ... a pseudoClass
     else if (classRef.pseudoClass && classRef.pseudoClass.isType()) {
@@ -51,23 +63,25 @@ export default class SmartClassRef {
   }
 
 
-  /**
-   * Return an indicator as to whether self is a real class
-   *
-   * @returns {boolean} true: a realClass, false: a pseudoClass
-   */
-  isClass() { // ?? suspect this is never used - the whole idea of this class is to remove conditional logic (verify and obsolete)
-    return this.realClass ? true : false;
-  }
+  // NOT NEEDED: The whole idea of this class is to remove conditional logic!
+  // /**
+  //  * Return an indicator as to whether self is a real class
+  //  *
+  //  * @returns {boolean} true: a realClass, false: a pseudoClass
+  //  */
+  // isClass() {
+  //   return this.realClass ? true : false;
+  // }
 
-  /**
-   * Return an indicator as to whether self is a pseudo class
-   *
-   * @returns {boolean} true: a pseudoClass, false: a realClass
-   */
-  isPseudoClass() { // ?? suspect this is never used - the whole idea of this class is to remove conditional logic (verify and obsolete)
-    return this.pseudoClassContainer ? true : false;
-  }
+  // NOT NEEDED: The whole idea of this class is to remove conditional logic!
+  // /**
+  //  * Return an indicator as to whether self is a pseudo class
+  //  *
+  //  * @returns {boolean} true: a pseudoClass, false: a realClass
+  //  */
+  // isPseudoClass() {
+  //   return this.pseudoClassContainer ? true : false;
+  // }
 
 
   /**
@@ -88,7 +102,7 @@ export default class SmartClassRef {
     }
 
     // interpret our real class name
-    return getRealClassName(this.realClass);
+    return this.realClass.unmangledName;
   }
 
 
@@ -128,71 +142,44 @@ export default class SmartClassRef {
    */
   createSmartObject(namedParams) {
 
+    let newObj = null;
+    let msgQualifier = '';
+
     //***
     //*** handle real classes
     //***
 
     if (this.realClass) {
-      console.log(`?? ***INFO** SmartClassRef.createSmartObject() creating standard class: '${this.getFullClassName()}' ... using namedParams: `, namedParams);
-      return new this.realClass(namedParams);
+      msgQualifier = 'real';
+      newObj = new this.realClass(namedParams);
     }
 
     //***
     //*** handle pseudo classes
     //***
 
-    const pseudoClassContainer = this.pseudoClassContainer;
+    else {
+      msgQualifier = 'pseudo';
 
-    // clone the pseudoClass (with depth), overriding supplied namedParams
-    const newObj = pseudoClassContainer.smartClone(namedParams);
+      const pseudoClassContainer = this.pseudoClassContainer;
 
-    // AI: some of the following demarcations may have some "logical" duplication in it ... analyze this when the dust settles
+      // clone the pseudoClass (with depth), overriding supplied namedParams
+      newObj = pseudoClassContainer.smartClone(namedParams);
 
-    // mark the cloned object as an instance (NOT a type)
-    newObj.pseudoClass.id   = pseudoClassContainer.id;
-    newObj.pseudoClass.name = `a pseudoClass instance of type: '${pseudoClassContainer.id}'`; // for good measure
-    console.log(`?? ***INFO** SmartClassRef.createSmartObject() created pseudoClass: '${this.getFullClassName()}' ... `, {namedParams, newObj});
+      // AI: some of the following demarcations may have some "logical" duplication in it ... analyze this when the dust settles
 
-    // retain the pseudoClassMaster
-    newObj.pseudoClass.pseudoClassMaster = pseudoClassContainer;
-    // ?? TEST ABOVE ... HMMMMM: I commented this out and rehydration still works (in both dup functions) ... more research needed
+      // mark the cloned object as an instance (NOT a type)
+      newObj.pseudoClass.id   = pseudoClassContainer.id;
+      newObj.pseudoClass.name = `a pseudoClass instance of type: '${pseudoClassContainer.id}'`; // for good measure
 
+      // retain the pseudoClassMaster
+      // ... used to locate the pseudoClass from which an object was created :-)
+      // ... see: SmartModel.getSmartClassRef()
+      newObj.pseudoClass.pseudoClassMaster = pseudoClassContainer;
+    }
+
+    log(`createSmartObject() created new object from ${msgQualifier} class: '${this.getFullClassName()}' ... using namedParams: `, {namedParams, newObj});
     return newObj;
   }
 
-}
-
-
-//******************************************************************************
-//*** Internal Helper Functions
-//******************************************************************************
-
-/**
- * Return the real class name of the supplied "real" clazz.
- *
- * IMPORTANT: This routine utilizes the clazz.unmangledName -and-
- *            verifies it's existence!
- * - class name is crucial for our persistence (hydration invokes
- *   constructor matching registered classes)
- * - the standard class.name is mangled in our production build (ex:
- *   yielding 't' for 'SmartComp')
- * - this is a central spot that will highlight issues very early
- *
- * @param {class} clazz - the real class to interpret.
- *
- * @returns {string} the supplied clazz's class name.
- */
-function getRealClassName(clazz) {
-
-  // verify there is an unmangledName property (see IMPORTANT above)
-  // NOTE: MUST USE hasOwnProperty() because static class references
-  //       will walk the hierarchy chain (as of ES6 classes)
-  //       We MUST insure this concrete class has defined it's own
-  //       unique unmangledName!!
-  if (!clazz.hasOwnProperty('unmangledName')) { // ?? this check would be better performed ONE TIME during self construction ?? therefore eliminating the need for this entire function
-    throw new Error(`***ERROR*** class ${clazz.name} MUST have an "unmangledName" property (supporting persistence in obfuscated production build).`);
-  }
-
-  // that's all folks :-)
-  return clazz.unmangledName;
 }

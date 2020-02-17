@@ -215,7 +215,6 @@ class PkgManager {
     }
     
     // resolve the classRef
-    // ??$$ eventually we want to derefernce this classRef to the REAL SmartClassRef
     const classRef = smartPkg.getClassRef(className);
     if (!classRef) { // this is more of an unexpected condition
       throw new Error(`***ERROR*** PkgManager.getClassRef(pkgName:${pkgName}, className:${className}) class NOT in package :-(`);

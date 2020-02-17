@@ -1,6 +1,6 @@
-import SmartModel        from './SmartModel';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
+import {isString}        from 'util/typeCheck';
 
 /**
  * PseudoClass maintains meta data that allows an object instance to
@@ -27,9 +27,10 @@ import checkUnknownArgs  from 'util/checkUnknownArgs';
  * }
  * ```
  *
+ * ?? THIS NOTE IS REALLY now part of SmartClassRef
  * All SmartModel utilities recognize this convention and support it.
  * As an example:
- *  - `SmartModel.createSmartObject(...)` will operate on either a
+ *  - ?? TRASH `SmartModel.createSmartObject(...)` will operate on either a
  *    real smart classes (SmartModel derivations) or pseudoClasses
  *  - ?? should we list list more?
  *
@@ -62,7 +63,7 @@ import checkUnknownArgs  from 'util/checkUnknownArgs';
  *    system, but each Scene definition can be referenced many times
  *    within various `Collages`.
  */
-export default class PseudoClass extends SmartModel {
+export default class PseudoClass {
 
   /**
    * Create a PseudoClass.
@@ -76,15 +77,26 @@ export default class PseudoClass extends SmartModel {
    * @param {string} [id='TYPE'] - the type reference for this pseudoClass.
    */
   constructor({id='TYPE', 
-               name='the MASTER pseudoClass definition of type: ... see container.id', // NOTE: we need name when re-constituted, it is supplied from JSON (due to the defaulting nature of SmartModel
+               name='the MASTER pseudoClass definition of type: ... see container.id',
                ...unknownArgs}={}) {
-    super({id, name});
 
     // validate SmartScene() constructor parameters
-    const check = verify.prefix('SmartScene() constructor parameter violation: ');
-    // ... id/name validated by base class
+    const check = verify.prefix('PseudoClass() constructor parameter violation: ');
+
+    // ... id
+    check(id,            'id is required');
+    check(isString(id),  'id must be a string');
+
+    // ... name
+    check(name,           'name is required');
+    check(isString(name), 'name must be a string');
+
     // ... unknown arguments
     checkUnknownArgs(check, unknownArgs, arguments);
+
+    // retain parameters in self
+    this.id   = id;
+    this.name = name || id;
   }
 
   // NOT NEEDED (my props are all contained in super)
@@ -109,6 +121,19 @@ export default class PseudoClass extends SmartModel {
    * false otherwise.
    */
   isInstance() { return !this.isType(); }
+
+  /**
+   * Return an indicator as to whether the supplied `obj` is a
+   * "logical" class (i.e. a pseudoClass MASTER).
+   *
+   * @param {any} obj - the object to interpret.
+   *
+   * @returns {boolean} true: obj is a "logical" class (a pseudoClass
+   * MASTER), false: just a regular object instance.
+   */
+  static isPseudoClassMaster(obj) {
+    return obj.pseudoClass && obj.pseudoClass.isType();
+  }
 
 }
 PseudoClass.unmangledName = 'PseudoClass';

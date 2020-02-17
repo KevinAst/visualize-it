@@ -43,7 +43,7 @@ class ToggleDraggableScenesButton2 extends SmartComp { //  ?? CONSIDER: PLACING 
 ToggleDraggableScenesButton2.unmangledName = 'ToggleDraggableScenesButton2';
 
 // our Scene
-export const scene2 = new Scene({
+const scene2 = new Scene({
   id: 'scene2',
   comps: [
     new generalComps.Valve1({id: 'myValve1'}),
@@ -69,4 +69,5 @@ pkgManager.registerPkg( new SmartPkg({
 
 // our View
 const sceneView2 = new SmartView({id: 'scene2', name: 'Scene 2', scene: scene2});
+// ??$$ redo
 export default sceneView2;

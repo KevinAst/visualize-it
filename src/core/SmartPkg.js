@@ -1,5 +1,6 @@
 import SmartModel        from './SmartModel';
 import SmartClassRef     from './SmartClassRef';
+import PseudoClass       from './PseudoClass';
 import {isPlainObject,
         isClass}         from 'util/typeCheck';
 import verify            from 'util/verify';
@@ -198,7 +199,7 @@ export default class SmartPkg extends SmartModel {
           const smartObj = arrItem;
 
           // catalog any pseudoClasses in our _classRefCatalog
-          if (SmartModel.isPseudoClass(smartObj)) {
+          if (PseudoClass.isPseudoClassMaster(smartObj)) {
             const className = SmartModel.getClassName(smartObj);
             this._classRefCatalog[className] = smartObj;
           }
@@ -265,8 +266,7 @@ export default class SmartPkg extends SmartModel {
    * (undefined for not-found).
    */
   getClassRef(className) {
-    return this._classRefCatalog[className];
-    // ?? eventually change ABOVE to return the .smartClassRef (docs already changed)
+    return this._classRefCatalog[className].smartClassRef;
   }
 
   /**
@@ -350,10 +350,14 @@ export default class SmartPkg extends SmartModel {
           if (jsonEntry.isPseudoClassMaster) {
 
             // morph into a real object
-            const resolvedObj = SmartModel.fromSmartJSON(jsonEntry); // ... no need for extraClassResolver (pseudoClass Masters resove via core classes)
+            const resolvedObj = SmartModel.fromSmartJSON(jsonEntry); // ... no need for extraClassResolver (pseudoClass Masters resolve via core classes)
+
+            // adorn the .smartClassRef early (normally done by SmartPkg at the end of it's construction)
+            resolvedObj.smartClassRef = new SmartClassRef(resolvedObj, pkgNameBeingResolved);
 
             // catalog in pseudoClassMasters
             pseudoClassMasters[resolvedObj.id] = resolvedObj;
+
 
             // pass it through
             // ... see note on "mutate smartJSON with real objects" (above)
@@ -393,9 +397,9 @@ export default class SmartPkg extends SmartModel {
         return jsonEntry;
       }
 
-      // entry is a JavaScript classes
+      // entry is a JavaScript class
       // ... should NOT find this in resource-based pkgs (simply defensive)
-      else if (SmartModel.isClass(jsonEntry)) {
+      else if (isClass(jsonEntry)) {
         // pass it through
         console.warn('SmartPkg.fromSmartJSON(smartJson).resolvePseudoClassMasters(jsonEntry) PHASE-1: NOT expecting to pass through (class) ... ', {jsonEntry, smartJSON});
         return jsonEntry;
@@ -426,17 +430,22 @@ export default class SmartPkg extends SmartModel {
     // ... ex: collage referencing scene instances
     function extraClassResolver(pkgName, className) {
       const clazz = (pkgName === pkgNameBeingResolved) ? pseudoClassMasters[className] : undefined;
-      //console.log(`xx TEMP ... in extraClassResolver(pkgName:'${pkgName}', className:'${className}') ... compairing pkgNameBeingResolved:'${pkgNameBeingResolved}'` +
+      //console.log(`xx TEMP ... in extraClassResolver(pkgName:'${pkgName}', className:'${className}') ... comparing pkgNameBeingResolved:'${pkgNameBeingResolved}'` +
       //            ` >>> ${clazz ? 'FOUND IT' : 'NOT FOUND'} ... pseudoClassMasters: `, pseudoClassMasters);
-      return clazz;
+
+      return clazz ? clazz.smartClassRef : undefined;
     }
 
     // use the normal SmartModel.fromSmartJSON() to do this work
     // ... this passes through any objects that are already hydrated in our smartJSON
-    const hydratedObj = SmartModel.fromSmartJSON(smartJSON, extraClassResolver);
-
-    // beam me up scotty :-)
-    return hydratedObj;
+    try {
+      const hydratedObj = SmartModel.fromSmartJSON(smartJSON, extraClassResolver);
+      return hydratedObj;
+    }
+    catch(err) {
+      // add additional context to reveal any errors resolving THIS SmartPkg
+      throw err.defineAttemptingToMsg(`hydrate SmartPkg '${pkgNameBeingResolved}'`);
+    }
   }
 
 }
