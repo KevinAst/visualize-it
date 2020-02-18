@@ -35,7 +35,8 @@ const konvaSandboxSmartPkg = new SmartPkg({
 //       In this case we do NOT:
 //        - this is the package we have seeded as our first resource to dynamically read
 //        - by not registering it here, it allows the resource to be loaded
-//          ... without: ***ERROR*** PkgManager.registerPkg() pkgName: com.astx.KONVA is already registered :-(
+//        - otherwise, we receive:
+//          User Msg: The visualize-it 'com.astx.KONVA' package is already loaded
 //        - NOTE: package registration is only needed for package cross dependencies
 //                ... in this particular case, NO other package is dependent on us :-)
 // pkgManager.registerPkg(konvaSandboxSmartPkg);

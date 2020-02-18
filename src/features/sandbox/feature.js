@@ -10,6 +10,7 @@ import                       './konvaSandbox/sceneView2';
 
 // only needed if reference un-commented (below)
 //? import konvaSandboxSmartPkg  from './konvaSandbox/konvaSandboxSmartPkg';
+//? import pkgManager            from 'core/pkgManager';
 //? import SmartPkg              from 'core/SmartPkg';
 //? import {createLogger}        from 'util/logger';
 //? const log = createLogger('***DIAG*** konvaSandboxSmartPkg ... ').enable();
@@ -29,6 +30,11 @@ export default createFeature({
 
     // konvaSandboxSmartPkg
     // ... commented out (we can now dynamically load this from a resource file)
+    // ... NOTE: we must also register it at this time (just like a load would do)
+    //           - this detects resource load conflicts
+    //             * with a nice User Msg: The visualize-it 'com.astx.KONVA' package is already loaded
+    //             * rather than a CATASTROPHIC error from low-level registerTab() during the React render process
+    //? pkgManager.registerPkg(konvaSandboxSmartPkg); // must also register 
     //? leftNavManager.addLeftNav(konvaSandboxSmartPkg);
   },
 });
@@ -43,4 +49,3 @@ export default createFeature({
 //? log(`PERSISTENT TEST: HERE is the json: `, {smartJSON, str: JSON.stringify(smartJSON) });
 //? const rehydratedSmartPkg = SmartPkg.fromSmartJSON(smartJSON);
 //? log(`PERSISTENT TEST: HERE is the RE-HYDRATED smartPkg: `, {rehydratedSmartPkg});
-
