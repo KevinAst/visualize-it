@@ -7,43 +7,78 @@ import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
 
 /**
- * SmartPkg models visualize-it packages, which are cataloged
- * by pkgManager, and optionally viewed in the LeftNav. ??$$ pull in refined description
+ * SmartPkg models visualize-it packages.
  *
- * It is a concrete class that can model ANY visualize-it package:
- * - a component package (holding component definitions)
- * - a system package (holding scenes and collages)
- * - even a hybrid package (combining both component and system resources)
+ * SmartPkgs:
+ *   - are cataloged by pkgManager
+ *     ... the basis resolving classRefs in our persistence model
+ *   - and optionally viewed in the LeftNav
+ *     ... the basis of the builder app management (viewing/editing
+ *         entries, including entries in other entries, etc.)
+ *     ... LeftNav exposure is optional because some packages are NOT visual
+ *         (such as "core") ... just needed for pkgManager promotion
+ *
+ * SmartPkg is a concrete class that can model ANY visualize-it package:
+ *   - a component package (holding component definitions)
+ *   - a system package (holding scenes and collages)
+ *   - even a hybrid package (combining both component and system resources)
  *
  * A SmartPkg can represent EITHER:
- * - code-based packages (containing class references)
- *   * NOT editable (unless we decide to dynamically manage and persist code)
- *   * NOT persistable ... save/retrieve (ditto)
- * - resource-based packages (with NO class references)
- *   * editable
- *   * persistable ... save/retrieve
+ *   - code-based packages (containing class references)
+ *     * NOT editable (unless we decide to dynamically manage and persist code)
+ *     * NOT persistable ... save/retrieve (ditto)
+ *   - resource-based packages (with NO class references)
+ *     * editable
+ *     * persistable ... save/retrieve
+ *
+ * Entries from one package can have dependencies on other external
+ * packages (for example, a "system" package may contain component
+ * instances from classes defined in a "component" package).
+ *
+ * All SmartPkgs have a name (pkgName):
+ *   - the name qualifies the package through which classRefs are distributed
+ *     * so the pkgName belongs to classRefs ONLY, NOT entries
+ *       ... because entries are NOT shared across packages
+ *     * SmartPkg will auto-inject it's package name in all classRefs
+ *       it contains!
+ *       - this allows our persistence process to record BOTH the
+ *         pkgName and className from which each object is
+ *         instantiated
+ *         ... allowing it to be re-hydrated (because we can locate the
+ *             class - via pkgManager)
+ *   - object instances contained in a package can be based on classes
+ *     from external packages (i.e. dependent packages)
+ *     ... this point is more related to persistence characteristic
+ *         (not so much dealing with SmartPkg itself)
+ *     * typically top-level objects are from the core package, which
+ *       is globally available (however that is a minor point)
+ *     * in addition, objects can be instances of classes defined
+ *       within the same package (as you would expect)
+ *   - SO IN SUMMARY: the distinction between "classRef" and "object instance":
+ *     * "instances" ALWAYS belong to the "self-contained" package
+ *     * "instances" can be created from types that belong to either self's package or "other" packages
  *
  * SmartPkg entries are defined in an object structure (with depth)
  * that represents the visual hierarchy by which they are promoted.
- * - entries utilize an object structure (with depth)
- * - any client-defined structure is supported (i.e. a collection of
- *   whatever with arbitrary nesting of named nodes)
- * - named nodes (contained in plain objects) represent a logical directory
- *   * where the name is a displayed human readable node
- *   * and can be nested (supporting sub-structure depth)
- * - arrays represent resource items (or nested named nodes)
- *   * entries can be:
- *     1. smartObject to view/use
- *        ```
- *        can be:
- *        - Classes ... SingleValve, TwoWayValve, etc. (NOT SUPPORTED BY RESOURCE-BASED PKG)
- *        - SmartModel instance obj ... Collage
- *        - SmartModel pseudoClass
- *          * pseudoClass Master ...... DynamicComp, Scene, 
- *          * pseudoClass INSTANCE .... comp instances IN Scene -or- scene instances in Collage
- *        ```
- *     2. plain object representing nested sub-entries mixed into the
- *        entries array
+ *   - entries utilize an object structure (with depth)
+ *   - any client-defined structure is supported (i.e. a collection of
+ *     whatever with arbitrary nesting of named nodes)
+ *   - named nodes (contained in plain objects) represent a logical directory
+ *     * where the name is a displayed human readable node
+ *     * and can be nested (supporting sub-structure depth)
+ *   - arrays represent resource items (or nested named nodes)
+ *     * entries can be:
+ *       1. smartObject to view/use
+ *          ```
+ *          can be:
+ *          - Classes ... SingleValve, TwoWayValve, etc. (NOT SUPPORTED BY RESOURCE-BASED PKG)
+ *          - SmartModel instance obj ... Collage
+ *          - SmartModel pseudoClass
+ *            * pseudoClass Master ...... DynamicComp, Scene, 
+ *            * pseudoClass INSTANCE .... comp instances IN Scene -or- scene instances in Collage
+ *          ```
+ *       2. plain object representing nested sub-entries mixed into the
+ *          entries array
  *
  * Here is a sample `entries`:
  * ```js

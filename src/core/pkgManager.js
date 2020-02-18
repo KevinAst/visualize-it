@@ -4,11 +4,15 @@ import {isString}  from 'util/typeCheck';
 
 /**
  * PkgManager is the manager of ALL packages (SmartPkg)
- * loaded/maintained in the visualize-it application.
+ * loaded and maintained in the visualize-it system.
+ *
+ * Entries from one package can have dependencies on other external
+ * packages (for example, a "system" package may contain component
+ * instances from classes defined in a "component" package).
  * 
- * This provides a clearing house to resolve classRefs, used to
- * resolve low-level resource-based hydration ... see:
- * `SmartModel.fromSmartJSON()`
+ * Because the pkgManager service is aware of all packages, it
+ * provides a clearing house to resolve classRefs, during persistence
+ * hydration ... see: `SmartModel.fromSmartJSON()`
  */
 class PkgManager {
 

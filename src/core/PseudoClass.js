@@ -28,12 +28,10 @@ import {isString,
  * }
  * ```
  *
- * ?? THIS NOTE IS REALLY now part of SmartClassRef
- * All SmartModel utilities recognize this convention and support it.
+ * All visualize-it utilities recognize this convention and support it.
  * As an example:
- *  - ?? TRASH `SmartModel.createSmartObject(...)` will operate on either a
- *    real smart classes (SmartModel derivations) or pseudoClasses
- *  - ?? should we list list more?
+ *  - `SmartClassRef.createSmartObject(...)` will operate on either a
+ *    real classes (SmartModel derivations) or pseudoClasses
  *
  * Objects instances that contain the pseudoClass member can be in one
  * of two states:
@@ -50,7 +48,8 @@ import {isString,
  *    the pseudoClass type.
  *
  *    **INTERNAL NOTE** In this state:
- *     - the `container.pseudoClass.id` will reference the pseudoClass type
+ *     - the `container.pseudoClass.id` will reference the pseudoClass type name
+ *     - the `container.pseudoClass.pseudoClassMaster` will reference the pseudoClassMaster
  *
  * Currently there are two scenarios where pseudoClasses are used:
  *

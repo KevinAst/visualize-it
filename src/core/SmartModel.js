@@ -7,8 +7,8 @@ import pkgManager        from './pkgManager';
 import PseudoClass       from './PseudoClass';
 
 /**
- * SmartModel is the abstract top-level base class for all visualize-it
- * objects. 
+ * SmartModel is the abstract top-level base class of the visualize-it
+ * object model. 
  *
  * SmartModel derivations are referred to as "smartObjects".  They
  * have the following characteristics:
@@ -19,22 +19,18 @@ import PseudoClass       from './PseudoClass';
  *
  * The SmartModel base class provides a consistency in:
  *
- *  - identification (id/name)
+ *  - identification (id/name):
+ *    + constructor({id, name})
  *
- *  - persistance and state management:
+ *  - persistance:
  *    + toSmartJSON():smartJSON ................. transforms self (with depth) into smartJSON
  *<S> + fromSmartJSON(smartJSON): smartObject ... reconstitutes class-based objects (with depth) from smartJSON
  *    + getEncodingProps(): string[] ............ polymorphically expose properties required to encode self
- *    + smartClone(): smartObject ............... creates a deep copy of self
+ *    + smartClone(): smartObject ............... creates a deep copy of self (used in pseudo constructor - SmartClassRef.createSmartObject(namedParams)))
  *
- *  - various common utilities:
- *    ??? most replaced with SmartClassRef and/or PseudoClass
- *<S> + createSmartObject(classRef, namedProps): smartObject .. a value-added constructor
- *<S> + getClassName(classRef): string ........................ get class name of classRef (either a class or pseudoClass)
- *    + diagClassName(): string .............................. get class name of self (interpreting BOTH class or pseudoClass)
- *<S> + isClass(classRef): boolean ............................ is supplied classRef a real class
- *<S> + isPseudoClass(classRef): boolean ...................... is supplied classRef a pseudoClass
- *
+ *  - meta info (more found in PseudoClass and SmartClassRef):
+ *    + getClassRef(): SmartClassRef ... promotes the classRef from which self was created (unifying both real classes and pseudo classes)
+ *    + diagClassName(): string ........ resolves real class name (unmangled) used in diagnostics (use getClassRef().getClassName() when pseudoClass needs to be interpreted)
  */
 export default class SmartModel {
 
