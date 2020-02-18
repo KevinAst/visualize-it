@@ -266,6 +266,18 @@ export default class SmartPkg extends SmartModel {
    * (undefined for not-found).
    */
   getClassRef(className) {
+    // NOTE: To avoid name clash with SmartModel.getClassRef(), 
+    //       an unrelated method to ours:
+    //       - we redirect to it based on the distinct param signature!!
+    //       - I really wanted to use this "getClassRef" in both cases
+    //       - This is analogous to "Static Polymorphism" in Java/C++,
+    //         where the entire method signature is employed in it's
+    //         polymorphic behavior :-)
+    if (arguments.length === 0) {
+      return super.getClassRef();
+    }
+
+    // this methods real implementation :-)
     return this._classRefCatalog[className].smartClassRef;
   }
 
