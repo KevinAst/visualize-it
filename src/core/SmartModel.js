@@ -31,7 +31,7 @@ import PseudoClass       from './PseudoClass';
  *    ??? most replaced with new SmartClassRef
  *<S> + createSmartObject(classRef, namedProps): smartObject .. a value-added constructor
  *<S> + getClassName(classRef): string ........................ get class name of classRef (either a class or pseudoClass)
- *    + getMyClassName(): string .............................. get class name of self (interpreting BOTH class or pseudoClass)
+ *    + diagClassName(): string .............................. get class name of self (interpreting BOTH class or pseudoClass)
  *    + getMyClassPkgName(): string ........................... get package name of self
  *<S> + isClass(classRef): boolean ............................ is supplied classRef a real class
  *<S> + isPseudoClass(classRef): boolean ...................... is supplied classRef a pseudoClass
@@ -51,7 +51,7 @@ export default class SmartModel {
   constructor({id, name, ...unknownArgs}={}) {
 
     // validate parameters
-    const check = verify.prefix(`${this.getMyClassName()}(id:'${id}', name:'${name}') constructor parameter violation: `);
+    const check = verify.prefix(`${this.diagClassName()}(id:'${id}', name:'${name}') constructor parameter violation: `);
 
     // ... id
     check(id,            'id is required');
@@ -118,9 +118,10 @@ export default class SmartModel {
   toSmartJSON() {
 
     // prime our JSON by encoding our smart type information
-    // ... these methods take into account BOTH real types/classes AND pseudoClasses
+    // ... using SmartClassRef, this structure considers BOTH real types/classes AND pseudoClasses
+    const classRef = this.getClassRef();
     const myJSON = {
-      smartType: this.getMyClassName(),
+      smartType: classRef.getClassName(),
       smartPkg:  this.getMyClassPkgName(),
     };
 
@@ -263,20 +264,20 @@ export default class SmartModel {
   }
 
   /**
-   * An instance method returning the class name of self (interpreting
-   * BOTH real classes and pseudoClasses).
+   * Return self's "real" class name, used for diagnostic purposes
+   * (such as logs and errors).  The name is unmangled (even in
+   * production builds).
    *
-   * @returns {string} the class name for this object (interpreting
-   * BOTH real classes and pseudoClasses).
+   * NOTE: Any usage that requires interpretation of pseudo classes,
+   *       should use:
+   *         this.getClassRef().getClassName()
+   *       This is only available once package containers have been
+   *       registered (e.g. pkgManager.registerPkg(smartPkg)!
+   *
+   * @returns {string} self's "real" class name.
    */
-  getMyClassName() {// ??%% soon to be obsolete ???? may decide to keep, just for convenience (?? RE-IMPLEMENT in terms of this.getClassRef())
-    // interpret a pseudoClass instance
-    if (this.pseudoClass && this.pseudoClass.isInstance() ) {
-      return this.pseudoClass.id;
-    }
-
-    // interpret our real class name
-    return getRealClassName(this.constructor);
+  diagClassName() {
+    return this.constructor.unmangledName || this.constructor.name;
   }
 
   /**
@@ -480,7 +481,7 @@ export default class SmartModel {
           // ... CONSIDER (as needed) adding support for common objects like Date, etc
           //     OR more generically leverage any object that has the toJSON() method
           else {
-            throw new Error(`***ERROR*** SmartModel.smartClone() processing self object of type ${this.getMyClassName()}, whose member object of type ${instanceValue.constructor.name} is NOT supported ... do NOT know how to clone this member :-(`);
+            throw new Error(`***ERROR*** SmartModel.smartClone() processing self object of type ${this.diagClassName()}, whose member object of type ${instanceValue.constructor.name} is NOT supported ... do NOT know how to clone this member :-(`);
           }
         }
 
@@ -574,38 +575,6 @@ SmartModel.unmangledName = 'SmartModel';
 //******************************************************************************
 //*** Internal Helper Functions
 //******************************************************************************
-
-/**
- * Return the real class name of the supplied "real" clazz.
- *
- * IMPORTANT: This routine utilizes the clazz.unmangledName -and-
- *            verifies it's existence!
- * - class name is crucial for our persistence (hydration invokes
- *   constructor matching registered classes)
- * - the standard class.name is mangled in our production build (ex:
- *   yielding 't' for 'SmartComp')
- * - this is a central spot that will highlight issues very early
- *
- * @param {class} clazz - the real class to interpret.
- *
- * @returns {string} the supplied clazz's class name.
- */
-function getRealClassName(clazz) { // ??%% soon to be obsolete
-
-  // ?? NOW DONE IN SmartClassRef
-  //? // verify there is an unmangledName property (see IMPORTANT above)
-  //? // NOTE: MUST USE hasOwnProperty() because static class references
-  //? //       will walk the hierarchy chain (as of ES6 classes)
-  //? //       We MUST insure this concrete class has defined it's own
-  //? //       unique unmangledName!!
-  //? if (!clazz.hasOwnProperty('unmangledName')) {
-  //?   throw new Error(`***ERROR*** class ${clazz.name} MUST have an "unmangledName" property (supporting persistence in obfuscated production build).`);
-  //? }
-
-  // that's all folks :-)
-  return clazz.unmangledName;
-}
-
 
 /**
  * Return the classRef of the supplied smartJSON.

@@ -77,7 +77,7 @@ export default class Scene extends SmartScene {
     super({id, name});
 
     // validate Scene() constructor parameters
-    const check = verify.prefix(`${this.getMyClassName()}() constructor parameter violation: `);
+    const check = verify.prefix(`${this.diagClassName()}() constructor parameter violation: `);
 
     // ... id/name validated by base class
 
@@ -151,7 +151,7 @@ export default class Scene extends SmartScene {
    * @param {string} [method] - the method name on which behalf we are checking.
    */
   checkMounted(method) {
-    verify(this.konvaLayer, `${this.getMyClassName()}.${method}() can only be invoked after mounting.`);
+    verify(this.konvaLayer, `${this.diagClassName()}.${method}() can only be invoked after mounting.`);
   }
 
   /**

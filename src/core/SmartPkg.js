@@ -115,7 +115,7 @@ export default class SmartPkg extends SmartModel {
     super({id, name});
 
     // validate SmartPkg() constructor parameters
-    const check = verify.prefix(`${this.getMyClassName()}(id:'${id}', name:'${name}') constructor parameter violation: `);
+    const check = verify.prefix(`${this.diagClassName()}(id:'${id}', name:'${name}') constructor parameter violation: `);
 
     // ... id/name validated by base class
 

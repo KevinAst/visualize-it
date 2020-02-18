@@ -40,7 +40,7 @@ export default class SmartView extends SmartModel {
     super({id, name});
 
     // validate SmartView() constructor parameters
-    const check = verify.prefix(`${this.getMyClassName()}(id:'${id}', name:'${name}') constructor parameter violation: `);
+    const check = verify.prefix(`${this.diagClassName()}(id:'${id}', name:'${name}') constructor parameter violation: `);
     
     // ... id/name validated by base class
 
@@ -65,7 +65,7 @@ export default class SmartView extends SmartModel {
    * @param {string} [method] - the method name on which behalf we are checking.
    */
   checkMounted(method) {
-    verify(this.konvaStage, `${this.getMyClassName()}.${method}() can only be invoked after mounting.`);
+    verify(this.konvaStage, `${this.diagClassName()}.${method}() can only be invoked after mounting.`);
   }
 
   /**
@@ -78,7 +78,7 @@ export default class SmartView extends SmartModel {
    */
   size(size) {
     // NOTE: this method does NOT require mounting, because it's contained scene masters the size!
-    verify(size===undefined, `***ERROR*** ${this.getMyClassName()}.size() can only be invoked as a getter (with no params) ... size is mastered in the scene, AND derived in the view.`);
+    verify(size===undefined, `***ERROR*** ${this.diagClassName()}.size() can only be invoked as a getter (with no params) ... size is mastered in the scene, AND derived in the view.`);
     return this.scene.size(); // return current size (from our contained scene)
   }
 

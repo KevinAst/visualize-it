@@ -11,6 +11,13 @@ const log = createLogger('***DIAG*** SmartClassRef:').disable();
  * information for ALL smartObjects, unifying both real classes and
  * pseudo classes!
  *
+ * IMPORTANT: This class verifies the existence of class.unmangledName!
+ * - class name is crucial for our persistence (hydration invokes
+ *   constructor matching registered classes)
+ * - the standard class.name is mangled in our production build (ex:
+ *   yielding 't' for 'SmartComp')
+ * - this is a central spot that will highlight issues very early
+ *
  * A `smartClassRef` property is dynamically attached to all classes
  * (both real and pseudoClass) by the SmartPkg package manager.
  */
@@ -50,7 +57,7 @@ export default class SmartClassRef {
       check(classRef.hasOwnProperty('unmangledName'), `real class ${classRef.name} MUST have an "unmangledName" property (supporting persistence in obfuscated production build)`);
 
     }
-    // ... a pseudoClass
+    // ... a pseudoClass MASTER (i.e. a logical type)
     else if (classRef.pseudoClass && classRef.pseudoClass.isType()) {
       this.pseudoClassContainer = classRef;
     }
@@ -96,7 +103,8 @@ export default class SmartClassRef {
    * @returns {string} the class name.
    */
   getClassName() {
-    // interpret a pseudoClass instance
+    // interpret a pseudoClass type
+    // ... self is a pseudoClass MASTER (i.e. a logical type)
     if (this.pseudoClassContainer) {
       return this.pseudoClassContainer.id;
     }
