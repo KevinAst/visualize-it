@@ -102,7 +102,7 @@ export default class SmartClassRef {
     }
 
     // interpret our real class name
-    return this.realClass.unmangledName;
+    return this.realClass.unmangledName || this.realClass.name;
   }
 
 

@@ -258,7 +258,7 @@ export default class SmartModel {
    * @returns {string} the package name which promotes the class of
    * object.
    */
-  getMyClassPkgName() { // ??%% soon to be obsolete (think ONLY used internally)
+  getMyClassPkgName() { // ??%% soon to be obsolete (think ONLY used internally) ???? may decide to keep, just for convenience (implement in terms of this.getClassRef())
     return this.getClassRef().getClassPkgName();
   }
 
@@ -269,7 +269,7 @@ export default class SmartModel {
    * @returns {string} the class name for this object (interpreting
    * BOTH real classes and pseudoClasses).
    */
-  getMyClassName() {// ??%% soon to be obsolete
+  getMyClassName() {// ??%% soon to be obsolete ???? may decide to keep, just for convenience (?? RE-IMPLEMENT in terms of this.getClassRef())
     // interpret a pseudoClass instance
     if (this.pseudoClass && this.pseudoClass.isInstance() ) {
       return this.pseudoClass.id;
@@ -277,25 +277,6 @@ export default class SmartModel {
 
     // interpret our real class name
     return getRealClassName(this.constructor);
-  }
-
-  /**
-   * A static method returning the class name of the supplied classRef
-   * (interpreting BOTH real classes and pseudoClasses).
-   *
-   * @param {classRef} classRef - the class to interpret (either a
-   * real class or a pseudoClass).
-   *
-   * @returns {string} the supplied classRef's class name.
-   */
-  static getClassName(classRef) {// ??%% soon to be obsolete
-    // interpret a pseudo class (an object instance to be cloned)
-    if (classRef.pseudoClass && classRef.pseudoClass.isType() ) {
-      return classRef.id;
-    }
-
-    // interpret our real class name
-    return getRealClassName(classRef);
   }
 
   /**

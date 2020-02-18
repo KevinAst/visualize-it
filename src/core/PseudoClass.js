@@ -1,6 +1,7 @@
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
-import {isString}        from 'util/typeCheck';
+import {isString,
+        isClass}         from 'util/typeCheck';
 
 /**
  * PseudoClass maintains meta data that allows an object instance to
@@ -123,16 +124,54 @@ export default class PseudoClass {
   isInstance() { return !this.isType(); }
 
   /**
-   * Return an indicator as to whether the supplied `obj` is a
-   * "logical" class (i.e. a pseudoClass MASTER).
+   * Return an indicator as to whether the supplied `ref` is a
+   * "logical" class (i.e. a pseudoClass MASTER) ... an object
+   * instance that is logically treated as a class.
    *
-   * @param {any} obj - the object to interpret.
+   * @param {any} ref - the item to interpret.
    *
-   * @returns {boolean} true: obj is a "logical" class (a pseudoClass
-   * MASTER), false: just a regular object instance.
+   * @returns {boolean} true: `ref` is a "logical" class (a
+   * pseudoClass MASTER), false: `ref` is something else.
    */
-  static isPseudoClassMaster(obj) {
-    return obj.pseudoClass && obj.pseudoClass.isType();
+  static isPseudoClassMaster(ref) {
+    return ref.pseudoClass && ref.pseudoClass.isType();
+  }
+
+  /**
+   * Return the class name of the supplied `clazz` (interpreting BOTH
+   * real classes and pseudoClass MASTERS).
+   *
+   * NOTE: This utility is used when the client is reasoning about a
+   *       raw `clazz`, NOT a classRef (SmartClassRef).
+   *
+   * @param {class | pseudoClassMASTER} clazz - the class to interpret
+   * (either a real class or a pseudoClass MASTER).
+   *
+   * @returns {string} the class name of the supplied `clazz`.
+   *
+   * @throws {Error} an Error is thrown when the supplied clazz is invalid.
+   */
+  static getClassName(clazz) {
+
+    // validate parameters
+    const check = verify.prefix('PseudoClass.getClassName() parameter violation: ');
+    // ... clazz
+    check(clazz, 'clazz is required');
+
+    // interpret a pseudo class MASTER (an object instance that is logically a class)
+    if (this.isPseudoClassMaster(clazz)) {
+      return clazz.id;
+    }
+
+    // interpret a real class name
+    if (isClass(clazz)) {
+      return clazz.unmangledName || clazz.name;
+    }
+    
+    // otherwise supplied param is invalid
+    else {
+      check(false, 'clazz must be a real class or a pseudoClass MASTER');
+    }
   }
 
 }

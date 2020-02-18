@@ -14,6 +14,7 @@ import {isPlainObject,
 import SmartModel               from 'core/SmartModel';
 import SmartView                from 'core/SmartView';
 import Scene                    from 'core/Scene';
+import PseudoClass              from 'core/PseudoClass';
 
 import {LeftNavCollapsibleItem} from 'features';
 import ExpandLessIcon           from '@material-ui/icons/ExpandMore';   // in effect WHEN EXPANDED  ... i.e. clicking will collapse
@@ -146,8 +147,7 @@ function genTreeItems(smartPkg, handleActivateTab) {
         else if (isClass(arrItem)) {
           const compClass = arrItem;
 
-
-          const compName = SmartModel.getClassName(compClass);
+          const compName = PseudoClass.getClassName(compClass);
           
           const id = `${accumulativeId}-${compName}`;
 

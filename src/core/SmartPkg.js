@@ -200,7 +200,7 @@ export default class SmartPkg extends SmartModel {
 
           // catalog any pseudoClasses in our _classRefCatalog
           if (PseudoClass.isPseudoClassMaster(smartObj)) {
-            const className = SmartModel.getClassName(smartObj);
+            const className = PseudoClass.getClassName(smartObj);
             this._classRefCatalog[className] = smartObj;
           }
 
@@ -213,7 +213,7 @@ export default class SmartPkg extends SmartModel {
           const realClass = arrItem;
          
           // catalog classes in our _classRefCatalog
-          const className = SmartModel.getClassName(realClass);
+          const className = PseudoClass.getClassName(realClass);
           this._classRefCatalog[className] = realClass;
         }
 
