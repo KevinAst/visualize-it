@@ -11,15 +11,26 @@ const log = createLogger('***DIAG*** SmartClassRef:').disable();
  * information for ALL smartObjects, unifying both real classes and
  * pseudo classes!
  *
+ * SmartClassRef meta objects can represent either:
+ *
+ *  - a real class ... of type SmartModel whose constructor supports
+ *    namedProps,
+ * 
+ *  - or a pseudoClass ... an object instance that logically
+ *    represents a class.  These are resource-based objects that can
+ *    be dynamically edited (through the graphical editor), and yet
+ *    can be "instantiated" as items of other objects!  Please refer
+ *    to PseudoClass.
+ *
+ * A `smartClassRef` property is dynamically attached to all classes
+ * (both real and pseudoClass) by the SmartPkg package manager.
+ *
  * IMPORTANT: This class verifies the existence of class.unmangledName!
  * - class name is crucial for our persistence (hydration invokes
  *   constructor matching registered classes)
  * - the standard class.name is mangled in our production build (ex:
  *   yielding 't' for 'SmartComp')
  * - this is a central spot that will highlight issues very early
- *
- * A `smartClassRef` property is dynamically attached to all classes
- * (both real and pseudoClass) by the SmartPkg package manager.
  */
 export default class SmartClassRef {
 

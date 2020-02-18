@@ -28,11 +28,10 @@ import PseudoClass       from './PseudoClass';
  *    + smartClone(): smartObject ............... creates a deep copy of self
  *
  *  - various common utilities:
- *    ??? most replaced with new SmartClassRef
+ *    ??? most replaced with SmartClassRef and/or PseudoClass
  *<S> + createSmartObject(classRef, namedProps): smartObject .. a value-added constructor
  *<S> + getClassName(classRef): string ........................ get class name of classRef (either a class or pseudoClass)
  *    + diagClassName(): string .............................. get class name of self (interpreting BOTH class or pseudoClass)
- *    + getMyClassPkgName(): string ........................... get package name of self
  *<S> + isClass(classRef): boolean ............................ is supplied classRef a real class
  *<S> + isPseudoClass(classRef): boolean ...................... is supplied classRef a pseudoClass
  *
@@ -122,7 +121,7 @@ export default class SmartModel {
     const classRef = this.getClassRef();
     const myJSON = {
       smartType: classRef.getClassName(),
-      smartPkg:  this.getMyClassPkgName(),
+      smartPkg:  classRef.getClassPkgName(),
     };
 
     // demark the pseudoClass MASTERs in our JSON, so they can be hydrated early
@@ -251,16 +250,6 @@ export default class SmartModel {
     check(realClassRef, 'this real class instance has NO smartClassRef reference ... it must be managed by a SmartPkg');
 
     return realClassRef;
-  }
-
-  /**
-   * An instance method returning the package name of self.
-   *
-   * @returns {string} the package name which promotes the class of
-   * object.
-   */
-  getMyClassPkgName() { // ??%% soon to be obsolete (think ONLY used internally) ???? may decide to keep, just for convenience (implement in terms of this.getClassRef())
-    return this.getClassRef().getClassPkgName();
   }
 
   /**
@@ -545,22 +534,6 @@ SmartModel.unmangledName = 'SmartModel';
  *   ```
  *   SmartModel.fromSmartJSON(smartJSON)
  *   ```
- */
-
-/**
- * @typedef {ref} classRef // ??%% soon to be obsolete ... replaced by the REAL SmartClassRef ?? does anything in these docs need to move over?
- * 
- * classRef is a class (physically or logically) that can be
- * instantiated.  It can either be:
- *
- *  - a real class ... of type SmartModel whose constructor supports
- *    namedProps,
- * 
- *  - or a pseudoClass ... an object instance that logically
- *    represents a class.  These are resource-based objects that can
- *    be dynamically edited (through the graphical editor), and yet
- *    can be "instantiated" as items of other objects!  Please refer
- *    to PseudoClass.
  */
 
 /**
