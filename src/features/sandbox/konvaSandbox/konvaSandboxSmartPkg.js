@@ -1,21 +1,100 @@
-import SmartPkg     from 'core/SmartPkg';
-import pkgManager   from 'core/pkgManager';
-import {collage1}   from './collageView1';
+import Collage        from 'core/Collage';
+import Scene          from 'core/Scene';
+import SmartClassRef  from 'core/SmartClassRef';
+import SmartPkg       from 'core/SmartPkg';
+import pkgManager     from 'core/pkgManager';
+import {createLogger} from 'util/logger';
+import                     './generalComps'; // unnamed import activating it's package registration
 
-const scene1 = pkgManager.getClassRef('sceneView1', 'scene1').pseudoClassContainer;
-const scene2 = pkgManager.getClassRef('sceneView2', 'scene2').pseudoClassContainer;
+const log = createLogger('***DIAG*** konvaSandboxSmartPkg ... ').disable(); // enable this to see JSON in logs
+
+const Valve1 = pkgManager.getClassRef('generalComps', 'Valve1');
+const Valve2 = pkgManager.getClassRef('generalComps', 'Valve2');
+const Valve3 = pkgManager.getClassRef('generalComps', 'Valve3');
+
+
+//************************************************************************************
+//*** Scene: scene1
+//************************************************************************************
+
+const scene1 = new Scene({
+  id: 'scene1',
+  comps: [
+    Valve1.createSmartObject({id: 'myValve1'}),
+    Valve2.createSmartObject({id: 'myValve2'}),
+    Valve3.createSmartObject({id: 'myValve3'}),
+    // new ToggleDraggableScenesButton1(), <<< TRASH
+  ],
+  width:  300, // ... see this setting pass through our process
+  height: 250,
+});
+
+
+//************************************************************************************
+//*** Scene: scene2
+//************************************************************************************
+
+const scene2 = new Scene({
+  id: 'scene2',
+  comps: [
+    Valve1.createSmartObject({id: 'myValve1'}),
+    Valve2.createSmartObject({id: 'myValve2'}),
+    // Valve3.createSmartObject({id: 'myValve3'}), // omit JUST to make it different
+    // new ToggleDraggableScenesButton2(), <<< TRASH
+  ],
+  width:  300, // ... see this setting pass through our process
+  height: 250,
+});
+
+
+//**********************************************************
+//*** Collage: collage1
+//**********************************************************
+
+// create an instance of type scene1 (to live in our collage)
+//const scene1ClassRef = pkgManager.getClassRef('sceneView1', 'scene1'); // NORMALLY HOW DONE - HOWEVER we don't have a pkg yet
+const scene1ClassRef = new SmartClassRef(scene1, 'DUMMY-PKG-NAME');      // DO THIS INSTEAD ... NOTE: this DUMMY-PKG-NAME is NOT propagated into any persistence!
+const scene1Copy     = scene1ClassRef.createSmartObject({
+  id: 'scene1Copy',
+  // comps: [ // KOOL: do NOT need comps ... they are created (cloned) from the scene1 pseudoClass!
+  //          new Valve1({id: 'myValve1'}),
+  //          new Valve2({id: 'myValve2'}),
+  //          new Valve3({id: 'myValve3'}),
+  //          new ToggleDraggableScenesButton(), <<< TRASH
+  // ],
+  width:  300, // ... see this setting pass through our process
+  height: 250,
+});
+
+// create an instance of type scene2 (to live in our collage)
+//const scene2ClassRef = pkgManager.getClassRef('sceneView2', 'scene2'); // NORMALLY HOW DONE - HOWEVER we don't have a pkg yet
+const scene2ClassRef = new SmartClassRef(scene2, 'DUMMY-PKG-NAME');      // DO THIS INSTEAD ... NOTE: this DUMMY-PKG-NAME is NOT propagated into any persistence!
+const scene2Copy     = scene2ClassRef.createSmartObject({
+  id: 'scene2Copy',
+  // comps: [ // KOOL: do NOT need comps ... they are created (cloned) from the scene2 pseudoClass!
+  //   new Valve1({id: 'myValve1'}),
+  //   new Valve2({id: 'myValve2'}),
+  //   // new Valve3({id: 'myValve3'}), // omit JUST to make it different
+  //   new ToggleDraggableScenesButton(), <<< TRASH
+  // ],
+  width:  300, // ... see this setting pass through our process
+  height: 250,
+});
+
+// our Collage
+const collage1 = new Collage({id: 'collage1', name: 'Collage 1', scenes: [
+  {scene: scene1Copy, pos: {x:0,   y:0}},
+  {scene: scene2Copy, pos: {x:300, y:250}},
+]});
 
 
 //******************************************************************************
 //*** konvaSandboxSmartPkg: our FIRST smartPkg!!
 //******************************************************************************
 
-// NOTE: this is what we use to hydrate our first JSON resource file (via crude logs)
-// ?? I think we can pull in that prime-the-pump stuff from feature.js
-
 const konvaSandboxSmartPkg = new SmartPkg({
   id:   'com.astx.KONVA',
-  name: 'Konva Sandbox II',
+  name: 'Konva Sandbox I',
   entries: {
     scenes: [
       scene1,
@@ -31,14 +110,59 @@ const konvaSandboxSmartPkg = new SmartPkg({
   },
 });
 
-// NOTE: Normally we would register this package (as follows)
-//       In this case we do NOT:
-//        - this is the package we have seeded as our first resource to dynamically read
-//        - by not registering it here, it allows the resource to be loaded
-//        - otherwise, we receive:
-//          User Msg: The visualize-it 'com.astx.KONVA' package is already loaded
-//        - NOTE: package registration is only needed for package cross dependencies
-//                ... in this particular case, NO other package is dependent on us :-)
-// pkgManager.registerPkg(konvaSandboxSmartPkg);
+pkgManager.registerPkg(konvaSandboxSmartPkg);
 
-export default konvaSandboxSmartPkg;
+
+//******************************************************************************
+//*** OBSOLETE: remove once our toolbar is working
+//******************************************************************************
+
+// SAMPLE: specialty component that activates Konva draggable scene
+//         ... currently broken
+//         ... AI: use internals to implement our global toolbar
+// class ToggleDraggableScenesButton1 extends SmartComp {
+// 
+//   constructor() {
+//     super({id: 'trash1', name: 'trash1'});
+//   }
+// 
+//   mount(containingKonvaLayer) {
+//     const button = new Konva.Text({
+//       x: 20,
+//       y: 3,
+//       text: 'CLICK to Toggle Draggable Scenes',
+//       fill: 'blue',
+//     });
+//     button.on('click', (e) => {
+//       sceneView1.draggableScene( !sceneView1.draggableScene() );
+//       log(`draggableScene() 1 reset to: ${sceneView1.draggableScene()}`);
+//     });
+//     containingKonvaLayer.add(button);
+//   }
+// }
+// ToggleDraggableScenesButton1.unmangledName = 'ToggleDraggableScenesButton1';
+
+
+//******************************************************************************
+//*** CRUDE TEST: Exercise JSON persistance to insure NO runtime errors :-)
+//******************************************************************************
+
+// You can use the logged JSON to prime-the-pump, manually placing in a visualize-it file, and loading it in the system
+// 1. enable the log control (at the top of this file) to see the JSON in our logs
+// 2. mouse the JSON string (found in logs)
+// 3. into a file (ex: C:\Users\kevin\Dropbox\Camera Uploads\visualize-it\myFirst.vit)
+// 4. load the package from that file (via the visualize-it file menu)
+
+const savedId   = konvaSandboxSmartPkg.id;  // temporarily rename, so we can load the JSON (i.e. NOT a duplicate from what is already in LeftNav)
+const savedName = konvaSandboxSmartPkg.name;
+konvaSandboxSmartPkg.id   = savedId   + '2';
+konvaSandboxSmartPkg.name = savedName + 'I';
+
+log(`PERSISTENT TEST: JSONIZE smartPkg: `, {konvaSandboxSmartPkg});
+const smartJSON = konvaSandboxSmartPkg.toSmartJSON();
+log(`PERSISTENT TEST: HERE is the json: `, {smartJSON, str: JSON.stringify(smartJSON) });
+const rehydratedSmartPkg = SmartPkg.fromSmartJSON(smartJSON);
+log(`PERSISTENT TEST: HERE is the RE-HYDRATED smartPkg: `, {rehydratedSmartPkg});
+
+konvaSandboxSmartPkg.id   = savedId; // reset the temporary name changes
+konvaSandboxSmartPkg.name = savedName;

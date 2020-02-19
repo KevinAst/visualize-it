@@ -3,7 +3,7 @@ import SmartComp      from 'core/SmartComp';
 import SmartPkg       from 'core/SmartPkg';
 import pkgManager     from 'core/pkgManager';
 
-export class Valve1 extends SmartComp {
+class Valve1 extends SmartComp {
 
   constructor({id, name}) {
     super({id, name});
@@ -24,7 +24,7 @@ export class Valve1 extends SmartComp {
 }
 Valve1.unmangledName = 'Valve1';
 
-export class Valve2 extends SmartComp {
+class Valve2 extends SmartComp {
 
   constructor({id, name}) {
     super({id, name});
@@ -45,7 +45,7 @@ export class Valve2 extends SmartComp {
 }
 Valve2.unmangledName = 'Valve2';
 
-export class Valve3 extends SmartComp {
+class Valve3 extends SmartComp {
 
   constructor({id, name}) {
     super({id, name});
@@ -78,7 +78,6 @@ const generalCompsPkg = new SmartPkg({
     ],
   },
 });
-export default generalCompsPkg;
 
 // register these components, supporting persistent file resolution
 pkgManager.registerPkg(generalCompsPkg);

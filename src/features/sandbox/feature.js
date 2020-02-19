@@ -1,19 +1,11 @@
 import {createFeature}  from 'feature-u';
 import featureFlags     from 'featureFlags'
 import {leftNavManager} from 'features';
+import pkgManager       from 'core/pkgManager';
+import                  './konvaSandbox/konvaSandboxSmartPkg'; // unnamed import activating it's package registration
 
-// sandbox class registrations
-// ... not necessarily in LeftNav, but needed to retrieve packages containing these components
-import generalCompsPkg  from './konvaSandbox/generalComps';
-import                       './konvaSandbox/sceneView1';
-import                       './konvaSandbox/sceneView2';
-
-// only needed if reference un-commented (below)
-//? import konvaSandboxSmartPkg  from './konvaSandbox/konvaSandboxSmartPkg';
-//? import pkgManager            from 'core/pkgManager';
-//? import SmartPkg              from 'core/SmartPkg';
-//? import {createLogger}        from 'util/logger';
-//? const log = createLogger('***DIAG*** konvaSandboxSmartPkg ... ').enable();
+const generalCompsPkg      = pkgManager.getPackage('generalComps');
+const konvaSandboxSmartPkg = pkgManager.getPackage('com.astx.KONVA');
 
 // feature: sandbox
 //          sandbox to play with konva.js
@@ -28,24 +20,7 @@ export default createFeature({
     // our sandbox code-based component package
     leftNavManager.addLeftNav(generalCompsPkg);
 
-    // konvaSandboxSmartPkg
-    // ... commented out (we can now dynamically load this from a resource file)
-    // ... NOTE: we must also register it at this time (just like a load would do)
-    //           - this detects resource load conflicts
-    //             * with a nice User Msg: The visualize-it 'com.astx.KONVA' package is already loaded
-    //             * rather than a CATASTROPHIC error from low-level registerTab() during the React render process
-    //? pkgManager.registerPkg(konvaSandboxSmartPkg); // must also register 
-    //? leftNavManager.addLeftNav(konvaSandboxSmartPkg);
+    // our sandbox resource-based system package
+    leftNavManager.addLeftNav(konvaSandboxSmartPkg);
   },
 });
-
-// to prime-the-pump, generate a visualize-it file from a package build by code
-// 1. uncomment this code
-// 2. mouse the JSON string (found in logs)
-// 3. into a file (ex: C:\Users\kevin\Dropbox\Camera Uploads\visualize-it\myFirst.vit)
-// 4. load the package from a file (via the visualize-it file menu)
-//? log(`PERSISTENT TEST: JSONIZE smartPkg: `, {konvaSandboxSmartPkg});
-//? const smartJSON = konvaSandboxSmartPkg.toSmartJSON();
-//? log(`PERSISTENT TEST: HERE is the json: `, {smartJSON, str: JSON.stringify(smartJSON) });
-//? const rehydratedSmartPkg = SmartPkg.fromSmartJSON(smartJSON);
-//? log(`PERSISTENT TEST: HERE is the RE-HYDRATED smartPkg: `, {rehydratedSmartPkg});

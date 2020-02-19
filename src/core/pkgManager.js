@@ -186,6 +186,26 @@ class PkgManager {
     this.pkgCatalog[pkgName] = smartPkg;
   }
 
+  /**
+   * Return the package (SmartPkg) registered to the supplied
+   * `pkgName` (undefined for NOT registered).
+   *
+   * @param {string} pkgName - the package name to retrieve.
+   *
+   * @returns {SmartPkg} the package (SmartPkg) registered to the
+   * supplied `pkgName` (undefined for NOT registered).
+   */
+  getPackage(pkgName) {
+
+    // validate parameters
+    const check = verify.prefix('PkgManager.getPackage() parameter violation: ');
+    // ... pkgName
+    check(pkgName,             'pkgName is required');
+    check(isString(pkgName),   'pkgName must be a string');
+
+    // return the package (if any)
+    return this.pkgCatalog[pkgName];
+  }
 
   /**
    * Resolve classRefs managed in self's packages.
