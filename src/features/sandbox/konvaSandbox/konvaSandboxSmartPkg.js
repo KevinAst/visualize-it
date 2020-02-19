@@ -155,8 +155,8 @@ pkgManager.registerPkg(konvaSandboxSmartPkg);
 
 const savedId   = konvaSandboxSmartPkg.id;  // temporarily rename, so we can load the JSON (i.e. NOT a duplicate from what is already in LeftNav)
 const savedName = konvaSandboxSmartPkg.name;
-konvaSandboxSmartPkg.id   = savedId   + '2';
-konvaSandboxSmartPkg.name = savedName + 'I';
+konvaSandboxSmartPkg.id   = savedId   + '2'; // ... "com.astx.KONVA2"
+konvaSandboxSmartPkg.name = savedName + 'I'; // ... "Konva Sandbox II"
 
 log(`PERSISTENT TEST: JSONIZE smartPkg: `, {konvaSandboxSmartPkg});
 const smartJSON = konvaSandboxSmartPkg.toSmartJSON();
