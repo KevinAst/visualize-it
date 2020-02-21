@@ -114,36 +114,6 @@ pkgManager.registerPkg(konvaSandboxSmartPkg);
 
 
 //******************************************************************************
-//*** OBSOLETE: remove once our toolbar is working
-//******************************************************************************
-
-// SAMPLE: specialty component that activates Konva draggable scene
-//         ... currently broken
-//         ... AI: use internals to implement our global toolbar
-// class ToggleDraggableScenesButton1 extends SmartComp {
-// 
-//   constructor() {
-//     super({id: 'trash1', name: 'trash1'});
-//   }
-// 
-//   mount(containingKonvaLayer) {
-//     const button = new Konva.Text({
-//       x: 20,
-//       y: 3,
-//       text: 'CLICK to Toggle Draggable Scenes',
-//       fill: 'blue',
-//     });
-//     button.on('click', (e) => {
-//       sceneView1.draggableScene( !sceneView1.draggableScene() );
-//       log(`draggableScene() 1 reset to: ${sceneView1.draggableScene()}`);
-//     });
-//     containingKonvaLayer.add(button);
-//   }
-// }
-// ToggleDraggableScenesButton1.unmangledName = 'ToggleDraggableScenesButton1';
-
-
-//******************************************************************************
 //*** CRUDE TEST: Exercise JSON persistance to insure NO runtime errors :-)
 //******************************************************************************
 

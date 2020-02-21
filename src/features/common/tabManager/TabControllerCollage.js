@@ -56,19 +56,16 @@ export default class TabControllerCollage extends TabController {
     //***
 
     // propagate setting into our object model
+    // AI: ?? more encapsulation ... suspect need a dispMode API in the object domain itself
     if (dispMode === DispMode.edit) {
+      this.collage.draggable(true);
     }
     else if (dispMode === DispMode.view) {
+      this.collage.draggable(false);
     }
     else { // animate
+      this.collage.draggable(false);
     }
-    // ?? do something ... within Collage API, pattern after: 
-    //    ... src\features\sandbox\konvaSandbox\konvaSandboxSmartPkg.js
-    //          collageView1.draggableCollage( !collageView1.draggableCollage() );
-    //          log(`draggableCollage() 1 reset to: ${collageView1.draggableCollage()}`);
-    //    ... I THINK THIS IS NOW
-    //        collage.draggable(draggable)
-
   }
 
   // wrap our collage in the panel display

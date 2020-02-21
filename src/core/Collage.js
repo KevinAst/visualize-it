@@ -113,7 +113,7 @@ export default class Collage extends SmartScene {
       return this.scenes[0].draggable(); // return boolean setting of our first scene (assumes it is synced)
     }
     else {                               // setter: sets across all our scenes
-      this.scenes.forEach( (scene) => scene.draggable(draggable) );
+      this.scenes.forEach( (scene) => scene.scene.draggable(draggable) );
       return this;                       // return self (for chaining)
     }
   }

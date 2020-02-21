@@ -56,19 +56,16 @@ export default class TabControllerScene extends TabController {
     //***
 
     // propagate setting into our object model
+    // AI: ?? more encapsulation ... suspect need a dispMode API in the object domain itself
     if (dispMode === DispMode.edit) {
+      this.scene.draggable(true);
     }
     else if (dispMode === DispMode.view) {
+      this.scene.draggable(false);
     }
     else { // animate
+      this.scene.draggable(false);
     }
-    // ?? do something ... within Scene API, pattern after: 
-    //    ... src\features\sandbox\konvaSandbox\konvaSandboxSmartPkg.js
-    //          sceneView1.draggableScene( !sceneView1.draggableScene() );
-    //          log(`draggableScene() 1 reset to: ${sceneView1.draggableScene()}`);
-    //    ... I THINK THIS IS NOW
-    //        scene.draggable(draggable)
-
   }
 
   // wrap our scene in the panel display

@@ -7,6 +7,7 @@ import sandbox                from './sandbox/feature';
 import initFirebase           from './common/initFirebase/feature';
 import baseUI                 from './common/baseUI/feature';
 import tabManagerFeature      from './common/tabManager/feature';
+import toolBar                from './toolBar/feature';
 import logActions             from './common/diagnostic/logActions/feature';
 import pwa                    from './common/pwa/feature';
 
@@ -34,6 +35,7 @@ export default [
 
   baseUI,
   tabManagerFeature,
+  toolBar,
   
 //auth,
 //authService,

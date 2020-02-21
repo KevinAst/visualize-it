@@ -1,7 +1,16 @@
-import React            from 'react';
+import React,
+       {useCallback}    from 'react';
 
 import {useFassets}     from 'feature-u';
-import {useSelector}    from 'react-redux'
+import {useSelector,
+        useDispatch}    from 'react-redux'
+
+import DispMode         from 'core/DispMode';
+
+import {createLogger}   from 'util/logger';
+
+import * as _toolBarSel from '../state';
+import _toolBarAct      from '../actions';
 
 import {makeStyles}     from '@material-ui/core/styles';
 
@@ -14,17 +23,24 @@ import Select           from '@material-ui/core/Select';
 import Toolbar          from '@material-ui/core/Toolbar';
 import Typography       from '@material-ui/core/Typography';
 
+// our internal diagnostic logger (normally disabled)
+const log = createLogger('***DIAG*** <VitToolBar> ... ').disable();
+
+
 export default function VitToolBar() {
 
   const classes = useStyles();
 
-  // ?? drive dispMode through enum: dispMode: 'static', 'edit', 'animate'
-  const [dispMode, setDispMode] = React.useState('static'); // ?? temp for now ... eventually redux
+  const dispMode           = useSelector((appState) => _toolBarSel.getDispMode(appState),           []);
+  const isDispModeEditable = useSelector((appState) => _toolBarSel.getIsDispModeEditable(appState), []);
 
-  const handleDispModeChange = event => {
-    console.log(`?? DispMode Changed to: ${event.target.value}`);
-    setDispMode(event.target.value);
-  };
+  const dispatch             = useDispatch();
+  const handleDispModeChange = useCallback((event) => {
+    const newDispMode = DispMode.enumValueOf(event.target.value);
+    log(`dispMode changed to: ${newDispMode}`);
+    dispatch( _toolBarAct.dispModeChanged(newDispMode) );
+
+  }, [dispatch]);
 
   const fassets   = useFassets();
   const totalTabs = useSelector((appState) => fassets.sel.getTotalTabs(appState), [fassets]);
@@ -54,11 +70,15 @@ export default function VitToolBar() {
         <InputLabel id="dispModeLabel">DispMode</InputLabel>
         <Select id="dispMode"
                 labelId="dispModeLabel"
-                value={dispMode}
+                value={dispMode.enumKey}
                 onChange={handleDispModeChange}>
-          <MenuItem value={'static'}>Static</MenuItem>
-          <MenuItem value={'edit'}>Edit</MenuItem>
-          <MenuItem value={'animate'}>Animate</MenuItem>
+        { 
+          Array.from(DispMode).map( (dm) => (
+            <MenuItem key={dm.enumKey}
+                      value={dm.enumKey}
+                      disabled={dm === DispMode.edit && !isDispModeEditable}>{dm.enumKey}</MenuItem>
+          ) )
+        }
         </Select>
       </FormControl>
 

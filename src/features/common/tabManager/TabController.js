@@ -1,6 +1,10 @@
-import verify      from 'util/verify';
-import {isString}  from 'util/typeCheck';
-import DispMode    from 'core/DispMode';
+import verify         from 'util/verify';
+import {isString}     from 'util/typeCheck';
+import DispMode       from 'core/DispMode';
+import {createLogger} from 'util/logger';
+
+// our internal diagnostic logger (normally disabled)
+const log = createLogger('***DIAG*** TabController ... ').disable();
 
 /**
  * TabController is an abstract base class that provides the API
@@ -66,7 +70,7 @@ export default class TabController {
 
   /**
    * Return self's dispMode.
-   * @returns {string} the dispMode of self.
+   * @returns {DispMode} the dispMode of self.
    */
   getDispMode() {
     return this.dispMode;
@@ -80,6 +84,8 @@ export default class TabController {
    * @throws {Error} an Error is thrown if the supplied dispMode is NOT supported.
    */
   setDispMode(dispMode) {
+
+    log(`setting dispMode: ${dispMode} for [tabId:${this.tabId}, tabName:${this.tabName}]`);
 
     // validate parameters
     const check = verify.prefix(`${this.diagClassName()}.setDispMode() parameter violation: `);
