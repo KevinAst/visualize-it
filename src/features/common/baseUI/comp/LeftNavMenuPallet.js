@@ -4,16 +4,19 @@ import PropTypes                from 'prop-types';
 import {useDispatch}            from 'react-redux';
 import {useFassets}             from 'feature-u';
 
-import {registerTab}            from 'features';
+import {tabManager,
+        TabControllerScene,
+        TabControllerCollage,
+        TabControllerClass}     from 'features';
+
 import genDualClickHandler      from 'util/genDualClickHandler';
 import {createLogger}           from 'util/logger';
-import ReactSmartView           from 'util/ReactSmartView';
 import {isPlainObject,
         isClass}                from 'util/typeCheck';
 
 import SmartModel               from 'core/SmartModel';
-import SmartView                from 'core/SmartView';
 import Scene                    from 'core/Scene';
+import Collage                  from 'core/Collage';
 import PseudoClass              from 'core/PseudoClass';
 
 import {LeftNavCollapsibleItem} from 'features';
@@ -22,6 +25,9 @@ import ExpandMoreIcon           from '@material-ui/icons/ChevronRight'; // in ef
 import TreeItem                 from '@material-ui/lab/TreeItem';
 import TreeView                 from '@material-ui/lab/TreeView';
 import {makeStyles}             from '@material-ui/core/styles';
+
+
+
 
 // our internal diagnostic logger (normally disabled)
 const log = createLogger('***DIAG*** <LeftNavMenuPallet> ... ').disable();
@@ -128,11 +134,19 @@ function genTreeItems(smartPkg, handleActivateTab) {
           const id       = `${accumulativeId}-${smartObj.id}`;
 
           // register this entry to our tabManager (allowing it to be visualized)
-          const view = new SmartView({id: `view-${smartObj.id}`, name: `view-${smartObj.name}`, scene: smartObj});
-          // TODO: ?? for re-renders, registerTab validation may need to be relaxed (so we can override this)
-          registerTab(id, smartObj.name, () => (
-            <ReactSmartView view={view}/>
-          ));
+          let tabController = null;
+          if (smartObj instanceof Scene) {
+            tabController = new TabControllerScene(id, smartObj.name, smartObj);
+          }
+          else if (smartObj instanceof Collage) {
+            tabController = new TabControllerCollage(id, smartObj.name, smartObj);
+          }
+          else {
+            const errMsg = `***ERROR*** <LeftNavMenuPallet> found UNSUPPORTED smartObj entry (under accumulativeId: ${id})  ... must be a Scene or Collage ... see logs for entry`
+            console.error(errMsg, {smartObj});
+            throw new Error(errMsg);
+          }
+          tabManager.registerTab(tabController);
 
           log(`genTreeItems(): TreeItem tabManager node ... id: ${id}`);
           return (
@@ -151,36 +165,9 @@ function genTreeItems(smartPkg, handleActivateTab) {
           
           const id = `${accumulativeId}-${compName}`;
 
-          // NOTE: Components visualization is very restricted
-          //       - within the builder to simply verify it's visuals
-          //       - an isolated read-only view
-          //       Because of this, we simply piggy-back off the production
-          //       code that supports a scene.
-          //       - using the Scene, we merely
-          //       - instantiate a single component in it
-          //       - and mark it as a component render
-          //         ... providing the distinction that this is a component view
-
-          // wrap our single component in a scene (see NOTE above)
-          const comp  = new compClass({id: `comp-${compName}`}); // ?? hopefully these components don't need any other parameter context
-          const scene = new Scene({
-            id: `view-${compName}`,
-            comps: [comp], // 
-            width:  300,   // ?? we need a way for the comp to tell us it's size
-            height: 300,
-          });
-
-          // ?? somehow demark something as a read-only component
-
-          // KEY: from this point, we can pick up with the normal SmartView logic (see prior case above)
-
           // register this entry to our tabManager (allowing it to be visualized)
-          const view = new SmartView({id: `view-${compName}`, scene});
-          // TODO: ?? for re-renders, registerTab validation may need to be relaxed (so we can override this)
-          registerTab(id, compName, () => (
-            <ReactSmartView view={view}/>
-          ));
-
+          tabManager.registerTab( new TabControllerClass(id, compName, compClass) );
+          
           log(`genTreeItems(): TreeItem tabManager node ... id: ${id}`);
           return (
             <TreeItem key={id}

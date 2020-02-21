@@ -55,6 +55,7 @@
     "@material-ui/lab": "^4.0.0-alpha.30",
     "action-u": "^0.2.0",
     "astx-redux-util": "^1.0.0",
+    "enumify": "^2.0.0",
     "feature-redux": "^3.0.0",
     "feature-redux-logic": "^1.0.1",
     "feature-router": "^3.0.0",

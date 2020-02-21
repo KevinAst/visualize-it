@@ -8,7 +8,7 @@ import {createLogger}      from 'util/logger';
 
 import * as _tabManagerSel from '../state';
 import _tabManagerAct      from '../actions';
-import {getTabCreator}     from '../tabRegistry';
+import tabManager          from '../tabManager';
 
 import AppBar              from '@material-ui/core/AppBar';
 import Box                 from '@material-ui/core/Box';
@@ -88,7 +88,7 @@ export default function TabManager() {
         </Tabs>
       </AppBar>
       {tabs.map( tab => {
-         const TabCreator = getTabCreator(tab.tabId);
+         const TabCreator = tabManager.getTabController(tab.tabId).getTabPanelComp(); // ... AI: may error - returns undefined if NOT registered?
          return (
            <TabPanel key={tab.tabId}
                      tabId={tab.tabId}

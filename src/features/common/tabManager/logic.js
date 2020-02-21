@@ -2,7 +2,8 @@ import {createLogic}        from 'redux-logic';
 import _tabManager          from './featureName';
 import _tabManagerAct       from './actions';
 import * as sel             from './state';
-import {getTabName}         from './tabRegistry';
+
+import tabManager          from './tabManager';
 
 /**
  * Supplement the 'activateTab' action with the following directives
@@ -102,7 +103,7 @@ export const supplementActivateTab = createLogic({
     //*** supplement our action with pgmDirectives (see JSDocs above)
     //***
 
-    action.tabName = getTabName(req_tabId);
+    action.tabName = tabManager.getTabController(req_tabId).getTabName(); // ... AI: may error - returns undefined if NOT registered?
 
     action.pgmDirectives = {
       next_activeTabId,
