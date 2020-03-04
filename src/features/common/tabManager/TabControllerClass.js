@@ -3,7 +3,6 @@ import ReactSmartView from 'util/ReactSmartView';
 
 import TabController  from './TabController';
 
-import DispMode       from 'core/DispMode';
 import PseudoClass    from 'core/PseudoClass';
 import SmartView      from 'core/SmartView';
 import Scene          from 'core/Scene';
@@ -42,30 +41,16 @@ export default class TabControllerClass extends TabController {
 
     // retain state specific to this derivation
     this.clazz = clazz;
+
+    // instantiate a single component from self's class
+    // ... this is what we will render in our tab :-)
+    this.compName = PseudoClass.getClassName(clazz);
+    this.comp     = new clazz({id: `comp-${this.compName}`}); // ?? hopefully these components don't need any other parameter context
   }
 
-  // class's are NOT editable
-  isEditable() {
-    return false;
-  }
-
-  // manage DispMode settings (specific to class)
-  setDispMode(dispMode) {
-    super.setDispMode(dispMode);
-
-    //***
-    //*** value added logic:
-    //***
-
-    // ?? don't think there is anything to do here?
-    // propagate setting into our object model
-    if (dispMode === DispMode.edit) {
-    }
-    else if (dispMode === DispMode.view) {
-    }
-    else { // animate
-    }
-
+  // our target is our component instance, instantiated by self's class
+  getTarget() {
+    return this.comp;
   }
 
   // wrap our class in the panel display
@@ -81,14 +66,10 @@ export default class TabControllerClass extends TabController {
     //       - and mark it as a component render
     //         ... providing the distinction that this is a component view
 
-    // instantiate a single component from self's class
-    const compName = PseudoClass.getClassName(this.clazz);
-    const comp     = new this.clazz({id: `comp-${compName}`}); // ?? hopefully these components don't need any other parameter context
-
     // wrap our single component in a scene (see NOTE above)
     const scene = new Scene({
-      id: `view-${compName}`,
-      comps: [comp], // 
+      id: `view-${this.compName}`,
+      comps: [this.comp], // 
       width:  300,   // ?? we need a way for the comp to tell us it's size
       height: 300,
     });
@@ -96,7 +77,7 @@ export default class TabControllerClass extends TabController {
     // ?? somehow demark something as a read-only component
 
     // from this point, we can pick up with the normal SmartView logic
-    const view = new SmartView({id: `view-${compName}`, scene});
+    const view = new SmartView({id: `view-${this.compName}`, scene});
     const panelComp = () => <ReactSmartView view={view}/>;
     return panelComp;
   }

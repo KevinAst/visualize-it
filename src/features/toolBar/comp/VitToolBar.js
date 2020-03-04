@@ -7,6 +7,8 @@ import {useSelector,
 
 import DispMode         from 'core/DispMode';
 
+import {tabManager}     from 'features';
+
 import {createLogger}   from 'util/logger';
 
 import * as _toolBarSel from '../state';
@@ -26,24 +28,20 @@ import Typography       from '@material-ui/core/Typography';
 // our internal diagnostic logger (normally disabled)
 const log = createLogger('***DIAG*** <VitToolBar> ... ').disable();
 
-
 export default function VitToolBar() {
 
   const classes = useStyles();
 
-  const dispMode           = useSelector((appState) => _toolBarSel.getDispMode(appState),           []);
-  const isDispModeEditable = useSelector((appState) => _toolBarSel.getIsDispModeEditable(appState), []);
+  const fassets     = useFassets();
+  const dispMode    = useSelector((appState) => _toolBarSel.getDispMode(appState),           []);
+  const activeTabId = useSelector((appState) => fassets.sel.getActiveTabId(appState), [fassets]);
 
   const dispatch             = useDispatch();
   const handleDispModeChange = useCallback((event) => {
     const newDispMode = DispMode.enumValueOf(event.target.value);
     log(`dispMode changed to: ${newDispMode}`);
     dispatch( _toolBarAct.dispModeChanged(newDispMode) );
-
   }, [dispatch]);
-
-  const fassets   = useFassets();
-  const totalTabs = useSelector((appState) => fassets.sel.getTotalTabs(appState), [fassets]);
 
   const myTitle = (
     <Typography variant="h6"
@@ -54,9 +52,11 @@ export default function VitToolBar() {
     </Typography>
   );
 
-  if (totalTabs === 0) {
+  if (!activeTabId) {
     return myTitle;
   }
+
+  const activeTarget = tabManager.getTabController(activeTabId).getTarget();
 
   return (
     <Toolbar variant="dense">
@@ -76,7 +76,7 @@ export default function VitToolBar() {
           Array.from(DispMode).map( (dm) => (
             <MenuItem key={dm.enumKey}
                       value={dm.enumKey}
-                      disabled={dm === DispMode.edit && !isDispModeEditable}>{dm.enumKey}</MenuItem>
+                      disabled={!activeTarget.canHandleDispMode(dm)}>{dm.enumKey}</MenuItem>
           ) )
         }
         </Select>

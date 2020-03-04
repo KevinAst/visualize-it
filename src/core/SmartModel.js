@@ -5,6 +5,7 @@ import {isString,
 import checkUnknownArgs  from 'util/checkUnknownArgs';
 import pkgManager        from './pkgManager';
 import PseudoClass       from './PseudoClass';
+import DispMode          from './DispMode';
 
 /**
  * SmartModel is the abstract top-level base class of the visualize-it
@@ -61,8 +62,50 @@ export default class SmartModel {
     checkUnknownArgs(check, unknownArgs, arguments);
 
     // retain parameters in self
-    this.id   = id;
-    this.name = name || id;
+    this.id       = id;
+    this.name     = name || id;
+    this.dispMode = DispMode.view; // ... our dispMode starts out "viewing" content
+  }
+
+  /**
+   * Return self's dispMode (used in top-level objects targeted by a tab).
+   * @returns {DispMode} the dispMode of self.
+   */
+  getDispMode() {
+    return this.dispMode;
+  }
+
+  /**
+   * Set self's dispMode (used in top-level objects targeted by a tab).
+   *
+   * @param {DispMode} dispMode - the display mode to set.
+   *
+   * @throws {Error} an Error is thrown if the supplied dispMode is NOT supported.
+   */
+  setDispMode(dispMode) {
+
+    // validate parameters
+    const check = verify.prefix(`${this.diagClassName()}.setDispMode() parameter violation: `);
+    // ... dispMode
+    check(dispMode,                     'dispMode is required');
+    check(dispMode instanceof DispMode, 'dispMode must be a DispMode type');
+
+    // ... insure self supports this setting
+    check(this.canHandleDispMode(dispMode), `does NOT support ${dispMode} :-(`);
+
+    // perform the set operation
+    this.dispMode = dispMode;
+  }
+
+  /**
+   * Return an indicator as to whether self supports the supplied `dispMode`.
+   *
+   * @param {DispMode} dispMode - the display mode to evaluate.
+   *
+   * @throws {boolean} true: can handle, false: not supported.
+   */
+  canHandleDispMode(dispMode) {
+    return true;  // by default, base class assumes all DispModes are supported
   }
 
 

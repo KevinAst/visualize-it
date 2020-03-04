@@ -1,6 +1,7 @@
 import SmartModel        from './SmartModel';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
+import DispMode          from './DispMode';
 
 /**
  * SmartComp is the abstract base class for all visualize-it
@@ -42,6 +43,17 @@ export default class SmartComp extends SmartModel {
     // ... id/name validated by base class
     // ... unknown arguments
     checkUnknownArgs(check, unknownArgs, arguments);
+  }
+
+  /**
+   * Return an indicator as to whether self supports the supplied `dispMode`.
+   *
+   * @param {DispMode} dispMode - the display mode to evaluate.
+   *
+   * @throws {boolean} true: can handle, false: not supported.
+   */
+  canHandleDispMode(dispMode) {
+    return dispMode !== DispMode.edit; // by default, SmartComps cannot be edited
   }
 
   /**

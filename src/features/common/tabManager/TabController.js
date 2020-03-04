@@ -1,10 +1,5 @@
 import verify         from 'util/verify';
 import {isString}     from 'util/typeCheck';
-import DispMode       from 'core/DispMode';
-import {createLogger} from 'util/logger';
-
-// our internal diagnostic logger (normally disabled)
-const log = createLogger('***DIAG*** TabController ... ').disable();
 
 /**
  * TabController is an abstract base class that provides the API
@@ -39,9 +34,8 @@ export default class TabController {
     check(isString(tabName),  'tabName must be a string');
 
     // carve out our object state
-    this.tabId       = tabId;
-    this.tabName     = tabName;
-    this.dispMode = DispMode.view; // ... we start out "viewing" the content in this tab
+    this.tabId   = tabId;
+    this.tabName = tabName;
   }
 
   /**
@@ -61,45 +55,11 @@ export default class TabController {
   }
 
   /**
-   * Return an indicator as to whether this tab is "editable"
-   * @returns {boolean} true: this tab is editable, false: NOT editable
+   * Return the top-level object model targeted by this tab.
+   * @returns {SmartObj} the target object rendered by this tab.
    */
-  isEditable() {
-    throw new Error(`***ERROR*** TabController.isEditable() the ${this.diagClassName()} class derivation MUST implement this abstract method (tabId:${this.tabId}, tabName:${this.tabName})!!`);
-  }
-
-  /**
-   * Return self's dispMode.
-   * @returns {DispMode} the dispMode of self.
-   */
-  getDispMode() {
-    return this.dispMode;
-  }
-
-  /**
-   * Set self's dispMode.
-   *
-   * @param {DispMode} dispMode - the display mode to set.
-   *
-   * @throws {Error} an Error is thrown if the supplied dispMode is NOT supported.
-   */
-  setDispMode(dispMode) {
-
-    log(`setting dispMode: ${dispMode} for [tabId:${this.tabId}, tabName:${this.tabName}]`);
-
-    // validate parameters
-    const check = verify.prefix(`${this.diagClassName()}.setDispMode() parameter violation: `);
-    // ... dispMode
-    check(dispMode,                      'dispMode is required');
-    check(dispMode instanceof DispMode, 'dispMode must be a DispMode type');
-
-    // ... insure tab supports this setting
-    if (dispMode === DispMode.edit) {
-      check(this.isEditable(), `this tab does NOT support editing (tabId:${this.tabId}, tabName:${this.tabName}) :-(`);
-    }
-
-    // perform the set operation
-    this.dispMode = dispMode;
+  getTarget() {
+    throw new Error(`***ERROR*** TabController.getTarget() the ${this.diagClassName()} class derivation MUST implement this abstract method (tabId:${this.tabId}, tabName:${this.tabName})!!`);
   }
 
   /**

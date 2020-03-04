@@ -5,7 +5,6 @@ import TabController  from './TabController';
 
 import verify         from 'util/verify';
 
-import DispMode       from 'core/DispMode';
 import Scene          from 'core/Scene';
 import SmartView      from 'core/SmartView';
 
@@ -42,30 +41,9 @@ export default class TabControllerScene extends TabController {
     this.scene = scene;
   }
 
-  // scene's are editable
-  isEditable() {
-    return true;
-  }
-
-  // manage DispMode settings (specific to scene)
-  setDispMode(dispMode) {
-    super.setDispMode(dispMode);
-
-    //***
-    //*** value added logic:
-    //***
-
-    // propagate setting into our object model
-    // AI: ?? more encapsulation ... suspect need a dispMode API in the object domain itself
-    if (dispMode === DispMode.edit) {
-      this.scene.draggable(true);
-    }
-    else if (dispMode === DispMode.view) {
-      this.scene.draggable(false);
-    }
-    else { // animate
-      this.scene.draggable(false);
-    }
+  // our target is our scene
+  getTarget() {
+    return this.scene;
   }
 
   // wrap our scene in the panel display

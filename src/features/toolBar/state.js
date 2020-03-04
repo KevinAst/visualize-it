@@ -1,28 +1,25 @@
-import {combineReducers}  from 'redux';
-import {reducerHash}      from 'astx-redux-util';
-import {slicedReducer}    from 'feature-redux';
-import _toolBar           from './featureName';
-import _toolBarAct        from './actions';
-import DispMode           from 'core/DispMode';
+import {combineReducers}    from 'redux';
+import {reducerHash}        from 'astx-redux-util';
+import {expandWithFassets}  from 'feature-u';
+import {slicedReducer}      from 'feature-redux';
+import _toolBar             from './featureName';
+import _toolBarAct          from './actions';
+import DispMode             from 'core/DispMode';
+import {tabManager}         from 'features';
 
 // ***
 // *** Our feature reducer, managing state for our toolBar process.
 // ***
 
-const reducer = slicedReducer(_toolBar, combineReducers({
+const reducer = slicedReducer(_toolBar, expandWithFassets( (fassets) => combineReducers({
 
   // dispMode: string ... 'view'/'edit'/'animate' via DispMode enum
   dispMode: reducerHash({
-    [_toolBarAct.syncAll]:         (state, action) => action.dispMode.enumKey,
+    [fassets.actions.activateTab]: (state, action) => tabManager.getTabController(action.tabId).getTarget().getDispMode().enumKey,
     [_toolBarAct.dispModeChanged]: (state, action) => action.dispMode.enumKey,
   }, DispMode.view.enumKey), // initialState
-  
-  // isDispModeEditable: boolean
-  isDispModeEditable: reducerHash({
-    [_toolBarAct.syncAll]:  (state, action) => action.isDispModeEditable,
-  }, true), // initialState
 
-}) );
+}) ) );
 
 export default reducer;
 
@@ -35,5 +32,4 @@ export default reducer;
 const getFeatureState  = (appState) => reducer.getSlicedState(appState);
 const gfs              = getFeatureState; // ... concise alias (used internally)
 
-export const getDispMode           = (appState) => DispMode.enumValueOf( gfs(appState).dispMode );
-export const getIsDispModeEditable = (appState) => gfs(appState).isDispModeEditable;
+export const getDispMode = (appState) => DispMode.enumValueOf( gfs(appState).dispMode );

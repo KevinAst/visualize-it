@@ -1,6 +1,7 @@
 import Konva             from 'konva';
 import PseudoClass       from './PseudoClass';
 import SmartScene        from './SmartScene';
+import DispMode          from './DispMode';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
 
@@ -145,6 +146,40 @@ export default class Scene extends SmartScene {
       return [...super.getEncodingProps(), ...['_size']];
     }
   }      
+
+  /**
+   * Set self's dispMode (used in top-level objects targeted by a tab).
+   *
+   * @param {DispMode} dispMode - the display mode to set.
+   *
+   * @throws {Error} an Error is thrown if the supplied dispMode is NOT supported.
+   */
+  setDispMode(dispMode) {
+
+    // tab into the common implementation (retaining state after validation)
+    super.setDispMode(dispMode);
+
+    //***
+    //*** value added logic: sync controls to support this setting
+    //***
+
+    // ?? AI: encapsulate internal methods to fully enable new dispMode
+    //        ... ex: enableEditMode() enableViewMode() enableAnimateMode()
+    //        ... index methods via map
+    if (dispMode === DispMode.edit) {
+      //? hack to drill into each top-level shape/group
+      this.konvaLayer.getChildren().each( (shape, n) => shape.draggable(true) );
+    }
+    else if (dispMode === DispMode.view) {
+      //? hack to drill into each top-level shape/group
+      this.konvaLayer.getChildren().each( (shape, n) => shape.draggable(false) );
+    }
+    else { // animate
+      //? hack to drill into each top-level shape/group
+      this.konvaLayer.getChildren().each( (shape, n) => shape.draggable(false) );
+    }
+  }
+
   
   /**
    * Verify self has been mounted.
@@ -219,6 +254,7 @@ export default class Scene extends SmartScene {
    * @returns {boolean|self} for getter: our current draggable
    * setting, for setter: self (supporting chainable setters).
    */
+  // ?? IS THIS OBSOLETE
   draggable(draggable) {
     this.checkMounted('draggable');
     if (draggable===undefined) {          // getter:

@@ -5,7 +5,6 @@ import TabController  from './TabController';
 
 import verify         from 'util/verify';
 
-import DispMode       from 'core/DispMode';
 import Collage        from 'core/Collage';
 import SmartView      from 'core/SmartView';
 
@@ -42,30 +41,9 @@ export default class TabControllerCollage extends TabController {
     this.collage = collage;
   }
 
-  // collage's are editable
-  isEditable() {
-    return true;
-  }
-
-  // manage DispMode settings (specific to collage)
-  setDispMode(dispMode) {
-    super.setDispMode(dispMode);
-
-    //***
-    //*** value added logic:
-    //***
-
-    // propagate setting into our object model
-    // AI: ?? more encapsulation ... suspect need a dispMode API in the object domain itself
-    if (dispMode === DispMode.edit) {
-      this.collage.draggable(true);
-    }
-    else if (dispMode === DispMode.view) {
-      this.collage.draggable(false);
-    }
-    else { // animate
-      this.collage.draggable(false);
-    }
+  // our target is our collage
+  getTarget() {
+    return this.collage;
   }
 
   // wrap our collage in the panel display
