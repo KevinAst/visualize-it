@@ -45,7 +45,7 @@ export default class TabControllerClass extends TabController {
     // instantiate a single component from self's class
     // ... this is what we will render in our tab :-)
     this.compName = PseudoClass.getClassName(clazz);
-    this.comp     = new clazz({id: `comp-${this.compName}`}); // ?? hopefully these components don't need any other parameter context
+    this.comp     = new clazz({id: `comp-${this.compName}`}); // CONSIDER: hopefully no other param context is needed ... I think we are OK
   }
 
   // our target is our component instance, instantiated by self's class
@@ -63,18 +63,16 @@ export default class TabControllerClass extends TabController {
     //       code that supports a scene.
     //       - using the Scene, we merely
     //       - instantiate a single component in it
-    //       - and mark it as a component render
-    //         ... providing the distinction that this is a component view
+    //       - the component API determines if it is editable
+    //         ... see: canHandleDispMode(dispMode): boolean
 
     // wrap our single component in a scene (see NOTE above)
     const scene = new Scene({
       id: `view-${this.compName}`,
       comps: [this.comp], // 
       width:  300,   // ?? we need a way for the comp to tell us it's size
-      height: 300,
+      height: 300,   //    ... once it is mounted, we can interrogate Konva HOWEVER that is too late
     });
-
-    // ?? somehow demark something as a read-only component
 
     // from this point, we can pick up with the normal SmartView logic
     const view = new SmartView({id: `view-${this.compName}`, scene});

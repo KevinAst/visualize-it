@@ -49,8 +49,8 @@ export default class TabControllerCollage extends TabController {
   // wrap our collage in the panel display
   createTabPanelComp() {
     const view = new SmartView({id: `view-${this.getTabId()}`, name: `view-${this.getTabName()}`, scene: this.collage});
-    const comp = () => <ReactSmartView view={view}/>;
-    return comp;
+    const panelComp = () => <ReactSmartView view={view}/>;
+    return panelComp;
   }
 
 }
