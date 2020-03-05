@@ -63,6 +63,7 @@ export default class SmartScene extends SmartModel {
    * @returns {boolean|self} for getter: our current draggable
    * setting, for setter: self (supporting chainable setters).
    */
+  // AI: OBSOLETE (based on current enableXxxMode() implementation)
   draggable(draggable) {
     throw new Error(`***ERROR*** SmartScene pseudo-interface-violation: ${this.diagClassName()}(id:${this.id}).draggable() is an abstract method that MUST BE implemented!`);
   }

@@ -93,6 +93,7 @@ export default class SmartView extends SmartModel {
    * setting of our contained scene, for setter: self (supporting
    * chainable setters).
    */
+  // AI: OBSOLETE (based on current enableXxxMode() implementation)
   draggableScene(draggable) {
     // NOTE: checkMounted() is accomplished at the Scene level
     if (draggable===undefined) {     // getter:

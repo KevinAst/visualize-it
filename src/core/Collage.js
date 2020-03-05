@@ -1,6 +1,5 @@
 import SmartScene        from './SmartScene';
 import Scene             from './Scene';
-import DispMode          from 'core/DispMode';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
 
@@ -53,37 +52,29 @@ export default class Collage extends SmartScene {
     return [...super.getEncodingProps(), ...['scenes']];
   }
 
+  
   /**
-   * Set self's dispMode (used in top-level objects targeted by a tab).
-   *
-   * @param {DispMode} dispMode - the display mode to set.
-   *
-   * @throws {Error} an Error is thrown if the supplied dispMode is NOT supported.
+   * Enable self's "view" DispMode (used in top-level objects targeted by a tab).
    */
-  setDispMode(dispMode) {
+  enableViewMode() {
+    // draggable: disable (propagate into each top-level scene)
+    this.scenes.forEach( (scene) => scene.scene.konvaLayer.draggable(false) );
+  }
 
-    // tab into the common implementation (retaining state after validation)
-    super.setDispMode(dispMode);
+  /**
+   * Enable self's "edit" DispMode (used in top-level objects targeted by a tab).
+   */
+  enableEditMode() {
+    // draggable: enable (propagate into each top-level scene)
+    this.scenes.forEach( (scene) => scene.scene.konvaLayer.draggable(true) );
+  }
 
-    //***
-    //*** value added logic: sync controls to support this setting
-    //***
-
-    // ?? AI: encapsulate internal methods to fully enable new dispMode
-    //        ... ex: enableEditMode() enableViewMode() enableAnimateMode()
-    //        ... index methods via map
-    if (dispMode === DispMode.edit) {
-      //? hack
-      this.scenes.forEach( (scene) => scene.scene.konvaLayer.draggable(true) );
-    }
-    else if (dispMode === DispMode.view) {
-      //? hack
-      this.scenes.forEach( (scene) => scene.scene.konvaLayer.draggable(false) );
-    }
-    else { // animate
-      //? hack
-      this.scenes.forEach( (scene) => scene.scene.konvaLayer.draggable(false) );
-    }
+  /**
+   * Enable self's "animate" DispMode (used in top-level objects targeted by a tab).
+   */
+  enableAnimateMode() {
+    // draggable: disable (propagate into each top-level scene)
+    this.scenes.forEach( (scene) => scene.scene.konvaLayer.draggable(false) );
   }
 
   /**
@@ -141,7 +132,7 @@ export default class Collage extends SmartScene {
    * @returns {boolean|self} for getter: our current draggable
    * setting, for setter: self (supporting chainable setters).
    */
-  // ?? is this obsolete
+  // AI: OBSOLETE (based on current enableXxxMode() implementation)
   draggable(draggable) {
     // NOTE: checkMounted() is accomplished at the Scene level
     if (draggable===undefined) {         // getter:

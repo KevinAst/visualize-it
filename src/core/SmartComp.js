@@ -57,6 +57,20 @@ export default class SmartComp extends SmartModel {
   }
 
   /**
+   * Enable self's "view" DispMode (used in top-level objects targeted by a tab).
+   */
+  enableViewMode() {
+    // L8TR: do something when animate is supported
+  }
+
+  /**
+   * Enable self's "animate" DispMode (used in top-level objects targeted by a tab).
+   */
+  enableAnimateMode() {
+    // L8TR: do something when animate is supported
+  }
+
+  /**
    * Mount the visuals of this component, binding the graphics to the
    * underlying canvas.
    *
@@ -70,7 +84,5 @@ export default class SmartComp extends SmartModel {
     throw new Error(`***ERROR*** SmartComp pseudo-interface-violation: ${this.diagClassName()}(id:${this.id}).mount() is an abstract method that MUST BE implemented!`);
   }
 
-  //? persistenceMethods() {
-  //? }
 }
 SmartComp.unmangledName = 'SmartComp';

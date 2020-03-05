@@ -95,6 +95,20 @@ export default class SmartModel {
 
     // perform the set operation
     this.dispMode = dispMode;
+
+    // fully enable this DispMode in the object model
+    if (dispMode === DispMode.view) {
+      this.enableViewMode();
+    }
+    else if (dispMode === DispMode.edit) {
+      this.enableEditMode();
+    }
+    else if (dispMode === DispMode.animate) {
+      this.enableAnimateMode();
+    }
+    else {
+      throw new Error(`***ERROR*** ${this.diagClassName()}.setDispMode() [id:${this.id}]: unrecognized dispMode: ${dispMode}!`);
+    }
   }
 
   /**
@@ -106,6 +120,27 @@ export default class SmartModel {
    */
   canHandleDispMode(dispMode) {
     return true;  // by default, base class assumes all DispModes are supported
+  }
+
+  /**
+   * Enable self's "view" DispMode (used in top-level objects targeted by a tab).
+   */
+  enableViewMode() {
+    throw new Error(`***ERROR*** SmartModel pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.enableViewMode() is an abstract method that MUST BE implemented!`);
+  }
+
+  /**
+   * Enable self's "edit" DispMode (used in top-level objects targeted by a tab).
+   */
+  enableEditMode() {
+    throw new Error(`***ERROR*** SmartModel pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.enableEditMode() is an abstract method that MUST BE implemented!`);
+  }
+
+  /**
+   * Enable self's "animate" DispMode (used in top-level objects targeted by a tab).
+   */
+  enableAnimateMode() {
+    throw new Error(`***ERROR*** SmartModel pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.enableAnimateMode() is an abstract method that MUST BE implemented!`);
   }
 
 

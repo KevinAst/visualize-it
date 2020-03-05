@@ -23,7 +23,6 @@ const scene1 = new Scene({
     Valve1.createSmartObject({id: 'myValve1'}),
     Valve2.createSmartObject({id: 'myValve2'}),
     Valve3.createSmartObject({id: 'myValve3'}),
-    // new ToggleDraggableScenesButton1(), <<< TRASH
   ],
   width:  300, // ... see this setting pass through our process
   height: 250,
@@ -40,7 +39,6 @@ const scene2 = new Scene({
     Valve1.createSmartObject({id: 'myValve1'}),
     Valve2.createSmartObject({id: 'myValve2'}),
     // Valve3.createSmartObject({id: 'myValve3'}), // omit JUST to make it different
-    // new ToggleDraggableScenesButton2(), <<< TRASH
   ],
   width:  300, // ... see this setting pass through our process
   height: 250,
@@ -60,7 +58,6 @@ const scene1Copy     = scene1ClassRef.createSmartObject({
   //          new Valve1({id: 'myValve1'}),
   //          new Valve2({id: 'myValve2'}),
   //          new Valve3({id: 'myValve3'}),
-  //          new ToggleDraggableScenesButton(), <<< TRASH
   // ],
   width:  300, // ... see this setting pass through our process
   height: 250,
@@ -75,7 +72,6 @@ const scene2Copy     = scene2ClassRef.createSmartObject({
   //   new Valve1({id: 'myValve1'}),
   //   new Valve2({id: 'myValve2'}),
   //   // new Valve3({id: 'myValve3'}), // omit JUST to make it different
-  //   new ToggleDraggableScenesButton(), <<< TRASH
   // ],
   width:  300, // ... see this setting pass through our process
   height: 250,
