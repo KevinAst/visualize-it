@@ -15,8 +15,7 @@ export default class Collage extends SmartScene {
    *
    * @param {string} id - the unique identifier of this  collage.
    * @param {string} [name=id] - The name of this collage (DEFAULT to id).
-   * @param {SceneCtxArr} scenes - the scenes/positions visualized by this collage.
-   * ... where SceneCtxArr: `[ { scene: Scene, pos: {x,y} }, ... ]` ?? REFACTOR: use pure scenes after refactor of scenes to accept x/y
+   * @param {Scene[]} scenes - the scenes visualized by this collage.
    */
   constructor({id, name, scenes, ...unknownArgs}={}) {
     super({id, name});
@@ -27,16 +26,10 @@ export default class Collage extends SmartScene {
     // ... id/name validated by base class
 
     // ... scenes
-    // ?? REFACTOR: use pure scenes after refactor of scenes to accept x/y
     check(scenes,                 'scenes is required');
-    check(Array.isArray(scenes),  'scenes must be a SceneCtxArr');
-    scenes.forEach( (sceneCtx, indx) => {
-      check(sceneCtx.scene instanceof Scene,      `scenes[${indx}].scene must be a Scene instance`);
-      check(sceneCtx.pos,                         `scenes[${indx}].pos is required`);
-      check(Number.isInteger(sceneCtx.pos.x) &&
-            sceneCtx.pos.x >= 0,                  `scenes[${indx}].pos.x must be a positive/zero integer, not: ${sceneCtx.pos.x}`);
-      check(Number.isInteger(sceneCtx.pos.y) &&
-            sceneCtx.pos.y >= 0,                  `scenes[${indx}].pos.y must be a positive/zero integer, not: ${sceneCtx.pos.y}`);
+    check(Array.isArray(scenes),  'scenes must be an Scene[] array');
+    scenes.forEach( (scene, indx) => {
+      check(scene instanceof Scene, `scenes[${indx}] must be a Scene instance`);
     });
 
     // ... unknown arguments
@@ -44,7 +37,6 @@ export default class Collage extends SmartScene {
 
     // retain derivation-specific parameters in self
     this.scenes = scenes;
-    // TODO: need mucho validation and/or a real SceneCtx structure ?? REFACTOR: use pure scenes after refactor of scenes to accept x/y
   }
 
   // support persistance by encoding needed props of self
@@ -58,7 +50,10 @@ export default class Collage extends SmartScene {
    */
   enableViewMode() {
     // draggable: disable (propagate into each top-level scene)
-    this.scenes.forEach( (scene) => scene.scene.konvaLayer.draggable(false) );
+    this.scenes.forEach( (scene) => scene.konvaLayer.draggable(false) );
+
+    // clear events from edit mode (if any)
+    this.containingKonvaStage.off('dragend');
   }
 
   /**
@@ -66,7 +61,23 @@ export default class Collage extends SmartScene {
    */
   enableEditMode() {
     // draggable: enable (propagate into each top-level scene)
-    this.scenes.forEach( (scene) => scene.scene.konvaLayer.draggable(true) );
+    this.scenes.forEach( (scene) => scene.konvaLayer.draggable(true) );
+
+    // monitor events at the Konva Stage level (using Event Delegation and Propagation)
+    // ... dragend: monitor x/y changes - syncing KonvaLayer INTO our Scene SmartObject
+    this.containingKonvaStage.off('dragend'); // clear events to handle back-to-back edits
+    this.containingKonvaStage.on('dragend', (e) => {
+      // console.log(`xx Konva Stage dragend: index: ${e.target.index}, id: ${e.target.id()}, name: ${e.target.name()} x: ${e.target.x()}, y: ${e.target.y()} ... e:\n`, e);
+
+      // locate our scene matching the target Konva.Layer
+      // ... we correlate the id's between Konva/SmartObject
+      const scene = this.scenes.find( (scene) => scene.id === e.target.id() );
+      // console.log(`xx Konva Stage dragend: matching scene: `, scene);
+
+      // sync the modified x/y
+      scene.x = e.target.x();
+      scene.y = e.target.y();
+    });
   }
 
   /**
@@ -74,7 +85,10 @@ export default class Collage extends SmartScene {
    */
   enableAnimateMode() {
     // draggable: disable (propagate into each top-level scene)
-    this.scenes.forEach( (scene) => scene.scene.konvaLayer.draggable(false) );
+    this.scenes.forEach( (scene) => scene.konvaLayer.draggable(false) );
+
+    // clear events from edit mode (if any)
+    this.containingKonvaStage.off('dragend');
   }
 
   /**
@@ -88,11 +102,11 @@ export default class Collage extends SmartScene {
    * this scene (a Konva.Stage).
    */
   mount(containingKonvaStage) {
+    // retain containingKonvaStage for event handling
+    this.containingKonvaStage = containingKonvaStage;
+
     // propagate this request to each of our scenes (one canvas per scene)
-    // ?? OLD: currently still a sceneCtx ... scene.pos will be eventually be obsoleted
-    this.scenes.forEach( (scene) => scene.scene.mount(containingKonvaStage, scene.pos.x, scene.pos.y) );
-    // ?? NEW: once we remove the Ctx
-    //? this.scenes.forEach( (scene) => scene.mount(containingKonvaStage) );
+    this.scenes.forEach( (scene) => scene.mount(containingKonvaStage) );
   }
 
 
@@ -110,14 +124,9 @@ export default class Collage extends SmartScene {
 
     // compute our size accumulated from all our scenes
     const viewSize = this.scenes.reduce( (accum, scene) => {
-      // ?? OLD: currently still a sceneCtx
-      const sceneSize = scene.scene.size();
-      accum.width  = Math.max(accum.width,  scene.pos.x + sceneSize.width); 
-      accum.height = Math.max(accum.height, scene.pos.y + sceneSize.height);
-      // ?? NEW: once we remove the Ctx
-      //? const sceneSize = scene.size();
-      //? accum.width  = Math.max(accum.width,  scene.x + sceneSize.width); 
-      //? accum.height = Math.max(accum.height, scene.y + sceneSize.height);
+      const sceneSize = scene.size();
+      accum.width  = Math.max(accum.width,  scene.x + sceneSize.width); 
+      accum.height = Math.max(accum.height, scene.y + sceneSize.height);
       return accum;
     }, {width:0, height:0});
     return viewSize;
@@ -139,7 +148,7 @@ export default class Collage extends SmartScene {
       return this.scenes[0].draggable(); // return boolean setting of our first scene (assumes it is synced)
     }
     else {                               // setter: sets across all our scenes
-      this.scenes.forEach( (scene) => scene.scene.draggable(draggable) );
+      this.scenes.forEach( (scene) => scene.draggable(draggable) );
       return this;                       // return self (for chaining)
     }
   }

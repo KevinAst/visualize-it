@@ -17,7 +17,6 @@ import checkUnknownArgs  from 'util/checkUnknownArgs';
  * - a scene can DIRECTLY mange it's x/y properties (this is used in
  *   the context of a Collage, where multiple scenes are offset within
  *   a viewport).
- *   ?? REFACTOR: use pure scenes after refactor of scenes to accept x/y (see below)
  *
  * - a scene DIRECTLY manges the width/height properties
  *
@@ -59,7 +58,6 @@ export default class Scene extends SmartScene {
    * @param {SmartComp[]} comps - the set of components (SmartComp) that 
    * make up this scene (logically our display list).
    *
-   *   TODO: ?? REFACTOR: use pure scenes after refactor of scenes to accept x/y (see below)
    * @param {int} [x=0] - the optional x offset of this scene within it's container (used by Collage container - managing multiple Scenes)
    * @param {int} [y=0] - the optional y offset of this scene within it's container (used by Collage container - managing multiple Scenes)
    *
@@ -69,6 +67,8 @@ export default class Scene extends SmartScene {
   constructor({id,
                name,
                comps,
+               x=0,
+               y=0,
                _size, // INTERNAL USE (for rehydration) takes precedence over width/height: _size: {width, height}
                width, // NOTE: we keep as width/height rather than size: {width, height} (for now) ... CONSISTENT with Konva.Stage API (not that that matters ... it is an internal)
                height,
@@ -84,6 +84,14 @@ export default class Scene extends SmartScene {
     // ... comps
     check(comps,                'comps is required');
     check(Array.isArray(comps), 'comps must be a SmartComp[] array');
+
+    // ... x
+    check(Number.isInteger(x), `x must be an integer (when supplied), NOT: ${x}`);
+    check(x>=0,                `x must be >=0 (when supplied), NOT: ${x}`);
+
+    // ... y
+    check(Number.isInteger(y), `y must be an integer (when supplied), NOT: ${y}`);
+    check(y>=0,                `y must be >=0 (when supplied), NOT: ${y}`);
 
     // ... INTERNAL USE (for rehydration) takes precedence over width/height: _size: {width, height}
     if (_size) { 
@@ -112,6 +120,8 @@ export default class Scene extends SmartScene {
     this.pseudoClass = new PseudoClass();
 
     // retain parameters in self
+    this.x     = x;
+    this.y     = y;
     this._size = {width, height}; // NOTE: we use _size so as NOT to clash with size() method
     this.comps = comps;
   }
@@ -130,7 +140,7 @@ export default class Scene extends SmartScene {
 
     // L8TR: see note above
     //? if (cloningType === CloningType.forCloning) {
-    //?   return [...super.getEncodingProps(), ...['pseudoClass', '_size', 'comps']]; // ? if we do this, must handle pseudoClass in constructor params
+    //?   return [...super.getEncodingProps(), ...['pseudoClass', 'x', 'y', '_size', 'comps']]; // ? if we do this, must handle pseudoClass in constructor params
     //? }
     //? else if (cloningType === CloningType.forJSON) {
     //? }
@@ -139,10 +149,10 @@ export default class Scene extends SmartScene {
     //       and tweaked by SmartModel utils ... hmmm
 
     if (this.pseudoClass.isType()) { // the master TYPE DEFINITION persists EVERYTHING
-      return [...super.getEncodingProps(), ...['_size', 'comps']];
+      return [...super.getEncodingProps(), ...['x', 'y', '_size', 'comps']];
     }
     else {                           // instances of this pseudoClass omit props that are part of the TYPE (will be re-constituted from master TYPE DEFINITION)
-      return [...super.getEncodingProps(), ...['_size']];
+      return [...super.getEncodingProps(), ...['x', 'y', '_size']];
     }
   }      
 
@@ -161,6 +171,7 @@ export default class Scene extends SmartScene {
   enableEditMode() {
     // draggable: enable (propagate into each top-level shape/group)
     this.konvaLayer.getChildren().each( (shape, n) => shape.draggable(true) );
+    // ??$$ any new x/y propagate from shape INTO comps
   }
 
   /**
@@ -187,20 +198,16 @@ export default class Scene extends SmartScene {
    * Prior to `mount()` execution, the visualize-it object
    * representation is very lightweight.
    *
-   * @param {Konva.Stage} containingKonvaStage - The container of
+   * @param {Konva.Stage} containingKonvaStage - the container of
    * this scene (a Konva.Stage).
    */
-  mount(containingKonvaStage, xPoop=0, yPoop=0) { // ?? x/y is OLD ... explicit x/y will eventually be obsoleted
-
-    // ?? WITH OTHER REFACTOR x/y should be in contained in self ... i.e. this.x, this.y
-    // ?? temp for now
-    const x = xPoop;
-    const y = yPoop;
+  mount(containingKonvaStage) { 
 
     // create our layer where our components will be mounted
     this.konvaLayer = new Konva.Layer({
-      x,
-      y,
+      id: this.id,
+      x:  this.x,
+      y:  this.y,
     });
 
     // mount our components into this layer

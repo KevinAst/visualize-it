@@ -59,6 +59,8 @@ const scene1Copy     = scene1ClassRef.createSmartObject({
   //          new Valve2({id: 'myValve2'}),
   //          new Valve3({id: 'myValve3'}),
   // ],
+  x:0,
+  y:0,
   width:  300, // ... see this setting pass through our process
   height: 250,
 });
@@ -73,15 +75,14 @@ const scene2Copy     = scene2ClassRef.createSmartObject({
   //   new Valve2({id: 'myValve2'}),
   //   // new Valve3({id: 'myValve3'}), // omit JUST to make it different
   // ],
+  x:300,
+  y:250,
   width:  300, // ... see this setting pass through our process
   height: 250,
 });
 
 // our Collage
-const collage1 = new Collage({id: 'collage1', name: 'Collage 1', scenes: [
-  {scene: scene1Copy, pos: {x:0,   y:0}},
-  {scene: scene2Copy, pos: {x:300, y:250}},
-]});
+const collage1 = new Collage({id: 'collage1', name: 'Collage 1', scenes: [scene1Copy, scene2Copy]});
 
 
 //******************************************************************************
