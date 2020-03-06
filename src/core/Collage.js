@@ -50,10 +50,7 @@ export default class Collage extends SmartScene {
    */
   enableViewMode() {
     // draggable: disable (propagate into each top-level scene)
-    this.scenes.forEach( (scene) => scene.konvaLayer.draggable(false) );
-
-    // clear events from edit mode (if any)
-    this.containingKonvaStage.off('dragend');
+    this.scenes.forEach( (scene) => scene.konvaSceneLayer.draggable(false) );
   }
 
   /**
@@ -61,11 +58,11 @@ export default class Collage extends SmartScene {
    */
   enableEditMode() {
     // draggable: enable (propagate into each top-level scene)
-    this.scenes.forEach( (scene) => scene.konvaLayer.draggable(true) );
+    this.scenes.forEach( (scene) => scene.konvaSceneLayer.draggable(true) );
 
     // monitor events at the Konva Stage level (using Event Delegation and Propagation)
     // ... dragend: monitor x/y changes - syncing KonvaLayer INTO our Scene SmartObject
-    this.containingKonvaStage.off('dragend'); // clear events to handle back-to-back edits
+    this.containingKonvaStage.off('dragend'); // clear events to purge any OLD registrations
     this.containingKonvaStage.on('dragend', (e) => {
       // console.log(`xx Konva Stage dragend: index: ${e.target.index}, id: ${e.target.id()}, name: ${e.target.name()} x: ${e.target.x()}, y: ${e.target.y()} ... e:\n`, e);
 
@@ -85,10 +82,7 @@ export default class Collage extends SmartScene {
    */
   enableAnimateMode() {
     // draggable: disable (propagate into each top-level scene)
-    this.scenes.forEach( (scene) => scene.konvaLayer.draggable(false) );
-
-    // clear events from edit mode (if any)
-    this.containingKonvaStage.off('dragend');
+    this.scenes.forEach( (scene) => scene.konvaSceneLayer.draggable(false) );
   }
 
   /**
