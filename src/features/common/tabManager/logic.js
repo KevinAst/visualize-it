@@ -169,11 +169,49 @@ export const supplementCloseTab = createLogic({
 });
 
 
+/**
+ * Synchronize the target tab's DispMode when a tab is initially
+ * displayed.  
+ *
+ * This will insure the internal Konva state matches the object
+ * model's initial state!
+ * 
+ * BACKGROUND: Normally a DispMode starts out in a 'view" mode.
+ *             HOWEVER: If we close a tab that is in edit mode, 
+ *                      and then when we bring the tab back
+ *                      (from the LeftNav) the model will now
+ *                       match the last DispMode!
+ */
+export const syncTargetDispMode = createLogic({
+
+  name: `${_tabManager}.syncTargetDispMode`,
+  type: String(_tabManagerAct.activateTab),
+
+  // NOTE: we perform this in the "process" phase because Konva must be mounted to work :-(
+  process({getState, action, fassets}, dispatch, done) {
+
+    // when this is a new tab ...
+    if (action.pgmDirectives.addNewTab) {
+
+      // sync it's Konva state to match the object model's initial state
+      // ... see JavaDoc (above)
+      // console.log(`xx LOGIC: ${_tabManager}.syncTargetDispMode ... syncing now!`);
+      const tabController = tabManager.getTabController(action.tabId); // ... AI: may error - returns undefined if NOT registered?
+      const target        = tabController.getTarget();
+      target.setDispMode( target.getDispMode() );
+    }
+
+    done();
+  },
+
+});
+
+
 // promote all logic modules for this feature
 // ... NOTE: individual logic modules are unit tested using the named exports.
 export default [
-
   supplementActivateTab,
   supplementCloseTab,
 
+  syncTargetDispMode,
 ];

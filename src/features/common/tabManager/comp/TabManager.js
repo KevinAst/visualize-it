@@ -90,16 +90,6 @@ export default function TabManager() {
       {tabs.map( tab => {
          const tabController = tabManager.getTabController(tab.tabId); // ... AI: may error - returns undefined if NOT registered?
          const TabCreator    = tabController.getTabPanelComp();
-         // special case: insure our target dispMode matches it's initial state
-         // ... normally it starts out in view mode
-         //     HOWEVER: if we close a tab that is in edit mode, 
-         //              then when we bring the tab back
-         //              the model should match the last DispMode
-         //     HACK: we do this in timer because must be Konva mounted to work :-(
-         setTimeout( () => {
-           const target = tabController.getTarget();
-           target.setDispMode( target.getDispMode() );
-         }, 10);
          return (
            <TabPanel key={tab.tabId}
                      tabId={tab.tabId}
