@@ -20,9 +20,9 @@ const Valve3 = pkgManager.getClassRef('generalComps', 'Valve3');
 const scene1 = new Scene({
   id: 'scene1',
   comps: [
-    Valve1.createSmartObject({id: 'myValve1'}),
-    Valve2.createSmartObject({id: 'myValve2'}),
-    Valve3.createSmartObject({id: 'myValve3'}),
+    Valve1.createSmartObject({id: 'myValve1', x:  20, y:  20}),
+    Valve2.createSmartObject({id: 'myValve2', x: 150, y:  40}),
+    Valve3.createSmartObject({id: 'myValve3', x:  50, y: 120}),
   ],
   width:  300, // ... see this setting pass through our process
   height: 250,
@@ -36,9 +36,8 @@ const scene1 = new Scene({
 const scene2 = new Scene({
   id: 'scene2',
   comps: [
-    Valve1.createSmartObject({id: 'myValve1'}),
-    Valve2.createSmartObject({id: 'myValve2'}),
-    // Valve3.createSmartObject({id: 'myValve3'}), // omit JUST to make it different
+    Valve1.createSmartObject({id: 'myValve1', x:  20, y:  20}),
+    Valve2.createSmartObject({id: 'myValve2', x: 150, y:  40}),
   ],
   width:  300, // ... see this setting pass through our process
   height: 250,

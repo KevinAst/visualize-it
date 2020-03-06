@@ -34,15 +34,33 @@ export default class SmartComp extends SmartModel {
    * @param {string} id - the unique identifier of this component.
    * @param {string} [name=id] - the human interpretable name of this
    * component (DEFAULT to id). // ?? UNSURE if we want to DEFAULT this way
+   *
+   * @param {int} [x=0] - the optional x offset of this comp within it's container (used by Scene container - managing multiple SmartComps)
+   * @param {int} [y=0] - the optional y offset of this comp within it's container (used by Scene container - managing multiple SmartComps)
    */
-  constructor({id, name, ...unknownArgs}={}) {
+  constructor({id, name, x=0, y=0, ...unknownArgs}={}) {
     super({id, name});
 
-    // validate SmartScene() constructor parameters
-    const check = verify.prefix('SmartScene() constructor parameter violation: ');
+    // validate SmartComp() constructor parameters
+    const check = verify.prefix('SmartComp() constructor parameter violation: ');
     // ... id/name validated by base class
+    // ... x
+    check(Number.isInteger(x), `x must be an integer (when supplied), NOT: ${x}`);
+    check(x>=0,                `x must be >=0 (when supplied), NOT: ${x}`);
+    // ... y
+    check(Number.isInteger(y), `y must be an integer (when supplied), NOT: ${y}`);
+    check(y>=0,                `y must be >=0 (when supplied), NOT: ${y}`);
     // ... unknown arguments
     checkUnknownArgs(check, unknownArgs, arguments);
+
+    // retain parameters in self
+    this.x     = x;
+    this.y     = y;
+  }
+
+  // support persistance by encoding needed props of self
+  getEncodingProps() {
+    return [...super.getEncodingProps(), ...['x', 'y']];
   }
 
   /**
