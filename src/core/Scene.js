@@ -162,16 +162,40 @@ export default class Scene extends SmartScene {
    */
   enableViewMode() {
     // draggable: disable (propagate into each top-level shape/group)
-    this.konvaLayer.getChildren().each( (shape, n) => shape.draggable(false) );
+    this.konvaSceneLayer.getChildren().each( (shape, n) => shape.draggable(false) );
   }
 
   /**
    * Enable self's "edit" DispMode (used in top-level objects targeted by a tab).
    */
   enableEditMode() {
+    // ?? BECAUSE OF THE HACK to sync DispMode in the rendering of TabManager
+    //    ... this is being called 2 times EVERY TIME a tab changes
+    //        1. once   for every tabs render ... FROM: src/features/common/tabManager/comp/TabManager.js
+    //        2. second for every tabs render ... FROM: src/features/common/tabManager/comp/TabManager.js
+    //        3. WHEN SETTING ................... FROM: src/features/toolBar/logic.js
+    //    ... ?? has to be a better way ... pull this hack OUTSIDE the TabManager render process
+    //? console.log(`?? IN: Konva Scene Layer enableEditMode()`); // ??? geeze: this is being called 3 time
+    //? console.log(new Error().stack);
+
     // draggable: enable (propagate into each top-level shape/group)
-    this.konvaLayer.getChildren().each( (shape, n) => shape.draggable(true) );
-    // ??$$ any new x/y propagate from shape INTO comps
+    this.konvaSceneLayer.getChildren().each( (shape, n) => shape.draggable(true) );
+
+    // monitor events at the Konva Scene Layer level (using Event Delegation and Propagation)
+    // ... dragend: monitor x/y changes - syncing KonvaLayer INTO our Scene SmartObject
+    this.konvaSceneLayer.off('dragend'); // clear events to purge any OLD registrations
+    this.konvaSceneLayer.on('dragend', (e) => {
+      // console.log(`xx Konva Scene Layer dragend: index: ${e.target.index}, id: ${e.target.id()}, name: ${e.target.name()} x: ${e.target.x()}, y: ${e.target.y()} ... e:\n`, e);
+
+      // locate our component matching the target Konva.Group
+      // ... we correlate the id's between Konva/SmartObject
+      const comp = this.comps.find( (comp) => comp.id === e.target.id() );
+      // console.log(`xx Konva Scene Layer dragend: matching comp: `, comp);
+
+      // sync the modified x/y
+      comp.x = e.target.x();
+      comp.y = e.target.y();
+    });
   }
 
   /**
@@ -179,7 +203,7 @@ export default class Scene extends SmartScene {
    */
   enableAnimateMode() {
     // draggable: disable (propagate into each top-level shape/group)
-    this.konvaLayer.getChildren().each( (shape, n) => shape.draggable(false) );
+    this.konvaSceneLayer.getChildren().each( (shape, n) => shape.draggable(false) );
   }
 
   
@@ -188,7 +212,7 @@ export default class Scene extends SmartScene {
    * @param {string} [method] - the method name on which behalf we are checking.
    */
   checkMounted(method) {
-    verify(this.konvaLayer, `${this.diagClassName()}.${method}() can only be invoked after mounting.`);
+    verify(this.konvaSceneLayer, `${this.diagClassName()}.${method}() can only be invoked after mounting.`);
   }
 
   /**
@@ -204,19 +228,19 @@ export default class Scene extends SmartScene {
   mount(containingKonvaStage) { 
 
     // create our layer where our components will be mounted
-    this.konvaLayer = new Konva.Layer({
+    this.konvaSceneLayer = new Konva.Layer({
       id: this.id,
       x:  this.x,
       y:  this.y,
     });
 
     // mount our components into this layer
-    this.comps.forEach( (comp) => comp.mount(this.konvaLayer) );
+    this.comps.forEach( (comp) => comp.mount(this.konvaSceneLayer) );
 
     // wire our layer into the supplied containingKonvaStage
     // ... NOTE: This must be added AFTER the layer is populated :-(
     //           UNSURE WHY: seems like a Konva limitation :-(
-    containingKonvaStage.add(this.konvaLayer)
+    containingKonvaStage.add(this.konvaSceneLayer)
   }
 
 
@@ -255,12 +279,12 @@ export default class Scene extends SmartScene {
   // AI: OBSOLETE (based on current enableXxxMode() implementation)
   draggable(draggable) {
     this.checkMounted('draggable');
-    if (draggable===undefined) {          // getter:
-      return this.konvaLayer.draggable(); // return boolean setting
+    if (draggable===undefined) {               // getter:
+      return this.konvaSceneLayer.draggable(); // return boolean setting
     }
-    else {                                  // setter:
-      this.konvaLayer.draggable(draggable); // set internal object
-      return this;                          // return self (for chaining)
+    else {                                       // setter:
+      this.konvaSceneLayer.draggable(draggable); // set internal object
+      return this;                               // return self (for chaining)
     }
   }
 
