@@ -12,13 +12,7 @@ class Valve1 extends SmartComp {
 
   // NOTE: this component demonstrates multi shapes grouped in a compGroup
   mount(containingKonvaLayer) {
-    // create our top-level group containing our component sub-shapes
-    this.compGroup = new Konva.Group({
-      id: this.id,
-      x:  this.x,
-      y:  this.y,
-    });
-    containingKonvaLayer.add(this.compGroup);
+    super.mount(containingKonvaLayer); // defines: this.compGroup
 
     const shape1 = new Konva.Rect({
       x: 10, // sub-shape location
@@ -26,7 +20,7 @@ class Valve1 extends SmartComp {
       height: 50,
       fill: 'green',
       stroke: 'black',
-      strokeWidth: 5
+      strokeWidth: 5,
     });
     this.compGroup.add(shape1);
 
@@ -36,7 +30,7 @@ class Valve1 extends SmartComp {
       radius: 5,
       fill: 'black',
       stroke: 'black',
-      strokeWidth: 5
+      strokeWidth: 5,
     });
     this.compGroup.add(connector1);
 
@@ -46,9 +40,26 @@ class Valve1 extends SmartComp {
       radius: 5,
       fill: 'black',
       stroke: 'black',
-      strokeWidth: 5
+      strokeWidth: 5,
     });
     this.compGroup.add(connector2);
+
+    // setup a sub-group JUST to insure (test) our algorithms can find/use the top-level group
+    const subGroup = new Konva.Group({
+      x: 0, // NOTE: cannot be based on this.x, RATHER a constant
+      y: 0, //       BECAUSE this.compGroup reflects the transformation parameters (so we can't apply the transformations multiple times)
+    });
+    this.compGroup.add(subGroup);
+
+    const subCircle = new Konva.Circle({
+      x: 10+(100/2), // WHY no strokeWidth: +2.5
+      y: 0+(50/2),   // WHY no strokeWidth: +2.5
+      radius: 10,
+      fill: 'red',
+      stroke: 'red',
+      strokeWidth: 1,
+    });
+    subGroup.add(subCircle);
   }
 }
 Valve1.unmangledName = 'Valve1';
@@ -61,13 +72,7 @@ class Valve2 extends SmartComp {
   // }
 
   mount(containingKonvaLayer) {
-    // create our top-level group containing our component sub-shapes
-    this.compGroup = new Konva.Group({
-      id: this.id,
-      x:  this.x,
-      y:  this.y,
-    });
-    containingKonvaLayer.add(this.compGroup);
+    super.mount(containingKonvaLayer); // defines: this.compGroup
 
     const shape = new Konva.Rect({
       width: 100,
@@ -89,13 +94,7 @@ class Valve3 extends SmartComp {
   // }
 
   mount(containingKonvaLayer) {
-    // create our top-level group containing our component sub-shapes
-    this.compGroup = new Konva.Group({
-      id: this.id,
-      x:  this.x,
-      y:  this.y,
-    });
-    containingKonvaLayer.add(this.compGroup);
+    super.mount(containingKonvaLayer); // defines: this.compGroup
 
     const shape = new Konva.Rect({
       width:  100,

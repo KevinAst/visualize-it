@@ -47,10 +47,14 @@ export default class Collage extends SmartScene {
   
   /**
    * Enable self's "view" DispMode (used in top-level objects targeted by a tab).
+   *
+   * NOTE: this is also invoked prior to other display modes, as a neutral reset :-)
    */
   enableViewMode() {
-    // draggable: disable (propagate into each top-level scene)
+    // clear everything from any of the other DispModes
+    // ... sequentially follow each item in the "other" DispModes
     this.scenes.forEach( (scene) => scene.konvaSceneLayer.draggable(false) );
+    this.containingKonvaStage.off('dragend');
   }
 
   /**
@@ -62,7 +66,6 @@ export default class Collage extends SmartScene {
 
     // monitor events at the Konva Stage level (using Event Delegation and Propagation)
     // ... dragend: monitor x/y changes - syncing KonvaLayer INTO our Scene SmartObject
-    this.containingKonvaStage.off('dragend'); // clear events to purge any OLD registrations
     this.containingKonvaStage.on('dragend', (e) => {
       // console.log(`xx Konva Stage dragend: index: ${e.target.index}, id: ${e.target.id()}, name: ${e.target.name()} x: ${e.target.x()}, y: ${e.target.y()} ... e:\n`, e);
 
@@ -81,8 +84,7 @@ export default class Collage extends SmartScene {
    * Enable self's "animate" DispMode (used in top-level objects targeted by a tab).
    */
   enableAnimateMode() {
-    // draggable: disable (propagate into each top-level scene)
-    this.scenes.forEach( (scene) => scene.konvaSceneLayer.draggable(false) );
+    // yet to do
   }
 
   /**

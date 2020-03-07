@@ -1,6 +1,8 @@
+import Konva             from 'konva';
 import SmartModel        from './SmartModel';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
+import {isNumber}        from 'util/typeCheck';
 import DispMode          from './DispMode';
 
 /**
@@ -35,32 +37,42 @@ export default class SmartComp extends SmartModel {
    * @param {string} [name=id] - the human interpretable name of this
    * component (DEFAULT to id). // ?? UNSURE if we want to DEFAULT this way
    *
-   * @param {int} [x=0] - the optional x offset of this comp within it's container (used by Scene container - managing multiple SmartComps)
-   * @param {int} [y=0] - the optional y offset of this comp within it's container (used by Scene container - managing multiple SmartComps)
+   * @param {number} [x=0] - the optional x offset within it's container (used in transformations of Scene container)
+   * @param {number} [y=0] - the optional y offset within it's container (used in transformations of Scene container)
+   * @param {number} [rotation=0] - the optional rotation within it's container (used in transformations of Scene container)
+   * @param {number} [scaleX=0] - the optional scaleX within it's container (used in transformations of Scene container)
+   * @param {number} [scaleY=0] - the optional scaleY within it's container (used in transformations of Scene container)
    */
-  constructor({id, name, x=0, y=0, ...unknownArgs}={}) {
+  constructor({id, name, x=0, y=0, rotation=0, scaleX=1, scaleY=1, ...unknownArgs}={}) {
     super({id, name});
 
     // validate SmartComp() constructor parameters
     const check = verify.prefix('SmartComp() constructor parameter violation: ');
     // ... id/name validated by base class
     // ... x
-    check(Number.isInteger(x), `x must be an integer (when supplied), NOT: ${x}`);
-    check(x>=0,                `x must be >=0 (when supplied), NOT: ${x}`);
+    check(isNumber(x), `x must be a number (when supplied), NOT: ${x}`);
     // ... y
-    check(Number.isInteger(y), `y must be an integer (when supplied), NOT: ${y}`);
-    check(y>=0,                `y must be >=0 (when supplied), NOT: ${y}`);
+    check(isNumber(y), `y must be a number (when supplied), NOT: ${y}`);
+    // ... rotation
+    check(isNumber(rotation), `rotation must be a number (when supplied), NOT: ${rotation}`);
+    // ... scaleX
+    check(isNumber(scaleX), `scaleX must be a number (when supplied), NOT: ${scaleX}`);
+    // ... scaleY
+    check(isNumber(scaleY), `scaleY must be a number (when supplied), NOT: ${scaleY}`);
     // ... unknown arguments
     checkUnknownArgs(check, unknownArgs, arguments);
 
     // retain parameters in self
-    this.x     = x;
-    this.y     = y;
+    this.x        = x;
+    this.y        = y;
+    this.rotation = rotation;
+    this.scaleX   = scaleX;
+    this.scaleY   = scaleY;
   }
 
   // support persistance by encoding needed props of self
   getEncodingProps() {
-    return [...super.getEncodingProps(), ...['x', 'y']];
+    return [...super.getEncodingProps(), ...['x', 'y', 'rotation', 'scaleX', 'scaleY']];
   }
 
   /**
@@ -76,6 +88,8 @@ export default class SmartComp extends SmartModel {
 
   /**
    * Enable self's "view" DispMode (used in top-level objects targeted by a tab).
+   *
+   * NOTE: this is also invoked prior to other display modes, as a neutral reset :-)
    */
   enableViewMode() {
     // L8TR: do something when animate is supported
@@ -99,7 +113,17 @@ export default class SmartComp extends SmartModel {
    * this component (a Konva.Layer).
    */
   mount(containingKonvaLayer) {
-    throw new Error(`***ERROR*** SmartComp pseudo-interface-violation: ${this.diagClassName()}(id:${this.id}).mount() is an abstract method that MUST BE implemented!`);
+    // create our top-level group containing our component sub-shapes
+    // ... this is an expected setup to allow components to be treated as an atomic unit
+    this.compGroup = new Konva.Group({
+      id: this.id,
+      x:  this.x,
+      y:  this.y,
+      rotation: this.rotation,
+      scaleX:   this.scaleX,
+      scaleY:   this.scaleY,
+    });
+    containingKonvaLayer.add(this.compGroup);
   }
 
 }

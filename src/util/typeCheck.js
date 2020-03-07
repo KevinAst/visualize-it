@@ -18,9 +18,17 @@ function isComponent(comp) {
   return isValidElementType(comp); 
 }
 
+
+// return an indicator as to whether the supplied parameter is a
+// number (true) or not (false).
+function isNumber(val) {
+  return typeof val === 'number';
+}
+
 export {
   isEqual,                    // + isEqual(ref1, ref2): boolean ... a deep comparison
   isFunction,                 // + isFunction(ref): boolean
+  isNumber,                   // + isNumber(ref): boolean
   isObject,                   // + isObject(ref): boolean
   isPlainObject,              // + isPlainObject(ref): boolean
   isString,                   // + isString(ref): boolean

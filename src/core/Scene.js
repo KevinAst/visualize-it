@@ -1,6 +1,7 @@
 import Konva             from 'konva';
 import PseudoClass       from './PseudoClass';
 import SmartScene        from './SmartScene';
+import {ancestorOfLayer} from './konvaUtil';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
 
@@ -159,31 +160,34 @@ export default class Scene extends SmartScene {
   
   /**
    * Enable self's "view" DispMode (used in top-level objects targeted by a tab).
+   *
+   * NOTE: this is also invoked prior to other display modes, as a neutral reset :-)
    */
   enableViewMode() {
-    // draggable: disable (propagate into each top-level shape/group)
-    this.konvaSceneLayer.getChildren().each( (shape, n) => shape.draggable(false) );
+    // clear everything from any of the other DispModes
+    // ... sequentially follow each item in the "other" DispModes
+    this.konvaSceneLayer.getChildren().each( (konvaComp, n) => konvaComp.draggable(false) );
+    this.konvaSceneLayer.off('dragend');
+    this.containingKonvaStage.off('click tap');
+    this.containingKonvaStage.find('Transformer').destroy(); // remove any outstanding transformers
+    this.konvaSceneLayer.getChildren().each( (konvaComp, n) => konvaComp.off('transformend') );
+    this.konvaSceneLayer.draw();
   }
 
   /**
    * Enable self's "edit" DispMode (used in top-level objects targeted by a tab).
    */
   enableEditMode() {
-    // ?? BECAUSE OF THE HACK to sync DispMode in the rendering of TabManager
-    //    ... this is being called 2 times EVERY TIME a tab changes
-    //        1. once   for every tabs render ... FROM: src/features/common/tabManager/comp/TabManager.js
-    //        2. second for every tabs render ... FROM: src/features/common/tabManager/comp/TabManager.js
-    //        3. WHEN SETTING ................... FROM: src/features/toolBar/logic.js
-    //    ... ?? has to be a better way ... pull this hack OUTSIDE the TabManager render process
-    //? console.log(`?? IN: Konva Scene Layer enableEditMode()`); // ??? geeze: this is being called 3 time
-    //? console.log(new Error().stack);
+
+    //***
+    //*** enable dragging ... to all top-level konvaComps
+    //***
 
     // draggable: enable (propagate into each top-level shape/group)
-    this.konvaSceneLayer.getChildren().each( (shape, n) => shape.draggable(true) );
+    this.konvaSceneLayer.getChildren().each( (konvaComp, n) => konvaComp.draggable(true) );
 
     // monitor events at the Konva Scene Layer level (using Event Delegation and Propagation)
     // ... dragend: monitor x/y changes - syncing KonvaLayer INTO our Scene SmartObject
-    this.konvaSceneLayer.off('dragend'); // clear events to purge any OLD registrations
     this.konvaSceneLayer.on('dragend', (e) => {
       // console.log(`xx Konva Scene Layer dragend: index: ${e.target.index}, id: ${e.target.id()}, name: ${e.target.name()} x: ${e.target.x()}, y: ${e.target.y()} ... e:\n`, e);
 
@@ -196,14 +200,61 @@ export default class Scene extends SmartScene {
       comp.x = e.target.x();
       comp.y = e.target.y();
     });
+
+
+    //***
+    //*** enable transformations ... to all top-level konvaComps
+    //***
+
+    // monitor component selection via click events
+    // NOTE: a click event will not trigger on Layer but on the Stage object instead
+    //       ... see: https://konvajs.org/docs/events/Stage_Events.html
+    this.containingKonvaStage.on('click tap', (e) => {
+
+      // console.log(`xx TRANSFORM: target:\n`, e.target);
+
+      // on void click: remove all transformers
+      if (e.target === this.containingKonvaStage) {
+        this.containingKonvaStage.find('Transformer').destroy();
+        this.konvaSceneLayer.draw();
+        return;
+      }
+
+      // remove old transformers
+      this.containingKonvaStage.find('Transformer').destroy();
+
+      // our real target it the top-level group (the konva representation of our component)
+      const konvaComp = ancestorOfLayer(e.target);
+
+      // create/manage new transformer
+      var transformer = new Konva.Transformer();
+      this.konvaSceneLayer.add(transformer);
+      transformer.attachTo(konvaComp);
+      this.konvaSceneLayer.draw();
+
+      // sync Konva changes to Object Model
+      konvaComp.on('transformend', (e) => { // ... NOTE: updates x/y/rotation/scaleX/scaleY ... NOT width/height at all
+        // locate our component matching the target Konva.Group
+        // ... we correlate the id's between Konva/SmartObject
+        const comp = this.comps.find( (comp) => comp.id === e.target.id() );
+        // console.log(`xx Konva Scene Layer transformend: x: ${e.target.x()}, y: ${e.target.y()}, rotation: ${e.target.rotation()}, scaleX: ${e.target.scaleX()}, scaleY: ${e.target.scaleY()},  ... matching comp: `, comp);
+
+        // sync the modified x/y/rotation/scaleX/scaleY
+        comp.x        = e.target.x();
+        comp.y        = e.target.y();
+        comp.rotation = e.target.rotation();
+        comp.scaleX   = e.target.scaleX();
+        comp.scaleY   = e.target.scaleY();
+      });
+
+    });
   }
 
   /**
    * Enable self's "animate" DispMode (used in top-level objects targeted by a tab).
    */
   enableAnimateMode() {
-    // draggable: disable (propagate into each top-level shape/group)
-    this.konvaSceneLayer.getChildren().each( (shape, n) => shape.draggable(false) );
+    // yet to do
   }
 
   
@@ -226,6 +277,9 @@ export default class Scene extends SmartScene {
    * this scene (a Konva.Stage).
    */
   mount(containingKonvaStage) { 
+
+    // retain our stage for selected event processing
+    this.containingKonvaStage = containingKonvaStage;
 
     // create our layer where our components will be mounted
     this.konvaSceneLayer = new Konva.Layer({

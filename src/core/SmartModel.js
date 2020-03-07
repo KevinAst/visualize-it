@@ -101,9 +101,11 @@ export default class SmartModel {
       this.enableViewMode();
     }
     else if (dispMode === DispMode.edit) {
+      this.enableViewMode(); // a neutral reset
       this.enableEditMode();
     }
     else if (dispMode === DispMode.animate) {
+      this.enableViewMode(); // a neutral reset
       this.enableAnimateMode();
     }
     else {
@@ -124,6 +126,8 @@ export default class SmartModel {
 
   /**
    * Enable self's "view" DispMode (used in top-level objects targeted by a tab).
+   *
+   * NOTE: this is also invoked prior to other display modes, as a neutral reset :-)
    */
   enableViewMode() {
     throw new Error(`***ERROR*** SmartModel pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.enableViewMode() is an abstract method that MUST BE implemented!`);
