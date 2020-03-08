@@ -28,7 +28,7 @@ export default class SmartScene extends SmartModel {
   }
 
   /**
-   * Mount the visuals of this collage, binding the graphics to the
+   * Mount the visuals of this SmartScene, binding the graphics to the
    * underlying canvas.
    *
    * Prior to `mount()` execution, the visualize-it object
@@ -36,8 +36,11 @@ export default class SmartScene extends SmartModel {
    *
    * @param {Konva.Stage} containingKonvaStage - The container of
    * this scene (a Konva.Stage).
+   *
+   * @param {HtmlElm} containingHtmlElm - The overall containing
+   * HTML element (needed for dynamic resizing in Collage).
    */
-  mount(containingKonvaStage) {
+  mount(containingKonvaStage, containingHtmlElm) {
     throw new Error(`***ERROR*** SmartScene pseudo-interface-violation: ${this.diagClassName()}(id:${this.id}).mount() is an abstract method that MUST BE implemented!`);
   }
 

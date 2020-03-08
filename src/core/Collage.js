@@ -77,6 +77,15 @@ export default class Collage extends SmartScene {
       // sync the modified x/y
       scene.x = e.target.x();
       scene.y = e.target.y();
+
+      // reset the stage size which is dynamically calculated!
+      const newSize = this.size();
+      // ... adjust the Stage
+      this.containingKonvaStage.size(newSize);
+      this.containingKonvaStage.draw();
+      // ... adjust the Stage's corollary HTML elm
+      this.containingHtmlElm.style.width  = `${newSize.width}px`;
+      this.containingHtmlElm.style.height = `${newSize.height}px`;
     });
   }
 
@@ -95,11 +104,17 @@ export default class Collage extends SmartScene {
    * representation is very lightweight.
    *
    * @param {Konva.Stage} containingKonvaStage - The container of
-   * this scene (a Konva.Stage).
+   * this collage (a Konva.Stage).
+   *
+   * @param {HtmlElm} containingHtmlElm - The overall containing
+   * HTML element (needed for dynamic resizing in Collage).
    */
-  mount(containingKonvaStage) {
+  mount(containingKonvaStage, containingHtmlElm) {
     // retain containingKonvaStage for event handling
     this.containingKonvaStage = containingKonvaStage;
+
+    // retain containingHtmlElm (needed to dynamically resize)
+    this.containingHtmlElm = containingHtmlElm;
 
     // propagate this request to each of our scenes (one canvas per scene)
     this.scenes.forEach( (scene) => scene.mount(containingKonvaStage) );

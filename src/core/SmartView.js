@@ -130,7 +130,7 @@ export default class SmartView extends SmartModel {
     });
     
     // mount our scene into this stage
-    this.scene.mount(this.konvaStage);
+    this.scene.mount(this.konvaStage, containingHtmlElm); // ... containingHtmlElm needed to dynamically resize collage
 
   }
 }

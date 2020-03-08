@@ -24,8 +24,8 @@ const scene1 = new Scene({
     Valve2.createSmartObject({id: 'myValve2', x: 150, y:  40}),
     Valve3.createSmartObject({id: 'myValve3', x:  50, y: 120}),
   ],
-  width:  300, // ... see this setting pass through our process
-  height: 250,
+  width:  280, // ... see this setting pass through our process
+  height: 240,
 });
 
 
@@ -39,8 +39,8 @@ const scene2 = new Scene({
     Valve1.createSmartObject({id: 'myValve1', x:  20, y:  20}),
     Valve2.createSmartObject({id: 'myValve2', x: 150, y:  40}),
   ],
-  width:  300, // ... see this setting pass through our process
-  height: 250,
+  width:  280, // ... see this setting pass through our process
+  height: 125,
 });
 
 

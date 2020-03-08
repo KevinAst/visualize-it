@@ -275,11 +275,16 @@ export default class Scene extends SmartScene {
    *
    * @param {Konva.Stage} containingKonvaStage - the container of
    * this scene (a Konva.Stage).
+   *
+   * @param {HtmlElm} containingHtmlElm - The overall containing
+   * HTML element (needed for dynamic resizing in Collage).
    */
-  mount(containingKonvaStage) { 
+  mount(containingKonvaStage, containingHtmlElm) { 
 
     // retain our stage for selected event processing
     this.containingKonvaStage = containingKonvaStage;
+
+    // NOTE: containingHtmlElm is currently NOT needed for Scene
 
     // create our layer where our components will be mounted
     this.konvaSceneLayer = new Konva.Layer({
