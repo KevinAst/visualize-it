@@ -1,3 +1,4 @@
+import 'core/preregisterCoreClasses';  // pre-register our "core" SmartPkg very early, allowing pkgManager to resolve "core" packages
 import ReactDOM     from 'react-dom';
 import {launchApp}  from 'feature-u';
 import features     from 'features';
