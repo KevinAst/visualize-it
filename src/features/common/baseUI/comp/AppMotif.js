@@ -9,6 +9,7 @@ import {makeStyles}   from '@material-ui/core/styles';
 
 import LeftNav        from './LeftNav';
 import UserMenu       from './UserMenu';
+import FileMenu       from './FileMenu';
 
 import AppBar         from '@material-ui/core/AppBar';
 import IconButton     from '@material-ui/core/IconButton';
@@ -17,12 +18,7 @@ import Toolbar        from '@material-ui/core/Toolbar';
 
 import VitToolBar     from '../../../toolBar/comp/VitToolBar'; // NEW (TEMPORARY)
 
-// import {toast}        from 'util/notify'; //? commented out in template code 
-import discloseError  from 'util/discloseError';
-
-import {openPkg}        from 'core/pkgPersist';
-import {leftNavManager} from 'features';
-
+import {toast}        from 'util/notify';
 
 
 /**
@@ -89,37 +85,14 @@ export default function AppMotif({children}) {
           {/* AI: Consider for some App Menu */}
           <IconButton className={classes.menuButton}
                       color="inherit"
-                      onClick={ async () => {
-                          // toast.warn({msg: 'App Menu NOT implemented yet (coming soon)!'}) // ?? original
-                          try {
-
-                            // load the visualize-it smartPkg
-                            const smartPkg = await openPkg();
-                            if (!smartPkg) {
-                              return; // no-op when user canceled the pick dialog
-                            }
-
-                            // register it in our LeftNav
-                            // ... this dispatches an action, so any error cannot be caught here
-                            leftNavManager.addLeftNav(smartPkg);
-
-                            // process a text file (temporary sandbox)
-                            //? const fileHandle  = await window.chooseFileSystemEntries(); // AI: eventually retain this in outer scope IF you need to reuse
-                            //? console.log(`?? fileHandle: `, {fileHandle, name: fileHandle.name});
-                            //? const file        = await fileHandle.getFile();
-                            //? console.log('?? file: ', file);
-                            //? const fileContent = await file.text();
-                            //? toast({msg: `local fileContent:\n\n${fileContent}`});
-                            //? //? toast({msg: 'see console for file content :-)'});
-                            //? console.log(`?? local fileContent:\n\n${fileContent}`);
-                          }
-                          catch (err) {
-                            // gracefully report unexpected conditions to user
-                            discloseError({err, logIt:true});
-                          }
+                      onClick={ () => {
+                        toast.warn({msg: 'Collapsable Left Nav (coming soon)!'})
                       }}>
             <MenuIcon/>
           </IconButton>
+
+          {/* File Menu */}
+          <FileMenu/>
 
           {/* Title */}
           <div className={classes.title}>
