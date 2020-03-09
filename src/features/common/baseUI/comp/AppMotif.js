@@ -20,7 +20,7 @@ import VitToolBar     from '../../../toolBar/comp/VitToolBar'; // NEW (TEMPORARY
 // import {toast}        from 'util/notify'; //? commented out in template code 
 import discloseError  from 'util/discloseError';
 
-import {loadPkg}        from 'core/pkgPersist';
+import {openPkg}        from 'core/pkgPersist';
 import {leftNavManager} from 'features';
 
 
@@ -94,7 +94,7 @@ export default function AppMotif({children}) {
                           try {
 
                             // load the visualize-it smartPkg
-                            const smartPkg = await loadPkg();
+                            const smartPkg = await openPkg();
                             if (!smartPkg) {
                               return; // no-op when user canceled the pick dialog
                             }

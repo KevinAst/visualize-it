@@ -198,6 +198,35 @@ export default class SmartPkg extends SmartModel {
   }
 
   /**
+   * Return self's pkgResourcePath (if any).
+   * 
+   * When a SmartPkg is persisted (i.e. pulled from, or saved to a
+   * file/url), it will contain a pkgResourcePath.
+   * - this merely identifies it's persistent form and provides a
+   *   convenient means by which changes can be saved
+   * 
+   * NOTE: The `pkgResourcePath` attribute is NOT persisted, rather
+   *       it is retained as a result of an open/save operation
+   *       (see: pkgPersist.js open/save operators).
+   *
+   * @returns {PkgResourcePath} the pkgResourcePath (if any),
+   * undefined for none.
+   */
+  getPkgResourcePath() {
+    return this.pkgResourcePath;
+  }
+
+  /**
+   * Set self's pkgResourcePath (see notes in getPkgResourcePath()).
+   *
+   * @param {PkgResourcePath} pkgResourcePath - the resource path
+   * where self is persisted.
+   */
+  setPkgResourcePath(pkgResourcePath) {
+    this.pkgResourcePath = pkgResourcePath;
+  }
+
+  /**
    * An internal method that recurses through self's entries,
    * initializing our two catalogs.
    *

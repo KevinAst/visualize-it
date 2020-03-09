@@ -14,11 +14,11 @@ import {isString}  from 'util/typeCheck';
   this module (pkgManager) cannot rely on SmartPkg!
   
   In other words we cannot import SmartPkg here!
-   - Prior to this, loadPkg() was a method in PkgManager()
+   - Prior to this, openPkg() was a method in PkgManager()
      and we worked around it (a hack) by insuring SmartPkg was expanded FIRST
      ... in src/index.js
          import 'core/SmartPkg'; // "Resolve Circular Dependency" by expanding this first
-   - This is why we moved loadPkg() into a separate module (pkgPersist.js) 
+   - This is why we moved openPkg() into a separate module (pkgPersist.js) 
      With this refactor, this hack is no longer needed!
 
 -------------------------------------------------------------------------------*/
@@ -43,7 +43,7 @@ class PkgManager {
   constructor() {
     // carve out our pkgCatalog
     this.pkgCatalog = {
-      // [pkgName]: smartPkg, // AI: I think we want pkgResourcePath to be part of SmartPkg
+      // [pkgName]: smartPkg,
       // ...
     };
   }
@@ -61,7 +61,7 @@ class PkgManager {
    * - is independent of LeftNav visualization (this is accomplished
    *   through `leftNavManager.addLeftNav(smartPkg)`)
    *
-   * This registration  occurs automatically when using `loadPkg()` (in pkgPersist.js)
+   * This registration  occurs automatically when using `openPkg()` (in pkgPersist.js)
    * ... so it could be interpreted as a pseudo private method.
    * 
    * - However, non-resource-based packages must register themselves
@@ -76,7 +76,7 @@ class PkgManager {
    *
    * @throws {Error} an Error is thrown when the package is already loaded
    */
-  registerPkg(smartPkg) { // AI: handle 2nd pkgResourcePath param ... I think we want pkgResourcePath to be part of SmartPkg
+  registerPkg(smartPkg) {
 
     // validate parameters
     const check = verify.prefix(`${this.constructor.unmangledName}.registerPkg() parameter violation: `);
