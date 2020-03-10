@@ -37,6 +37,9 @@ export default class Collage extends SmartScene {
 
     // retain derivation-specific parameters in self
     this.scenes = scenes;
+
+    // maintain our parentage
+    this.scenes.forEach( (scene) => scene.setParent(this) );
   }
 
   // support persistance by encoding needed props of self

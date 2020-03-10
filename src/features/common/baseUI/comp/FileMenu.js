@@ -9,10 +9,16 @@ import MenuItem         from '@material-ui/core/MenuItem';
 import Typography       from '@material-ui/core/Typography';
 
 import {openPkg}        from 'core/pkgPersist';
-import {leftNavManager} from 'features';
+import {leftNavManager,
+        tabManager}     from 'features';
 import discloseError    from 'util/discloseError';
 import {toast}          from 'util/notify';
 
+// ?? new
+import SmartComp        from 'core/SmartComp';
+import {useFassets}     from 'feature-u';
+import {useSelector}    from 'react-redux'
+import pkgManager       from 'core/pkgManager';
 
 /**
  * FileMenu: our FileMenu component.
@@ -24,6 +30,10 @@ export default function FileMenu() {
 
   const openFileMenu = useCallback((event) => setAnchorFileMenu(event.currentTarget), []);
   _closeFileMenu     = useCallback(()      => setAnchorFileMenu(null),                []);
+
+  // ?? new
+  const fassets     = useFassets();
+  const activeTabId = useSelector( (appState) => fassets.sel.getActiveTabId(appState), [fassets] );
 
   return (
     <div>
@@ -49,7 +59,7 @@ export default function FileMenu() {
             onClose={closeFileMenu}>
 
         <MenuItem onClick={handleOpenPkg}>Open ...</MenuItem>
-        <MenuItem onClick={handleSavePkg}>Save</MenuItem>
+        <MenuItem onClick={() => handleSavePkg(activeTabId)}>Save</MenuItem>
         <MenuItem onClick={handleSaveAsPkg}>Save As ...</MenuItem>
 
       </Menu>
@@ -95,10 +105,32 @@ async function handleOpenPkg() {
 /**
  * Save the ??supplied smartPkg to it's originating PkgResourcePath.
  */
-async function handleSavePkg() {
+async function handleSavePkg(activeTabId) {
   closeFileMenu();
 
-  toast.warn({msg: 'Save coming soon!'});
+  if (!activeTabId) {
+    toast.warn({msg: 'Your active tab identifies which package to save ... please activate a tab.'});
+    return;
+  }
+
+  // locate the package that contains the resource in the active tab
+  const tabController = tabManager.getTabController(activeTabId);
+  const targetObj     = tabController.getTarget(); // can be: Scene/Collage or SmartComp (for classes)
+  let   pkg           = targetObj.getPackage();
+
+  // for components (when classes are registered as SmartPkg entries),
+  // there is no registered package (because the class is the contained item in the package)
+  // ... in this case:
+  //     - we use the packate the component was created from (which is in fact the contained SmartPkg)
+  //     - ultimately, however, this pkg is not persistable (because it is based on class)
+  if (!pkg && targetObj instanceof SmartComp) {
+    const classRef     = targetObj.getClassRef();
+    const smartPkgName = classRef.getClassPkgName();
+    pkg = pkgManager.getPackage(smartPkgName);
+  }
+
+  console.log(`?? now we can save the pkg: `, pkg);
+  toast.warn({msg: 'Save coming soon! ... see the logs for the pkg that will be saved'});
 }
 
 /**

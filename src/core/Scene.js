@@ -125,6 +125,9 @@ export default class Scene extends SmartScene {
     this.y     = y;
     this._size = {width, height}; // NOTE: we use _size so as NOT to clash with size() method
     this.comps = comps;
+
+    // maintain our parentage
+    this.comps.forEach( (comp) => comp.setParent(this) );
   }
 
   // support persistance by encoding needed props of self

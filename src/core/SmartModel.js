@@ -67,6 +67,50 @@ export default class SmartModel {
     this.dispMode = DispMode.view; // ... our dispMode starts out "viewing" content
   }
 
+
+  /**
+   * Return the SmartPkg self belongs to.
+   * 
+   * NOTE: This is the SmartPkg that self belongs to (e.g. 'com.astx.KONVA'),
+   *       NOT the package self was created from: (e.g. 'core').
+   *
+   * @returns {SmartPkg} the package self belongs to, `undefined` when
+   * outside our supported "primary" containment tree.
+   */
+  getPackage() {
+    // when self is a SmartPkg, we have found it!
+    // ... we use a "duct type" check
+    //     in lieu of `this instanceof SmartPkg`
+    //     to avoid SmartPkg import (introducing a potential "Circular Dependency")
+    if (this.getPkgName) {
+      return this;
+    }
+    // follow our parent chain, till we find the SmartPkg
+    const  parent = this.getParent();
+    return parent ? parent.getPackage() : undefined;
+  }
+
+  /**
+   * Return self's parent object, with respect to the "primary"
+   * containment tree (i.e. NOT view related).
+   *
+   * @returns {SmartObject} the parent object of self, `undefined` for
+   * top-level (e.g. SmartPkg).
+   */
+  getParent() {
+    return this.parent;
+  }
+
+  /**
+   * Return self's parent object, with respect to the "primary"
+   * containment tree (i.e. NOT view related).
+   *
+   * @param {SmartObject} parent - the parent object of self.
+   */
+  setParent(parent) {
+    this.parent = parent;
+  }
+
   /**
    * Return self's dispMode (used in top-level objects targeted by a tab).
    * @returns {DispMode} the dispMode of self.

@@ -270,6 +270,9 @@ export default class SmartPkg extends SmartModel {
 
           // catalog all entries in our _entryCatalog
           this._entryCatalog[smartObj.id] = smartObj;
+
+          // maintain our parentage
+          smartObj.setParent(this);
         }
 
         // can be a real class reference
