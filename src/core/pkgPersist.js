@@ -20,7 +20,6 @@ import verify      from 'util/verify';
  * (pkgResourcePath not found, uninterpretable resource content,
  * invalid params, etc.).
  */
-
 export async function openPkg(pkgResourcePath) {
   // validate parameters
   const check = verify.prefix('openPkg() parameter violation: ');
@@ -51,7 +50,14 @@ export async function openPkg(pkgResourcePath) {
   else {
     // select the fileHandle via an interactive file picker dialog
     try {
-      fileHandle = await window.chooseFileSystemEntries();
+      fileHandle = await window.chooseFileSystemEntries({
+        type: 'openFile',
+        accepts: [{
+          description: 'visualize-it file',
+          extensions: ['vit'],
+          mimeTypes: ['application/json'],
+        }],
+      });
     }
     catch(err) {
       // prune expected errors
@@ -89,16 +95,105 @@ export async function openPkg(pkgResourcePath) {
 
   // resolve the json to a SmartPkg
   // ... this auto adorns .defineAttemptingToMsg()
-  const smartPkg = SmartPkg.fromSmartJSON(smartJSON);
+  const pkg = SmartPkg.fromSmartJSON(smartJSON);
 
   // retain the pkgResourcePath
-  smartPkg.setPkgResourcePath(fileHandle);
+  pkg.setPkgResourcePath(fileHandle);
 
   // register this package in our pkgManager
-  pkgManager.registerPkg(smartPkg);
+  pkgManager.registerPkg(pkg);
 
   // that's all folks
-  return smartPkg;
+  return pkg;
+}
+
+/**
+ * Save the supplied package (SmartPkg) to an external resource (ex:
+ * web or local file).
+ *
+ * @param {SmartPkg} pkg - the package to be saved.
+ * @param {boolean} [saveAs=false] - true: save in a user
+ * selected file, false: save in the original pkg's `pkgResourcePath`.
+ *
+ * @returns {void | 'UserCancel' via Promise} a "void" promise is
+ * resolved when successfully complete -or- 'UserCancel' when user
+ * cancels the request.
+ * 
+ * @throws {Error} an Error is thrown in various unexpected scenarios.
+ */
+export async function savePkg(pkg, saveAs=false) {
+  // validate parameters
+  const check = verify.prefix('savePkg() parameter violation: ');
+
+  // ... pkg
+  check(pkg,                     'pkg is required')
+  check(pkg instanceof SmartPkg, 'pkg must be a SmartPkg');
+
+  // ... saveAs
+  if (saveAs) {
+    check(saveAs === true || saveAs === false, 'saveAs must be a boolean (when supplied)');
+  }
+
+  // insure we have access to the "Native File System API TRIAL"
+  if (!window.chooseFileSystemEntries) {
+    throw new Error('***ERROR*** savePkg() the "Native File System API TRIAL" is NOT available in this environment :-(')
+      .defineAttemptingToMsg('save a package to a local file system');
+  }
+
+  // create the JSON content, representing our pkg
+  // ... placement of this process is crucial - any unexpected errors
+  //     occurring here will short-circuit the creation of an empty file!
+  const smartJSON = pkg.toSmartJSON();
+  const content   = JSON.stringify(smartJSON);
+
+  // locate the file where the pkg will be saved
+  let fileHandle = saveAs ? undefined : pkg.getPkgResourcePath();
+  // ... conditionally prompt the user to select the file
+  //     (either there is no `pkg.pkgResourcePath`, or a `saveAs` operation was requested)
+  if (!fileHandle) {
+    try {
+      fileHandle = await window.chooseFileSystemEntries({
+        type: 'saveFile',
+        accepts: [{
+          description: 'visualize-it file',
+          extensions: ['vit'],
+          mimeTypes: ['application/json'],
+        }],
+      });
+    }
+    catch (err) {
+      // prune expected errors
+      if (err.name === 'AbortError') { // ... user canceled request
+        return 'UserCancel';
+      }
+      // re-throw "qualified" unexpected errors
+      throw err.defineAttemptingToMsg(`select the file to save the "${pkg.getPkgDesc()}" package`);
+    }
+  }
+
+  // write the file
+  try {
+    // create a writer (request permission if necessary)
+    const writer = await fileHandle.createWriter();
+
+    // write the content
+    await writer.write(0, content);
+
+    // close the file and write the contents to disk
+    await writer.close();
+  }
+  catch(err) {
+    // prune expected errors
+    if (err.name === 'NotAllowedError') { // ... user did not allow the file write
+      err.defineUserMsg('User disallowed the file write');
+    }
+    // re-throw "qualified" unexpected errors
+    throw err.defineAttemptingToMsg(`save the "${pkg.getPkgDesc()}" package`);
+  }
+
+  // retain the pkgResourcePath
+  pkg.setPkgResourcePath(fileHandle);
+
 }
 
 

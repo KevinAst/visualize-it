@@ -4,7 +4,8 @@ import React,
         useMemo}        from 'react';
 
 import SmartComp        from 'core/SmartComp';
-import {openPkg}        from 'core/pkgPersist';
+import {openPkg, 
+        savePkg}        from 'core/pkgPersist';
 import pkgManager       from 'core/pkgManager';
 
 import {leftNavManager,
@@ -61,8 +62,8 @@ export default function FileMenu() {
             onClose={closeFileMenu}>
 
         <MenuItem onClick={handleOpenPkg}>Open ...</MenuItem>
-        <MenuItem onClick={() => handleSavePkg(activeTabId)}   disabled={!isActiveTab}>Save</MenuItem>
-        <MenuItem onClick={() => handleSaveAsPkg(activeTabId)} disabled={!isActiveTab}>Save As ...</MenuItem>
+        <MenuItem onClick={() => handleSavePkg(activeTabId)}       disabled={!isActiveTab}>Save</MenuItem>
+        <MenuItem onClick={() => handleSavePkg(activeTabId, true)} disabled={!isActiveTab}>Save As ...</MenuItem>
 
       </Menu>
     </div>
@@ -87,16 +88,16 @@ async function handleOpenPkg() {
   closeFileMenu();
 
   try {
-    const smartPkg = await openPkg();
-    if (!smartPkg) {
+    const pkg = await openPkg();
+    if (!pkg) {
       return; // no-op when user canceled the pick dialog
     }
 
     // register it in our LeftNav
     // ... this dispatches an action, so any error cannot be caught here
-    leftNavManager.addLeftNav(smartPkg);
+    leftNavManager.addLeftNav(pkg);
 
-    toast({msg: `"${smartPkg.getPkgDesc()}" has been loaded in the Left Nav Menu`})
+    toast({msg: `"${pkg.getPkgDesc()}" has been loaded in the Left Nav Menu`})
   }
   catch (err) {
     // gracefully report unexpected conditions to user
@@ -106,57 +107,37 @@ async function handleOpenPkg() {
 
 /**
  * Save the supplied SmartPkg (identified from the supplied tab) to
- * it's original pkgResourcePath.
+ * an external resource (ex: web or local file).
  *
  * @param {string} activeTabId - the tab identifier from which we
  * determine the SmartPkg to save.
- *
- * @throws {Error} an Error is thrown when the SmartPkg could not be
- * identified (an unexpected condition).
+ * @param {boolean} [saveAs=false] - true: save in a newly user
+ * selected file, false: save in the original pkg's `pkgResourcePath`.
  */
-async function handleSavePkg(activeTabId) {
+async function handleSavePkg(activeTabId, saveAs=false) {
   closeFileMenu();
 
-  // resolve the package from the supplied activeTabId
-  const pkg = resolvePkg(activeTabId);
+  try {
+    // resolve the package from the supplied activeTabId
+    const pkg = resolvePkg(activeTabId);
 
-  // insure the package is a candidate for saving
-  if (!pkg.canPersist()) {
-    toast.warn({msg: `The "${pkg.getPkgDesc()}" package cannot be saved ... it contains code, which cannot be persisted!`});
-    return;
+    // insure the package is a candidate for saving
+    if (!pkg.canPersist()) {
+      toast.warn({msg: `The "${pkg.getPkgDesc()}" package cannot be saved ... it contains code, which cannot be persisted!`});
+      return;
+    }
+
+    // save the package
+    const userCanceled = await savePkg(pkg, saveAs);
+    if (!userCanceled) {
+      toast.warn({msg: `The "${pkg.getPkgDesc()}" package has been saved!`});
+    }
   }
-  // ?? TODO: see how this errors without this check
-
-  // ?? do something
-  toast.warn({msg: 'Save coming soon!'});
-}
-
-/**
- * Save the supplied SmartPkg (identified from the supplied tab) to a
- * user selected originating PkgResourcePath.
- *
- * @param {string} activeTabId - the tab identifier from which we
- * determine the SmartPkg to save.
- *
- * @throws {Error} an Error is thrown when the SmartPkg could not be
- * identified (an unexpected condition).
- */
-async function handleSaveAsPkg(activeTabId) {
-  closeFileMenu();
-
-  // resolve the package from the supplied activeTabId
-  const pkg = resolvePkg(activeTabId);
-
-  // insure the package is a candidate for saving
-  if (!pkg.canPersist()) {
-    toast.warn({msg: `The "${pkg.getPkgDesc()}" package cannot be saved ... it contains code, which cannot be persisted!`});
-    return;
+  catch(err) {
+    // gracefully report unexpected conditions to user
+    discloseError({err, logIt:true});
   }
-
-  // ?? do something
-  toast.warn({msg: 'Save As coming soon!'});
 }
-
 
 /**
  * Resolve the SmartPkg identified from the supplied tab.
@@ -181,9 +162,9 @@ function resolvePkg(activeTabId) {
   //     - we use the package the component was created from (which is in fact the contained SmartPkg)
   //     - ultimately, however, this pkg is not persistable (because it is based on class)
   if (!pkg && targetObj instanceof SmartComp) {
-    const classRef     = targetObj.getClassRef();
-    const smartPkgName = classRef.getClassPkgName();
-    pkg = pkgManager.getPackage(smartPkgName);
+    const classRef = targetObj.getClassRef();
+    const pkgName  = classRef.getClassPkgName();
+    pkg = pkgManager.getPackage(pkgName);
   }
 
   // verify the package is resolved
