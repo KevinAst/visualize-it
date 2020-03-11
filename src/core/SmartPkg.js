@@ -167,7 +167,7 @@ export default class SmartPkg extends SmartModel {
     // remaining logic
     // ... hook into the standard SmartModel.constructorConfig()
     //     so this will be accomplished in pseudo construction too!
-    // ??$$ DO THIS -and- call it in our pseudo construction
+    // ?? DO THIS -and- call it in our pseudo construction
 
     // initialize our catalogs
     this.initializeCatalogs(this.entries);
@@ -217,6 +217,17 @@ export default class SmartPkg extends SmartModel {
   }
 
   /**
+   * Return an indicator as to whether this package can be persisted.
+   * 
+   * NOTE: Packages that contain code cannot be persisted.
+   *
+   * @returns {boolean} true: can persist, false otherwise.
+   */
+  canPersist() {
+    return !this.entriesContainCode;
+  }
+
+  /**
    * Set self's pkgResourcePath (see notes in getPkgResourcePath()).
    *
    * @param {PkgResourcePath} pkgResourcePath - the resource path
@@ -240,9 +251,10 @@ export default class SmartPkg extends SmartModel {
       this._entryCatalog    = {};
     }
 
-    // ?? L8TR: we may want to set a top-level state: entriesContainCode (so we know we can't persist)
-    // ... ? would need to be checked in: SmartPkg.fromSmartJSON()
-    // ... ? without this check, how would it error out (with classes)
+    // prime our indicator as to whether our content contains code
+    // ... used in determining if this package can be persisted
+    //     (see: `canPersist()`).
+    this.entriesContainCode = false; // ... start out assuming NO code
 
     // recurse over entry
     // ... for plain objects, each member is a directory node
@@ -278,7 +290,10 @@ export default class SmartPkg extends SmartModel {
         // can be a real class reference
         else if (isClass(arrItem)) {
           const realClass = arrItem;
-         
+
+          // mark our package as containing code
+          this.entriesContainCode = true;
+
           // catalog classes in our _classRefCatalog
           const className = PseudoClass.getClassName(realClass);
           this._classRefCatalog[className] = realClass;

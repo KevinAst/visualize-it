@@ -2,6 +2,7 @@ import SmartScene        from './SmartScene';
 import Scene             from './Scene';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
+import {toast}           from 'util/notify';
 
 /**
  * Collage is a SmartScene derivation in which multiple Scenes are displayed/visualized.
@@ -64,6 +65,17 @@ export default class Collage extends SmartScene {
    * Enable self's "edit" DispMode (used in top-level objects targeted by a tab).
    */
   enableEditMode() {
+
+    // prevent edit mode when containing package cannot be persisted
+    // ... ex: when the package contains code
+    const pkg = this.getPackage();
+    if (!pkg.canPersist()) {
+      toast.warn({msg: `The "${this.getName()}" collage is NOT EDITABLE ` + 
+                       `... normally collages can be edited, however it belongs to the "${pkg.getPkgDesc()}" package which ` +
+                       `contains code (therefore you would not be able to save your changes).`});
+      return;
+    }
+
     // draggable: enable (propagate into each top-level scene)
     this.scenes.forEach( (scene) => scene.konvaSceneLayer.draggable(true) );
 

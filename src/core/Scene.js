@@ -4,6 +4,7 @@ import SmartScene        from './SmartScene';
 import {ancestorOfLayer} from './konvaUtil';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
+import {toast}           from 'util/notify';
 
 /**
  * Scene is a SmartScene derivation that models a single Scene to be
@@ -181,6 +182,16 @@ export default class Scene extends SmartScene {
    * Enable self's "edit" DispMode (used in top-level objects targeted by a tab).
    */
   enableEditMode() {
+
+    // prevent edit mode when containing package cannot be persisted
+    // ... ex: when the package contains code
+    const pkg = this.getPackage();
+    if (!pkg.canPersist()) {
+      toast.warn({msg: `The "${this.getName()}" scene is NOT EDITABLE ` + 
+                       `... normally scenes can be edited, however it belongs to the "${pkg.getPkgDesc()}" package which ` +
+                       `contains code (therefore you would not be able to save your changes).`});
+      return;
+    }
 
     //***
     //*** enable dragging ... to all top-level konvaComps

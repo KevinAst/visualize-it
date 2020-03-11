@@ -67,6 +67,19 @@ export default class SmartModel {
     this.dispMode = DispMode.view; // ... our dispMode starts out "viewing" content
   }
 
+  /**
+   * Return the object id.
+   */
+  getId() {
+    return this.id;
+  }
+
+  /**
+   * Return the object name.
+   */
+  getName() {
+    return this.name;
+  }
 
   /**
    * Return the SmartPkg self belongs to.

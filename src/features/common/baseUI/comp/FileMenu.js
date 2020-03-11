@@ -117,7 +117,15 @@ async function handleOpenPkg() {
 async function handleSavePkg(activeTabId) {
   closeFileMenu();
 
+  // resolve the package from the supplied activeTabId
   const pkg = resolvePkg(activeTabId);
+
+  // insure the package is a candidate for saving
+  if (!pkg.canPersist()) {
+    toast.warn({msg: `The "${pkg.getPkgDesc()}" package cannot be saved ... it contains code, which cannot be persisted!`});
+    return;
+  }
+  // ?? TODO: see how this errors without this check
 
   // ?? do something
   toast.warn({msg: 'Save coming soon!'});
@@ -136,7 +144,14 @@ async function handleSavePkg(activeTabId) {
 async function handleSaveAsPkg(activeTabId) {
   closeFileMenu();
 
+  // resolve the package from the supplied activeTabId
   const pkg = resolvePkg(activeTabId);
+
+  // insure the package is a candidate for saving
+  if (!pkg.canPersist()) {
+    toast.warn({msg: `The "${pkg.getPkgDesc()}" package cannot be saved ... it contains code, which cannot be persisted!`});
+    return;
+  }
 
   // ?? do something
   toast.warn({msg: 'Save As coming soon!'});
