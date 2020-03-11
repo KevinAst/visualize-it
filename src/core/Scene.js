@@ -4,6 +4,7 @@ import SmartScene        from './SmartScene';
 import {ancestorOfLayer} from './konvaUtil';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
+import {isNumber}        from 'util/typeCheck';
 import {toast}           from 'util/notify';
 
 /**
@@ -88,12 +89,10 @@ export default class Scene extends SmartScene {
     check(Array.isArray(comps), 'comps must be a SmartComp[] array');
 
     // ... x
-    check(Number.isInteger(x), `x must be an integer (when supplied), NOT: ${x}`);
-    check(x>=0,                `x must be >=0 (when supplied), NOT: ${x}`);
+    check(isNumber(x), `x must be a number (when supplied), NOT: ${x}`);
 
     // ... y
-    check(Number.isInteger(y), `y must be an integer (when supplied), NOT: ${y}`);
-    check(y>=0,                `y must be >=0 (when supplied), NOT: ${y}`);
+    check(isNumber(y), `y must be a number (when supplied), NOT: ${y}`);
 
     // ... INTERNAL USE (for rehydration) takes precedence over width/height: _size: {width, height}
     if (_size) { 
