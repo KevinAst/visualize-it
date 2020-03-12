@@ -43,17 +43,15 @@ export default function VitToolBar() {
     dispatch( _toolBarAct.dispModeChanged(newDispMode) );
   }, [dispatch]);
 
-  const myTitle = (
-    <Typography variant="h6"
-                color="inherit"
-                noWrap
-                className={classes.title}>
-      Visualize It
-    </Typography>
-  );
-
   if (!activeTabId) {
-    return myTitle;
+    return (
+      <Typography variant="h6"
+                  color="inherit"
+                  noWrap
+                  className={classes.title}>
+        Visualize It
+      </Typography>
+    );
   }
 
   const activeTarget = tabManager.getTabController(activeTabId).getTarget();
@@ -61,7 +59,12 @@ export default function VitToolBar() {
   return (
     <Toolbar variant="dense">
 
-      { myTitle }
+      <Typography variant="h6"
+                  color="inherit"
+                  noWrap
+                  className={classes.title}>
+        {activeTarget.getPackage().getPkgDesc()}
+      </Typography>
 
       <IconButton><FingerPrintIcon/></IconButton>
 

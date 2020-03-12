@@ -29,7 +29,7 @@ export default class TabControllerClass extends TabController {
    *
    * @param {class} clazz the class being displayed/managed by this tab.
    */
-  constructor(tabId, tabName, clazz) {
+  constructor(tabId, tabName, clazz, smartPkg) {
     super(tabId, tabName);
 
     // validate parameters
@@ -40,21 +40,7 @@ export default class TabControllerClass extends TabController {
     check(isClass(clazz),  'clazz must be a class type');
 
     // retain state specific to this derivation
-    this.clazz = clazz;
-
-    // instantiate a single component from self's class
-    // ... this is what we will render in our tab :-)
-    this.compName = PseudoClass.getClassName(clazz);
-    this.comp     = new clazz({id: `comp-${this.compName}`}); // CONSIDER: hopefully no other param context is needed ... I think we are OK
-  }
-
-  // our target is our component instance, instantiated by self's class
-  getTarget() {
-    return this.comp;
-  }
-
-  // wrap our class in the panel display
-  createTabPanelComp() {
+    this.clazz = clazz; // ... doesn't appear to be used (hmmmm)
 
     // NOTE: Components visualization is very restricted
     //       - within the builder to simply verify it's visuals
@@ -66,16 +52,30 @@ export default class TabControllerClass extends TabController {
     //       - the component API determines if it is editable
     //         ... see: canHandleDispMode(dispMode): boolean
 
+    // instantiate a single component from self's class
+    // ... this is what we will render in our tab :-)
+    this.compName = PseudoClass.getClassName(clazz);
+    this.comp     = new clazz({id: `comp-${this.compName}`}); // CONSIDER: hopefully no other param context is needed ... I think we are OK
+
     // wrap our single component in a scene (see NOTE above)
-    const scene = new Scene({
+    this.scene = new Scene({
       id: `view-${this.compName}`,
       comps: [this.comp], // 
       width:  300,   // ?? we need a way for the comp to tell us it's size
       height: 300,   //    ... once it is mounted, we can interrogate Konva HOWEVER that is too late
     });
 
-    // from this point, we can pick up with the normal SmartView logic
-    const view = new SmartView({id: `view-${this.compName}`, scene});
+    this.scene.setParent(smartPkg); // ??!! hook up our parentage properly ... simulating what would happen in a real pkg
+  }
+
+  // our target is our component instance, instantiated by self's class
+  getTarget() {
+    return this.comp;
+  }
+
+  // wrap our class in the panel display
+  createTabPanelComp() {
+    const view = new SmartView({id: `view-${this.compName}`, scene: this.scene});
     const panelComp = () => <ReactSmartView view={view}/>;
     return panelComp;
   }

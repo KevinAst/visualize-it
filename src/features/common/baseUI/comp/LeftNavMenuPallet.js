@@ -166,7 +166,7 @@ function genTreeItems(smartPkg, handleActivateTab) {
           const id = `${accumulativeId}-${compName}`;
 
           // register this entry to our tabManager (allowing it to be visualized)
-          tabManager.registerTab( new TabControllerClass(id, compName, compClass) );
+          tabManager.registerTab( new TabControllerClass(id, compName, compClass, smartPkg) ); // ??!! need to pass smartPkg to allow it to be hooked up to comp instance
           
           log(`genTreeItems(): TreeItem tabManager node ... id: ${id}`);
           return (
