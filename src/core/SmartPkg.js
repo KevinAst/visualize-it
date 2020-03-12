@@ -249,12 +249,12 @@ export default class SmartPkg extends SmartModel {
     if (entry === this.entries) {
       this._classRefCatalog = {};
       this._entryCatalog    = {};
-    }
 
-    // prime our indicator as to whether our content contains code
-    // ... used in determining if this package can be persisted
-    //     (see: `canPersist()`).
-    this.entriesContainCode = false; // ... start out assuming NO code
+      // prime our indicator as to whether our content contains code
+      // ... used in determining if this package can be persisted
+      //     (see: `canPersist()`).
+      this.entriesContainCode = false; // ... start out assuming NO code
+    }
 
     // recurse over entry
     // ... for plain objects, each member is a directory node
@@ -281,14 +281,14 @@ export default class SmartPkg extends SmartModel {
           }
 
           // catalog all entries in our _entryCatalog
-          this._entryCatalog[smartObj.id] = smartObj;
+          this._entryCatalog[smartObj.id] = smartObj; // ??!! should entries contain real classes too (they do contain pseudo classes)
 
           // maintain our parentage
           smartObj.setParent(this);
         }
 
         // can be a real class reference
-        else if (isClass(arrItem)) {
+        else if (isClass(arrItem)) { // ??!! specific to real class
           const realClass = arrItem;
 
           // mark our package as containing code
@@ -332,6 +332,7 @@ export default class SmartPkg extends SmartModel {
    */
   adornContainedClasses() {
     Object.values(this._classRefCatalog).forEach( (clazz) => {
+      // ?? what do we do if this clazz is already registered to some other package?
       clazz.smartClassRef = new SmartClassRef(clazz, this.getPkgName());
     });
   }
