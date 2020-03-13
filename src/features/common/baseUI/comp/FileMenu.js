@@ -130,7 +130,7 @@ async function handleSavePkg(activeTabId, saveAs=false) {
     // save the package
     const userCanceled = await savePkg(pkg, saveAs);
     if (!userCanceled) {
-      toast.warn({msg: `The "${pkg.getPkgDesc()}" package has been saved!`});
+      toast({msg: `The "${pkg.getPkgDesc()}" package has been saved!`});
     }
   }
   catch(err) {
