@@ -32,8 +32,8 @@ class TabManager {
    *
    * @param {TabController} tabController the controller to register
    *
-   * @throws {Error} an Error is thrown for invalid params or if the
-   * controller has already been registered.
+   * @throws {Error} an Error is thrown for invalid params
+   * (NO LONGER: or if the controller has already been registered).
    */
   registerTab(tabController) {
 
@@ -47,10 +47,19 @@ class TabManager {
     // maintain our tabRegistry catalog
     const tabId = tabController.getTabId();
     // console.log(`xx TabManager.registerTab() registering tabController(${tabId}): `, tabController);
-    if (this.tabRegistry[tabId]) { // verify tabController is not already loaded
-      throw new Error(`***ERROR*** TabManager.registerTab() tabId: ${tabId} is already registered :-(`);
+    if (this.tabRegistry[tabId]) { // NO LONGER: verify tabController is not already loaded!
+      // ... we tightly control the tabId federated name-space,
+      //     so any re-registration is presumably due to left-nav menu regeneration
+      //     - THEREFORE we do not throw an exception here
+      //     - IN ADDITION, we re-use the old registration (due to else clause below), BECAUSE:
+      //       * the DispMode is NOT retained in the tab panel itself
+      //         ... need more research
+      //       * SHOULD BE OK: I can't imagine what could change that would impact the TabController
+      // throw new Error(`***ERROR*** TabManager.registerTab() tabId: ${tabId} is already registered :-(`);
     }
-    this.tabRegistry[tabId] = tabController;
+    else {
+      this.tabRegistry[tabId] = tabController;
+    }
   }
 
   /**
