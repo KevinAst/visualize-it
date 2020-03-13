@@ -59,7 +59,7 @@ function LeftNavMenuPallet({smartPkg}) {
   // render our TreeView/TreeItem generation process driven by smartPkg content!
   log(`rendering top-level content for smartPkg.id: ${smartPkg.id} ... expecting ONE TIME (for this entry)`);
   return (
-    <LeftNavCollapsibleItem name={smartPkg.getPkgDesc()}>
+    <LeftNavCollapsibleItem name={smartPkg.getPkgName()}>
       <TreeView className={classes.root}
                 defaultCollapseIcon={<ExpandLessIcon/>}
                 defaultExpandIcon={<ExpandMoreIcon/>}>
@@ -94,7 +94,7 @@ const useStyles = makeStyles( theme => ({
 function genTreeItems(smartPkg, handleActivateTab) {
 
   // recursive accumulation of all TreeItems (returns DOM Array)
-  function accumTreeItems(entry, accumulativeId=smartPkg.getPkgName()) {
+  function accumTreeItems(entry, accumulativeId=smartPkg.getPkgId()) {
 
     // for plain objects, each member is a directory node
     if (isPlainObject(entry)) {

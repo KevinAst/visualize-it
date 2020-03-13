@@ -187,7 +187,7 @@ export default class Scene extends SmartScene {
     const pkg = this.getPackage();
     if (!pkg.canPersist()) {
       toast.warn({msg: `The "${this.getName()}" scene is NOT EDITABLE ` + 
-                       `... normally scenes can be edited, however it belongs to the "${pkg.getPkgDesc()}" package which ` +
+                       `... normally scenes can be edited, however it belongs to the "${pkg.getPkgName()}" package which ` +
                        `contains code (therefore you would not be able to save your changes).`});
       return;
     }

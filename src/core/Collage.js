@@ -71,7 +71,7 @@ export default class Collage extends SmartScene {
     const pkg = this.getPackage();
     if (!pkg.canPersist()) {
       toast.warn({msg: `The "${this.getName()}" collage is NOT EDITABLE ` + 
-                       `... normally collages can be edited, however it belongs to the "${pkg.getPkgDesc()}" package which ` +
+                       `... normally collages can be edited, however it belongs to the "${pkg.getPkgName()}" package which ` +
                        `contains code (therefore you would not be able to save your changes).`});
       return;
     }

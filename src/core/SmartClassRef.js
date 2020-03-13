@@ -40,9 +40,9 @@ export default class SmartClassRef {
    * @param {classRef} classRef - the class on which behalf we operate
    * (either a real class or a pseudoClass).
    *
-   * @param {string} pkgName - the package name this class belongs to.
+   * @param {string} pkgId - the package ID this class belongs to.
    */
-  constructor(classRef, pkgName) {
+  constructor(classRef, pkgId) {
 
     // validate parameters
     const check = verify.prefix('SmartClassRef() constructor parameter violation: ');
@@ -50,9 +50,9 @@ export default class SmartClassRef {
     // ... classRef (more validation below)
     check(classRef,          'classRef is required');
 
-    // ... pkgName
-    check(pkgName,           'pkgName is required');
-    check(isString(pkgName), 'pkgName must be a string');
+    // ... pkgId
+    check(pkgId,           'pkgId is required');
+    check(isString(pkgId), 'pkgId must be a string');
 
 
     // retain information about the supplied classRef
@@ -76,8 +76,8 @@ export default class SmartClassRef {
       check(false, 'classRef must be a real class -or- pseudoClass');
     }
 
-    // retain the supplied pkgName
-    this.pkgName = pkgName;
+    // retain the supplied pkgId
+    this.pkgId = pkgId;
   }
 
 
@@ -126,24 +126,24 @@ export default class SmartClassRef {
 
 
   /**
-   * Return the package name (SmartPkg) from which this classRef is
+   * Return the package ID (SmartPkg) from which this classRef is
    * managed/distributed.
    *
-   * @returns {string} the class package name.
+   * @returns {string} the class package ID.
    */
-  getClassPkgName() {
-    return this.pkgName;
+  getClassPkgId() {
+    return this.pkgId;
   }
 
 
   /**
    * Return the fully qualified class name of self, including the
-   * package and class name ... 'com.acme/Pump1'.
+   * package ID and class name ... 'com.acme/Pump1'.
    *
-   * @returns {string} self's fully qualified 'pkgName/className'
+   * @returns {string} self's fully qualified 'pkgId/className'
    */
   getFullClassName() {
-    return `${this.getClassPkgName()}/${this.getClassName()}`;
+    return `${this.getClassPkgId()}/${this.getClassName()}`;
   }
 
 

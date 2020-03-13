@@ -167,7 +167,7 @@ export async function savePkg(pkg, saveAs=false) {
         return 'UserCancel';
       }
       // re-throw "qualified" unexpected errors
-      throw err.defineAttemptingToMsg(`select the file to save the "${pkg.getPkgDesc()}" package`);
+      throw err.defineAttemptingToMsg(`select the file to save the "${pkg.getPkgName()}" package`);
     }
   }
 
@@ -188,7 +188,7 @@ export async function savePkg(pkg, saveAs=false) {
       err.defineUserMsg('User disallowed the file write');
     }
     // re-throw "qualified" unexpected errors
-    throw err.defineAttemptingToMsg(`save the "${pkg.getPkgDesc()}" package`);
+    throw err.defineAttemptingToMsg(`save the "${pkg.getPkgName()}" package`);
   }
 
   // retain the pkgResourcePath

@@ -35,14 +35,14 @@ import checkUnknownArgs  from 'util/checkUnknownArgs';
  * packages (for example, a "system" package may contain component
  * instances from classes defined in a "component" package).
  *
- * All SmartPkgs have a name (pkgName):
- *   - the name qualifies the package through which classRefs are distributed
- *     * so the pkgName belongs to classRefs ONLY, NOT entries
+ * All SmartPkgs have an ID (pkgId):
+ *   - the ID qualifies the package through which classRefs are distributed
+ *     * so the pkgId belongs to classRefs ONLY, NOT entries
  *       ... because entries are NOT shared across packages
- *     * SmartPkg will auto-inject it's package name in all classRefs
+ *     * SmartPkg will auto-inject it's package ID in all classRefs
  *       it contains!
  *       - this allows our persistence process to record BOTH the
- *         pkgName and className from which each object is
+ *         pkgId and className from which each object is
  *         instantiated
  *         ... allowing it to be re-hydrated (because we can locate the
  *             class - via pkgManager)
@@ -140,10 +140,10 @@ export default class SmartPkg extends SmartModel {
    * **Please Note** this constructor uses named parameters.
    *
    * @param {string} id - the unique identifier of this SmartPkg
-   * (logically the package name).  Because this must be fully unique
+   * (i.e. the package ID).  Because this must be fully unique
    * across all other in-memory packages, it is recommended to use a
    * "java like" package name (ex: com.astx.acme).
-   * @param {string} [name=id] - The SmartPkg name (logically the package desc).
+   * @param {string} [name=id] - The SmartPkg name.
    * @param {Object} [entries] - the optional entries held in self (see class notes).
    */
   constructor({id, name, entries={}, ...unknownArgs}={}) {
@@ -182,18 +182,16 @@ export default class SmartPkg extends SmartModel {
   }
 
   /**
-   * Return self's package name (ex: 'com.astx.acme').
-   * NOTE: This is derived from self's id.
+   * Return self's package ID (ex: 'com.astx.acme').
    */
-  getPkgName() {
+  getPkgId() {
     return this.id;
   }
 
   /**
-   * Return self's package description (ex: 'ACME System').
-   * NOTE: This is derived from self's name.
+   * Return self's package name (ex: 'ACME System').
    */
-  getPkgDesc() {
+  getPkgName() {
     return this.name;
   }
 
@@ -328,12 +326,12 @@ export default class SmartPkg extends SmartModel {
    * classes and pseudoClasses.
    *
    * It also ties this package to the each class for the first time
-   * (registering self's package name)!
+   * (registering self's package ID)!
    */
   adornContainedClasses() {
     Object.values(this._classRefCatalog).forEach( (clazz) => {
       // ?? what do we do if this clazz is already registered to some other package?
-      clazz.smartClassRef = new SmartClassRef(clazz, this.getPkgName());
+      clazz.smartClassRef = new SmartClassRef(clazz, this.getPkgId());
     });
   }
 
@@ -424,10 +422,10 @@ export default class SmartPkg extends SmartModel {
     // the catalog of pseudoClass MASTERs (supporting the extraClassResolver)
     const pseudoClassMasters = {};
 
-    // retain the pkgName being resolved (used in our extraClassResolver)
-    // ... NOTE: for SmartPkg JSON, the top-level id IS the package name
-    //           see: getPkgName()
-    const pkgNameBeingResolved = smartJSON.id;
+    // retain the pkgId being resolved (used in our extraClassResolver)
+    // ... NOTE: for SmartPkg JSON, the top-level id IS the package ID
+    //           see: getPkgId()
+    const pkgIdBeingResolved = smartJSON.id;
 
     // our recursive function that performs the pre-processing
     function resolvePseudoClassMasters(jsonEntry) {
@@ -448,7 +446,7 @@ export default class SmartPkg extends SmartModel {
             const resolvedObj = SmartModel.fromSmartJSON(jsonEntry); // ... no need for extraClassResolver (pseudoClass Masters resolve via core classes)
 
             // adorn the .smartClassRef early (normally done by SmartPkg at the end of it's construction)
-            resolvedObj.smartClassRef = new SmartClassRef(resolvedObj, pkgNameBeingResolved);
+            resolvedObj.smartClassRef = new SmartClassRef(resolvedObj, pkgIdBeingResolved);
 
             // catalog in pseudoClassMasters
             pseudoClassMasters[resolvedObj.id] = resolvedObj;
@@ -523,9 +521,9 @@ export default class SmartPkg extends SmartModel {
 
     // utilize an extraClassResolver that can resolve self-referencing pseudoClasses
     // ... ex: collage referencing scene instances
-    function extraClassResolver(pkgName, className) {
-      const clazz = (pkgName === pkgNameBeingResolved) ? pseudoClassMasters[className] : undefined;
-      //console.log(`xx TEMP ... in extraClassResolver(pkgName:'${pkgName}', className:'${className}') ... comparing pkgNameBeingResolved:'${pkgNameBeingResolved}'` +
+    function extraClassResolver(pkgId, className) {
+      const clazz = (pkgId === pkgIdBeingResolved) ? pseudoClassMasters[className] : undefined;
+      //console.log(`xx TEMP ... in extraClassResolver(pkgId:'${pkgId}', className:'${className}') ... comparing pkgIdBeingResolved:'${pkgIdBeingResolved}'` +
       //            ` >>> ${clazz ? 'FOUND IT' : 'NOT FOUND'} ... pseudoClassMasters: `, pseudoClassMasters);
 
       return clazz ? clazz.smartClassRef : undefined;
@@ -539,7 +537,7 @@ export default class SmartPkg extends SmartModel {
     }
     catch(err) {
       // add additional context to reveal any errors resolving THIS SmartPkg
-      throw err.defineAttemptingToMsg(`hydrate SmartPkg '${pkgNameBeingResolved}'`);
+      throw err.defineAttemptingToMsg(`hydrate SmartPkg '${pkgIdBeingResolved}'`);
     }
   }
 

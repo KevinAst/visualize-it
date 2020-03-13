@@ -43,7 +43,7 @@ class PkgManager {
   constructor() {
     // carve out our pkgCatalog
     this.pkgCatalog = {
-      // [pkgName]: smartPkg,
+      // [pkgId]: smartPkg,
       // ...
     };
   }
@@ -83,38 +83,38 @@ class PkgManager {
 
     // ... smartPkg
     check(smartPkg,                     'smartPkg is required');
-    check(smartPkg.getPkgName,          'smartPkg must be a SmartPkg instance'); // use "duct type" check
+    check(smartPkg.getPkgId,            'smartPkg must be a SmartPkg instance'); // use "duct type" check
   //check(smartPkg instanceof SmartPkg, 'smartPkg must be a SmartPkg instance'); // to avoid SmartPkg import (see: "Circular Dependency" note above)
 
     // maintain our package catalog
-    const pkgName = smartPkg.getPkgName();
-    // console.log(`xx PkgManager.registerPkg() registering smartPkg(${pkgName}): `, smartPkg);
-    if (this.pkgCatalog[pkgName]) { // verify smartPkg is not already loaded
-      throw new Error(`***ERROR*** ${this.constructor.unmangledName}.registerPkg() pkgName: ${pkgName} is already registered :-(`)
-        .defineUserMsg(`The visualize-it '${pkgName}' package is already loaded`); // AI: we may need to conditionally refresh existing packages (per user confirmation)
+    const pkgId = smartPkg.getPkgId();
+    // console.log(`xx PkgManager.registerPkg() registering smartPkg(${pkgId}): `, smartPkg);
+    if (this.pkgCatalog[pkgId]) { // verify smartPkg is not already loaded
+      throw new Error(`***ERROR*** ${this.constructor.unmangledName}.registerPkg() pkgId: ${pkgId} is already registered :-(`)
+        .defineUserMsg(`The visualize-it '${pkgId}' package is already loaded`); // AI: we may need to conditionally refresh existing packages (per user confirmation)
     }
-    this.pkgCatalog[pkgName] = smartPkg;
+    this.pkgCatalog[pkgId] = smartPkg;
   }
 
   /**
    * Return the package (SmartPkg) registered to the supplied
-   * `pkgName` (undefined for NOT registered).
+   * `pkgId` (undefined for NOT registered).
    *
-   * @param {string} pkgName - the package name to retrieve.
+   * @param {string} pkgId - the package ID to retrieve.
    *
    * @returns {SmartPkg} the package (SmartPkg) registered to the
-   * supplied `pkgName` (undefined for NOT registered).
+   * supplied `pkgId` (undefined for NOT registered).
    */
-  getPackage(pkgName) {
+  getPackage(pkgId) {
 
     // validate parameters
     const check = verify.prefix('PkgManager.getPackage() parameter violation: ');
-    // ... pkgName
-    check(pkgName,             'pkgName is required');
-    check(isString(pkgName),   'pkgName must be a string');
+    // ... pkgId
+    check(pkgId,             'pkgId is required');
+    check(isString(pkgId),   'pkgId must be a string');
 
     // return the package (if any)
-    return this.pkgCatalog[pkgName];
+    return this.pkgCatalog[pkgId];
   }
 
   /**
@@ -123,35 +123,35 @@ class PkgManager {
    * NOTE: This accessor is commonly used in the rehydration process
    *       (SmartModel.fromSmartJSON()) to resolve classes at a low level.
    *
-   * @param {string} pkgName - the package name that the class belongs to.
+   * @param {string} pkgId - the package id that the class belongs to.
    * @param {string} className - the class name of the classRef to return.
    *
-   * @returns {SmartClassRef} the classRef matching the supplied `pkgName`/`className`
+   * @returns {SmartClassRef} the classRef matching the supplied `pkgId`/`className`
    *
    * @throws {Error} an Error is thrown when the class was not resolved.
    */
-  getClassRef(pkgName, className) {
+  getClassRef(pkgId, className) {
 
     // validate parameters
     const check = verify.prefix('PkgManager.getClassRef() parameter violation: ');
-    // ... pkgName
-    check(pkgName,             'pkgName is required');
-    check(isString(pkgName),   'pkgName must be a string');
+    // ... pkgId
+    check(pkgId,             'pkgId is required');
+    check(isString(pkgId),   'pkgId must be a string');
     // ... className
     check(className,           'className is required');
     check(isString(className), 'className must be a string');
 
     // resolve the package containing the class
-    const smartPkg = this.pkgCatalog[pkgName];
+    const smartPkg = this.pkgCatalog[pkgId];
     if (!smartPkg) { // this is an expected condition (communicate to user via defineUserMsg())
-      throw new Error(`***ERROR*** PkgManager.getClassRef(pkgName:${pkgName}, className:${className}) package is NOT cataloged ... did you forget to load a dependent package?`)
-        .defineUserMsg(`The '${pkgName}/${className}' class has been referenced, but the '${pkgName}' package has NOT been loaded ... did you forget to load this dependent package?`);
+      throw new Error(`***ERROR*** PkgManager.getClassRef(pkgId:${pkgId}, className:${className}) package is NOT cataloged ... did you forget to load a dependent package?`)
+        .defineUserMsg(`The '${pkgId}/${className}' class has been referenced, but the '${pkgId}' package has NOT been loaded ... did you forget to load this dependent package?`);
     }
     
     // resolve the classRef
     const classRef = smartPkg.getClassRef(className);
     if (!classRef) { // this is more of an unexpected condition
-      throw new Error(`***ERROR*** PkgManager.getClassRef(pkgName:${pkgName}, className:${className}) class NOT in package :-(`);
+      throw new Error(`***ERROR*** PkgManager.getClassRef(pkgId:${pkgId}, className:${className}) class NOT in package :-(`);
     }
     return classRef;
   }
@@ -163,25 +163,25 @@ class PkgManager {
    *       entries at a low level, however it is currently not needed.
    *       ... as of 2/16/2020, this method NOT being used.
    *
-   * @param {string} pkgName - the package name that the entry belongs to.
+   * @param {string} pkgId - the package ID that the entry belongs to.
    * @param {string} entryId - the entry ID of the entry to return.
    *
    * @returns {entry} the entry matching the supplied params,
    * undefined for not-found.
    */
-  getEntry(pkgName, entryId) {
+  getEntry(pkgId, entryId) {
 
     // validate parameters
     const check = verify.prefix('PkgManager.getEntry() parameter violation: ');
-    // ... pkgName
-    check(pkgName,           'pkgName is required');
-    check(isString(pkgName), 'pkgName must be a string');
+    // ... pkgId
+    check(pkgId,           'pkgId is required');
+    check(isString(pkgId), 'pkgId must be a string');
     // ... entryId
     check(entryId,           'entryId is required');
     check(isString(entryId), 'entryId must be a string');
 
     // resolve the package containing the entry
-    const smartPkg = this.pkgCatalog[pkgName];
+    const smartPkg = this.pkgCatalog[pkgId];
     if (!smartPkg) {
       return;
     }

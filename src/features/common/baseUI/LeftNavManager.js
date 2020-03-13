@@ -49,7 +49,7 @@ class LeftNavManager {
     }
     // process request
     else {
-      this.dispatch( this.fassets.actions.addLeftNavItem(smartPkg.getPkgDesc(), () => (
+      this.dispatch( this.fassets.actions.addLeftNavItem(smartPkg.getPkgName(), () => (
         <LeftNavMenuPallet smartPkg={smartPkg}/>
       )) );
     }

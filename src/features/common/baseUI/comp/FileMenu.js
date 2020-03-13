@@ -97,7 +97,7 @@ async function handleOpenPkg() {
     // ... this dispatches an action, so any error cannot be caught here
     leftNavManager.addLeftNav(pkg);
 
-    toast({msg: `"${pkg.getPkgDesc()}" has been loaded in the Left Nav Menu`})
+    toast({msg: `"${pkg.getPkgName()}" has been loaded in the Left Nav Menu`})
   }
   catch (err) {
     // gracefully report unexpected conditions to user
@@ -123,14 +123,14 @@ async function handleSavePkg(activeTabId, saveAs=false) {
 
     // insure the package is a candidate for saving
     if (!pkg.canPersist()) {
-      toast.warn({msg: `The "${pkg.getPkgDesc()}" package cannot be saved ... it contains code, which cannot be persisted!`});
+      toast.warn({msg: `The "${pkg.getPkgName()}" package cannot be saved ... it contains code, which cannot be persisted!`});
       return;
     }
 
     // save the package
     const userCanceled = await savePkg(pkg, saveAs);
     if (!userCanceled) {
-      toast({msg: `The "${pkg.getPkgDesc()}" package has been saved!`});
+      toast({msg: `The "${pkg.getPkgName()}" package has been saved!`});
     }
   }
   catch(err) {
@@ -163,8 +163,8 @@ function resolvePkg(activeTabId) {
   //     - ultimately, however, this pkg is not persistable (because it is based on class)
   if (!pkg && targetObj instanceof SmartComp) {
     const classRef = targetObj.getClassRef();
-    const pkgName  = classRef.getClassPkgName();
-    pkg = pkgManager.getPackage(pkgName);
+    const pkgId    = classRef.getClassPkgId();
+    pkg = pkgManager.getPackage(pkgId);
   }
 
   // verify the package is resolved

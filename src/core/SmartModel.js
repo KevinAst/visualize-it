@@ -95,7 +95,7 @@ export default class SmartModel {
     // ... we use a "duct type" check
     //     in lieu of `this instanceof SmartPkg`
     //     to avoid SmartPkg import (introducing a potential "Circular Dependency")
-    if (this.getPkgName) {
+    if (this.getPkgId) {
       return this;
     }
     // follow our parent chain, till we find the SmartPkg
@@ -256,7 +256,7 @@ export default class SmartModel {
     const classRef = this.getClassRef();
     const myJSON = {
       smartType: classRef.getClassName(),
-      smartPkg:  classRef.getClassPkgName(),
+      smartPkg:  classRef.getClassPkgId(),
     };
 
     // demark the pseudoClass MASTERs in our JSON, so they can be hydrated early
@@ -700,8 +700,8 @@ SmartModel.unmangledName = 'SmartModel';
  */
 function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
 
-  // glean our pkgName and className
-  const pkgName   = smartJSON.smartPkg;
+  // glean our pkgId and className
+  const pkgId     = smartJSON.smartPkg;
   const className = smartJSON.smartType;
 
   // resolve our classRef
@@ -709,7 +709,7 @@ function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
 
   // ... use extraClassResolver (when supplied)
   if (extraClassResolver) {
-    classRef = extraClassResolver(pkgName, className);
+    classRef = extraClassResolver(pkgId, className);
     if (classRef) {
       return classRef;
     }
@@ -717,10 +717,10 @@ function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
 
   // ... use standard pkgManager class resolver
   try {
-    classRef = pkgManager.getClassRef(pkgName, className);
+    classRef = pkgManager.getClassRef(pkgId, className);
   }
   catch (err) {
-    console.log(`***ERROR*** SmartModel.fromSmartJSON() could not resolve pkgName: ${pkgName} / className: ${className} 
+    console.log(`***ERROR*** SmartModel.fromSmartJSON() could not resolve pkgId: ${pkgId} / className: ${className} 
 ... smartJSON: ${JSON.stringify(smartJSON, null, 2)}`);
     throw err.defineAttemptingToMsg('hydrate smartObj (see logs for smartJson)');
   }
