@@ -56,7 +56,7 @@ export default class Scene extends SmartScene {
    *
    * @param {string} id - the unique identifier of this scene.
    * @param {string} [name=id] - the human interpretable name of this
-   * scene (DEFAULT to id). // ?? UNSURE if we want to DEFAULT this way
+   * scene (DEFAULT to id).
    *
    * @param {SmartComp[]} comps - the set of components (SmartComp) that 
    * make up this scene (logically our display list).

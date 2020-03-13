@@ -35,7 +35,7 @@ export default class SmartComp extends SmartModel {
    *
    * @param {string} id - the unique identifier of this component.
    * @param {string} [name=id] - the human interpretable name of this
-   * component (DEFAULT to id). // ?? UNSURE if we want to DEFAULT this way
+   * component (DEFAULT to id).
    *
    * @param {number} [x=0] - the optional x offset within it's container (used in transformations of Scene container)
    * @param {number} [y=0] - the optional y offset within it's container (used in transformations of Scene container)

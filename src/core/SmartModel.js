@@ -42,7 +42,7 @@ export default class SmartModel {
    *
    * @param {string} id - the unique identifier of this object.
    * @param {string} [name=id] - the human interpretable name of this
-   * object (DEFAULT to id). // ?? UNSURE if we want to DEFAULT this way
+   * object (DEFAULT to id).
    */
   constructor({id, name, ...unknownArgs}={}) {
 

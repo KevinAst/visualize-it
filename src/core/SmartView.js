@@ -30,7 +30,7 @@ export default class SmartView extends SmartModel {
    *
    * @param {string} id - the unique identifier of this view.
    * @param {string} [name=id] - the human interpretable name of this
-   * view (DEFAULT to id). // ?? UNSURE if we want to DEFAULT this way
+   * view (DEFAULT to id).
    * @param {SmartScene} scene - the scene visualized in this view
    * (can be a single scene (Scene obj) or multiple scenes (Collage
    * obj).

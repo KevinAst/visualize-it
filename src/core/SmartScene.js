@@ -15,7 +15,7 @@ export default class SmartScene extends SmartModel {
    *
    * @param {string} id - the unique identifier of this scene.
    * @param {string} [name=id] - the human interpretable name of this
-   * scene (DEFAULT to id). // ?? UNSURE if we want to DEFAULT this way
+   * scene (DEFAULT to id).
    */
   constructor({id, name, ...unknownArgs}={}) {
     super({id, name});
