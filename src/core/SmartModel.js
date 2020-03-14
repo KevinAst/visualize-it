@@ -114,7 +114,7 @@ export default class SmartModel {
    * In regard to pseudoClasses, the returned content will vary, based
    * on whether self is the pseudoClass MASTER definition, or an
    * INSTANCE of a pseudoClass.
-   * $FOLLOW-UP$: refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
+   * $FOLLOW-UP$: ?? refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
    *              ... see: "NO WORK (I THINK)" in journal (1/20/2020)
    *              We may need to interpret different usages in support of BOTH:
    *                - persistence (toSmartJSON()) -AND-
@@ -329,7 +329,7 @@ export default class SmartModel {
     }
 
     // encode self's instance properties
-    const encodingProps = this.getEncodingProps(); // $FOLLOW-UP$: refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
+    const encodingProps = this.getEncodingProps(); // $FOLLOW-UP$: ?? refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
     encodingProps.forEach( (prop) => {
       const [propName, defaultValue] = Array.isArray(prop) ? prop : [prop, 'DeFaUlT NeVeR HaPpEn'];
       const value = this[propName];
@@ -581,73 +581,106 @@ export default class SmartModel {
    */
   smartClone(overridingNamedProps={}) {
 
-    // clone our instance properties members by recursively drilling into smartClone() as needed
-    // ... handling arrays and object literals too
-    const encodingProps = this.getEncodingProps(); // $FOLLOW-UP$: refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
-    const clonedProps = {};
-    encodingProps.forEach( (prop) => {
-      // NOTE: smartClone() currently does NOT use encodingProps defaultValue (it could), 
-      //       however it is a bit of a moot point - because this value is NOT persisted,
+    // clone self's properties by recursively drilling through entire tree with depth
+    // ... recursion is handled via internal cloneRef() function
+    //     - it recurses on itself
+    //     - supporting ALL data types
+    //     - recurses back into this.smartClone() as needed
+    const encodingProps = this.getEncodingProps(); // $FOLLOW-UP$: ?? refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
+    const clonedProps   = encodingProps.reduce( (accum, prop) => {
+
+      // NOTE: smartClone() does NOT use the defaultValue of getEncodingProps()!
+      //       It could, however it is a bit of a moot point, because this value is NOT persisted,
       //       so it matters little where we get it from :-)
-      const [instanceName] = Array.isArray(prop) ? prop : [prop, 'DeFaUlT NeT Used'];
-      const instanceValue  = this[instanceName]; // self's instance member
-      let   clonedValue    = undefined;          // resolved below
+      const [instanceName] = Array.isArray(prop) ? prop : [prop, 'DeFaUlT NoT Used'];
 
-      // defer to supplied override (when defined)
-      if (overridingNamedProps[instanceName]) {
-        clonedValue = 'placeholder';; // DEFENSIVE: use placeholder, resolved later (supporting overrides that are NOT part of our instance members)
+      // clone our instanceValue ONLY if it is not specified in our overridingNamedProps param
+      if ( !overridingNamedProps.hasOwnProperty(instanceName) ) {
+        const instanceValue = this[instanceName];      // self's instance member value
+        const clonedValue   = cloneRef(instanceValue); // clone our instanceValue
+        accum[instanceName] = clonedValue;             // accumulate our running clonedProps
       }
 
-      // otherwise (when not overridden) deeply clone our instance value
-      else {
+      return accum;
+    }, {} );
 
-        // clone SmartModel objects
-        if (instanceValue.smartClone) { // ... using a duck type check
-          clonedValue = instanceValue.smartClone();
-        }
+    // accumulate all namedProps for our constructor
+    // ... overridingNamedProps param take precedence
+    //     -and- supports overrides that are NOT part of our instance members
+    const namedProps = {...clonedProps, ...overridingNamedProps};
 
-        // clone arrays, by cloning all array items
-        else if (Array.isArray(instanceValue)) {
-          clonedValue = instanceValue.map( item => item.smartClone ? item.smartClone() : item ); // ?? L8TR: for item: encapsulate reusable function to handle all types (as above/below)
-        }
-
-        // for NON SmartModel objects
-        else if (isObject(instanceValue)) {
-
-          // we support plain objects
-          if (isPlainObject(instanceValue)) {
-            clonedValue = Object.entries(instanceValue).reduce( (accum, [key, value]) => {
-              accum[key] = value.smartClone ? value.smartClone() : value; // ?? L8TR: for value: encapsulate reusable function to handle all types (as above/below)
-              return accum;
-            }, {} );
-          }
-
-          // all other objects are a problem
-          // ... CONSIDER (as needed) adding support for common objects like Date, etc
-          //     OR more generically leverage any object that has the toJSON() method
-          else {
-            throw new Error(`***ERROR*** SmartModel.smartClone() processing self object of type ${this.diagClassName()}, whose member object of type ${instanceValue.constructor.name} is NOT supported ... do NOT know how to clone this member :-(`);
-          }
-        }
-
-        // all other types pass-through as-is, supporting primitive types (string, number, etc.) 
-        else {
-          clonedValue = instanceValue;
-        }
-      }
-
-      // accumulate our running clonedProps
-      clonedProps[instanceName] = clonedValue;
-
-    });
-    
     // instantiate a new copy of self (our cloned copy)
-    const namedProps = {...clonedProps, ...overridingNamedProps}; // DEFENSIVE: overridingNamedProps take precedence -and- support overrides that are NOT part of our instance members
-    const clonedCopy = new this.constructor(namedProps);          // NOTE: our entire cloning and persistance architecture is based on SmartModel constructors using named parameters!
+    // ... NOTE: our entire cloning and persistance architecture is based on
+    //           SmartModel constructors using named parameters!
+    const clonedCopy = new this.constructor(namedProps);
 
     // that's all folks :-)
     return clonedCopy;
-  }
+
+    // internal function that clones the supplied `ref`
+    // - this algorithm is needed to support additional types over and
+    //   above smartObjs
+    // - the algorithm is recursive, picking up all sub-references
+    //   (with depth)
+    // - ALL data types are handled (EXCEPT for class-based objects
+    //   that are NOT smartObjs):
+    //   * arrays
+    //   * plain objects (as in object literals)
+    //   * smartObjs (class-based object derivations of SmartModel)
+    //   * primitives (string, number, boolean, etc.)
+    //   * NOT SUPPORTED: class-based objects that are NOT smartObjs
+    function cloneRef(ref) {
+
+      // handle NO ref
+      // ... simply pass it through (null, undefined, etc. ... even false is OK :-)
+      if (!ref) {
+        return ref;
+      }
+
+      // handle arrays ... simply encode all array items
+      else if (Array.isArray(ref)) {
+        const  clonedArr = ref.map( item => cloneRef(item) );
+        return clonedArr;
+      }
+
+      // handle objects
+      // ... various object types (see below)
+      else if (isObject(ref)) {
+        
+        // handle smartObjs (class-based object derivations of SmartModel)
+        if (ref instanceof SmartModel) {
+          return ref.smartClone();
+        }
+
+        // handle plain objects
+        // ... simply clone each subRef in a new plain object
+        else if (isPlainObject(ref)) {
+          const clonedPlainObj = Object.entries(ref).reduce( (accum, [subRefName, subRef]) => {
+            accum[subRefName] = cloneRef(subRef);
+            return accum;
+          }, {} );
+          return clonedPlainObj;
+        }
+
+        // UNSUPPORTED: class-based objects that are NOT smartObjs
+        // ... CONSIDER (as needed) adding support for common objects like Date, etc.
+        else {
+          throw new Error(`***ERROR*** SmartModel.smartClone() processing self object of type ${this.diagClassName()}, ` +
+                          `whose member object of type ${ref.constructor.name} is NOT supported ` +
+                          '... only SmartModel derivations can be cloned :-(');
+        }
+
+      }
+
+      // handle primitives (string, number, boolean, etc.)
+      // ... simply pas-through as-is (i.e. clone is N/A because they are immutable)
+      else {
+        return ref;
+      }
+
+    } // end of ... cloneRef(ref)
+
+  } // end of ... smartClone() method
 
 } // end of ... SmartModel class
 SmartModel.unmangledName = 'SmartModel';
