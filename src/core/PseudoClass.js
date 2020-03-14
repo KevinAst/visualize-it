@@ -98,11 +98,6 @@ export default class PseudoClass {
     this.id   = id;
     this.name = name || id;
   }
-
-  // NOT NEEDED (my props are all contained in super)
-  // getEncodingProps(): {
-  //   return [...super.getEncodingProps(), ...['my', 'props', 'too']];
-  // }
   
   /**
    * Return an indicator as to whether self represents a "type",

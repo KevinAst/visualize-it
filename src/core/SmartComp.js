@@ -72,7 +72,7 @@ export default class SmartComp extends SmartModel {
 
   // support persistance by encoding needed props of self
   getEncodingProps() {
-    return [...super.getEncodingProps(), ...['x', 'y', 'rotation', 'scaleX', 'scaleY']];
+    return [...super.getEncodingProps(), ...[['x',0], ['y',0], ['rotation',0], ['scaleX',1], ['scaleY',1]]];
   }
 
   /**

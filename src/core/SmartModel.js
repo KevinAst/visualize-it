@@ -68,6 +68,69 @@ export default class SmartModel {
   }
 
   /**
+   * Polymorphically reveal self's properties that should be used to
+   * reconstitute an equivalent object.  This is used by:
+   *  - toSmartJSON() ... driving persistance
+   *  - smartClone() .... in duplicating objects
+   * 
+   * With the polymorphic knowledge provided by `getEncodingProps()`,
+   * these two usage methods can be fully implemented by the
+   * SmartModel base class!
+   * 
+   * Sub-classes can define their own properties, and include their
+   * base-class as follows:
+   * 
+   * Sub-classes should accumulate their properties by including their
+   * parent classes, as follows:
+   *
+   *   ```js
+   *   class MyClass extends SmartModel {
+   *     getEncodingProps(): {
+   *       return [...super.getEncodingProps(), ...['my', 'props', 'too']];
+   *     }
+   *     ...
+   *   }
+   *   ```
+   * 
+   * The returned array elements can either be:
+   *  - a propName: string
+   *  - or an ordered pair: `[propName, defaultValue]`
+   *    ... defaultValues are an optimization.  The usage algorithms
+   *        will omit values matching defaultValues, because they are
+   *        expected to be reconstituted (by default) at
+   *        instantiation.  As a result, these defaultValues should
+   *        match the constructor default value semantics.
+   * 
+   * **Detail**:
+   *
+   * NOT ALL object properties should be encoded. There are cases
+   * where this state should be reconstituted from logic rather from
+   * the content driven by this method.  As an example, temporal
+   * working state (such as mounted visuals) should be omitted.
+   *
+   * Remember this encoding is used to reconstitute an equivalent
+   * object.
+   *
+   * In regard to pseudoClasses, the returned content will vary, based
+   * on whether self is the pseudoClass MASTER definition, or an
+   * INSTANCE of a pseudoClass.
+   * $FOLLOW-UP$: refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
+   *              ... see: "NO WORK (I THINK)" in journal (1/20/2020)
+   *              We may need to interpret different usages in support of BOTH:
+   *                - persistence (toSmartJSON()) -AND-
+   *                - pseudoClass construction (smartClone())
+   *              - may supply param: enum CloningType: forCloning/forJSON
+   *
+   * @returns {[propName, [propName, defaultValue], ...]} self's
+   * property names (string) to be encoded in our smartJSON
+   * representation (omitting values that match the optional
+   * defaultValue).
+   */
+  getEncodingProps() {
+    return ['id', 'name'];
+  }
+
+  /**
    * Return the object id.
    */
   getId() {
@@ -267,8 +330,12 @@ export default class SmartModel {
 
     // encode self's instance properties
     const encodingProps = this.getEncodingProps(); // $FOLLOW-UP$: refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
-    encodingProps.forEach( (propName) => {
-      myJSON[propName] = encodeRef(this[propName]); // accumulate our running JSON structure
+    encodingProps.forEach( (prop) => {
+      const [propName, defaultValue] = Array.isArray(prop) ? prop : [prop, 'DeFaUlT NeVeR HaPpEn'];
+      const value = this[propName];
+      if (value !== defaultValue) { // conditionally accumulate the running JSON structure ONLY WHEN it is NOT the default
+        myJSON[propName] = encodeRef(value);
+      }
     });
 
     // beam me up Scotty :-)
@@ -405,56 +472,6 @@ export default class SmartModel {
   }
 
   /**
-   * Polymorphically reveal self's properties that should be used to
-   * reconstitute an equivalent object.  This is used by:
-   *  - toSmartJSON() ... driving persistance
-   *  - smartClone() .... in duplicating objects
-   * With this polymorphic knowledge, these methods can be fully
-   * implemented by the SmartModel base class.
-   * 
-   * Sub-classes can define their own properties, and include their
-   * base-class as follows:
-   * 
-   * Sub-classes should accumulate their properties by including their
-   * parent classes, as follows:
-   *
-   *   ```js
-   *   class MyClass extends SmartModel {
-   *     getEncodingProps(): {
-   *       return [...super.getEncodingProps(), ...['my', 'props', 'too']];
-   *     }
-   *     ...
-   *   }
-   *   ```
-   * 
-   * **Detail**:
-   *
-   * NOT ALL object properties should be encoded. There are cases
-   * where this state should be reconstituted from logic rather from
-   * the content driven by this method.  As an example, temporal
-   * working state (such as mounted visuals) should be omitted.
-   *
-   * Remember this encoding is used to reconstitute an equivalent
-   * object.
-   *
-   * In regard to pseudoClasses, the returned content will vary, based
-   * on whether self is the pseudoClass MASTER definition, or an
-   * INSTANCE of a pseudoClass.
-   * $FOLLOW-UP$: refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
-   *              ... see: "NO WORK (I THINK)" in journal (1/20/2020)
-   *              We may need to interpret different usages in support of BOTH:
-   *                - persistence (toSmartJSON()) -AND-
-   *                - pseudoClass construction (smartClone())
-   *              - may supply param: enum CloningType: forCloning/forJSON
-   *
-   * @returns {string[]} self's property names that need to be encoded
-   * in our smartJSON representation.
-   */
-  getEncodingProps() {
-    return ['id', 'name'];
-  }
-
-  /**
    * A static method that reconstitutes class-based objects (with
    * depth) from smartJSON.  By class-based objects we mean it will have
    * all the behavior (i.e. methods and state) of the original object.
@@ -568,9 +585,13 @@ export default class SmartModel {
     // ... handling arrays and object literals too
     const encodingProps = this.getEncodingProps(); // $FOLLOW-UP$: refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
     const clonedProps = {};
-    encodingProps.forEach( (instanceName) => {
-      const instanceValue = this[instanceName]; // self's instance member
-      let   clonedValue   = undefined;          // resolved below
+    encodingProps.forEach( (prop) => {
+      // NOTE: smartClone() currently does NOT use encodingProps defaultValue (it could), 
+      //       however it is a bit of a moot point - because this value is NOT persisted,
+      //       so it matters little where we get it from :-)
+      const [instanceName] = Array.isArray(prop) ? prop : [prop, 'DeFaUlT NeT Used'];
+      const instanceValue  = this[instanceName]; // self's instance member
+      let   clonedValue    = undefined;          // resolved below
 
       // defer to supplied override (when defined)
       if (overridingNamedProps[instanceName]) {

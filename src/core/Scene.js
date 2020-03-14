@@ -149,17 +149,18 @@ export default class Scene extends SmartScene {
     //? else if (cloningType === CloningType.forJSON) {
     //? }
 
-    // NOTE: currently pseudoClass is re-constituted via construction (above)
-    //       and tweaked by SmartModel utils ... hmmm
+    // define our "baseline"
+    const encodingProps = [['x',0], ['y',0], '_size'];
 
-    if (this.pseudoClass.isType()) { // the master TYPE DEFINITION persists EVERYTHING
-      return [...super.getEncodingProps(), ...['x', 'y', '_size', 'comps']];
+    // pseudoClass MASTERs include EVERYTHING
+    // ... pseudoClass INSTANCES omit props that are part of the TYPE
+    //     they will be re-constituted from master TYPE DEFINITION
+    if (this.pseudoClass.isType()) {
+      encodingProps.push('comps');
     }
-    else {                           // instances of this pseudoClass omit props that are part of the TYPE (will be re-constituted from master TYPE DEFINITION)
-      return [...super.getEncodingProps(), ...['x', 'y', '_size']];
-    }
+
+    return [...super.getEncodingProps(), ...encodingProps];
   }      
-
   
   /**
    * Enable self's "view" DispMode (used in top-level objects targeted by a tab).
