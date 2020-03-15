@@ -131,35 +131,20 @@ export default class Scene extends SmartScene {
   }
 
   // support persistance by encoding needed props of self
-  // 
-  // $FOLLOW-UP$: refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
-  //              ... see: "NO WORK (I THINK)" in journal (1/20/2020)
-  //              We may need to interpret different usages in support of BOTH:
-  //                - persistence (toSmartJSON()) -AND-
-  //                - pseudoClass construction (smartClone())
-  //              - may supply param: enum CloningType: forCloning/forJSON
-  getEncodingProps() {
-
-    // NOTE: in all cases, id/name handled by super
-
-    // L8TR: see note above
-    //? if (cloningType === CloningType.forCloning) {
-    //?   return [...super.getEncodingProps(), ...['pseudoClass', 'x', 'y', '_size', 'comps']]; // ? if we do this, must handle pseudoClass in constructor params
-    //? }
-    //? else if (cloningType === CloningType.forJSON) {
-    //? }
+  getEncodingProps(forCloning) {
 
     // define our "baseline"
     const encodingProps = [['x',0], ['y',0], '_size'];
 
-    // pseudoClass MASTERs include EVERYTHING
-    // ... pseudoClass INSTANCES omit props that are part of the TYPE
-    //     they will be re-constituted from master TYPE DEFINITION
-    if (this.pseudoClass.isType()) {
+    // conditionally include non-temporal props:
+    // - for pseudoClass MASTERs
+    // - for cloning operations
+    // ... see JavaDoc for: SmartModel.getEncodingProps()
+    if (this.pseudoClass.isType() || forCloning) {
       encodingProps.push('comps');
     }
 
-    return [...super.getEncodingProps(), ...encodingProps];
+    return [...super.getEncodingProps(forCloning), ...encodingProps];
   }      
   
   /**

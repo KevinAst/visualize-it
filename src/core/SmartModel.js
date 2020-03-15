@@ -26,8 +26,8 @@ import DispMode          from './DispMode';
  *  - persistance:
  *    + toSmartJSON():smartJSON ................. transforms self (with depth) into smartJSON
  *<S> + fromSmartJSON(smartJSON): smartObject ... reconstitutes class-based objects (with depth) from smartJSON
- *    + getEncodingProps(): string[] ............ polymorphically expose properties required to encode self
  *    + smartClone(): smartObject ............... creates a deep copy of self (used in pseudo constructor - SmartClassRef.createSmartObject(namedParams)))
+ *    + getEncodingProps(forCloning): string[] .. polymorphically expose properties required to encode self
  *
  *  - meta info (more found in PseudoClass and SmartClassRef):
  *    + getClassRef(): SmartClassRef ... promotes the classRef from which self was created (unifying both real classes and pseudo classes)
@@ -69,30 +69,40 @@ export default class SmartModel {
 
   /**
    * Polymorphically reveal self's properties that should be used to
-   * reconstitute an equivalent object.  This is used by:
+   * reconstitute an equivalent object.
+   * 
+   * The polymorphic knowledge provided by this method allows the
+   * following two methods to be fully implemented in the SmartModel
+   * base class:
+   * 
    *  - toSmartJSON() ... driving persistance
    *  - smartClone() .... in duplicating objects
-   * 
-   * With the polymorphic knowledge provided by `getEncodingProps()`,
-   * these two usage methods can be fully implemented by the
-   * SmartModel base class!
-   * 
-   * Sub-classes can define their own properties, and include their
-   * base-class as follows:
-   * 
-   * Sub-classes should accumulate their properties by including their
-   * parent classes, as follows:
+   *
+   * In the simplest form, this method merely returns a `string[]` of
+   * the property names to encode.
    *
    *   ```js
    *   class MyClass extends SmartModel {
-   *     getEncodingProps(): {
-   *       return [...super.getEncodingProps(), ...['my', 'props', 'too']];
+   *     getEncodingProps(forCloning): {
+   *       return ['prop1', 'prop2'];
    *     }
    *     ...
    *   }
    *   ```
    * 
-   * The returned array elements can either be:
+   * Sub-classes may accumulate their properties to their parent
+   * class, as follows:
+   *
+   *   ```js
+   *   class MyClass extends SmartModel {
+   *     getEncodingProps(forCloning): {
+   *       return [...super.getEncodingProps(forCloning), ...['my', 'props', 'too']];
+   *     }
+   *     ...
+   *   }
+   *   ```
+   * 
+   * Each element in the returned array may either be:
    *  - a propName: string
    *  - or an ordered pair: `[propName, defaultValue]`
    *    ... defaultValues are an optimization.  The usage algorithms
@@ -100,33 +110,81 @@ export default class SmartModel {
    *        expected to be reconstituted (by default) at
    *        instantiation.  As a result, these defaultValues should
    *        match the constructor default value semantics.
-   * 
-   * **Detail**:
    *
-   * NOT ALL object properties should be encoded. There are cases
-   * where this state should be reconstituted from logic rather from
-   * the content driven by this method.  As an example, temporal
-   * working state (such as mounted visuals) should be omitted.
+   * As an example of this, let's say that in the sample above, the
+   * `too` prop will default to `1` (in the constructor).  With this
+   * knowledge, the encoding can be specified as follows:
+   *
+   *   ```js
+   *   class MyClass extends SmartModel {
+   *     constructor({my, props, too=1}): {
+   *       ...
+   *     }
+   *     getEncodingProps(forCloning): {
+   *       return [...super.getEncodingProps(forCloning), ...['my', 'props', ['too',1]]];
+   *     }
+   *     ...
+   *   }
+   *   ```
+   * 
+   * **Details**:
+   *
+   * NOT ALL object properties should be encoded.  There are cases
+   * where the object state is reconstituted from logic (in the
+   * constructor or elsewhere) rather from the content driven by this
+   * method.  As an example, temporal working state (such as mounted
+   * visuals) should be omitted.
    *
    * Remember this encoding is used to reconstitute an equivalent
    * object.
    *
-   * In regard to pseudoClasses, the returned content will vary, based
-   * on whether self is the pseudoClass MASTER definition, or an
-   * INSTANCE of a pseudoClass.
-   * $FOLLOW-UP$: ?? refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
-   *              ... see: "NO WORK (I THINK)" in journal (1/20/2020)
-   *              We may need to interpret different usages in support of BOTH:
-   *                - persistence (toSmartJSON()) -AND-
-   *                - pseudoClass construction (smartClone())
-   *              - may supply param: enum CloningType: forCloning/forJSON
+   * **pseudoClass Details**:
+   * 
+   * pseudoClass implementations have additional considerations in
+   * their `getEncodingProps()` implementation.
+   * 
+   * - General Rule: pseudoClass INSTANCEs should omit the props that
+   *   will be reconstituted by the pseudoClass constructor (i.e. the
+   *   pseudoClass MASTER).  This is similar to how a real class
+   *   instantiation reconstitutes its internal state.
+   * 
+   * - HOWEVER, this rule is not in affect when the encoding props are
+   *   being gathered for the purpose of cloning.  In this case, all
+   *   non-temporal properties should be included, because it is more
+   *   of a "raw" copy operation, where the additional props are NOT
+   *   supplied through the pseudo constructor params.
+   * 
+   * - This is where the `forCloning` param comes in to play.
+   *   Here is a pseudoClass example taken from `Scene`:
+   *   
+   *   ```js
+   *   getEncodingProps(forCloning) {
+   *     // define our "baseline"
+   *     const encodingProps = [['x',0], ['y',0], '_size'];
+   *   
+   *     // conditionally include non-temporal props:
+   *     // - for pseudoClass MASTERs
+   *     // - for cloning operations
+   *     if (this.pseudoClass.isType() || forCloning) {
+   *       encodingProps.push('comps');
+   *     }
+   *   
+   *     return [...super.getEncodingProps(forCloning), ...encodingProps];
+   *   }      
+   *   ```
+   *
+   * @param {boolean} forCloning - an indicator as to whether this
+   * request is on behalf of the cloning operation (true:
+   * `smartClone()` is making the request).  Otherwise the request is
+   * being made by `toSmartJSON()`.  Please interpret this value using
+   * "truthy" semantics.
    *
    * @returns {[propName, [propName, defaultValue], ...]} self's
    * property names (string) to be encoded in our smartJSON
    * representation (omitting values that match the optional
    * defaultValue).
    */
-  getEncodingProps() {
+  getEncodingProps(forCloning) {
     return ['id', 'name'];
   }
 
@@ -329,7 +387,7 @@ export default class SmartModel {
     }
 
     // encode self's instance properties
-    const encodingProps = this.getEncodingProps(); // $FOLLOW-UP$: ?? refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
+    const encodingProps = this.getEncodingProps(false);
     encodingProps.forEach( (prop) => {
       const [propName, defaultValue] = Array.isArray(prop) ? prop : [prop, 'DeFaUlT NeVeR HaPpEn'];
       const value = this[propName];
@@ -586,7 +644,7 @@ export default class SmartModel {
     //     - it recurses on itself
     //     - supporting ALL data types
     //     - recurses back into this.smartClone() as needed
-    const encodingProps = this.getEncodingProps(); // $FOLLOW-UP$: ?? refine getEncodingProps() to support BOTH persistence (toSmartJSON()) -AND- pseudoClass construction (smartClone())
+    const encodingProps = this.getEncodingProps(true);
     const clonedProps   = encodingProps.reduce( (accum, prop) => {
 
       // NOTE: smartClone() does NOT use the defaultValue of getEncodingProps()!

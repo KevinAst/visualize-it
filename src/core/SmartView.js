@@ -56,8 +56,8 @@ export default class SmartView extends SmartModel {
   }
 
   // support persistance by encoding needed props of self
-  getEncodingProps() {
-    return [...super.getEncodingProps(), ...['scene']];
+  getEncodingProps(forCloning) {
+    return [...super.getEncodingProps(forCloning), ...['scene']];
   }
 
   /**

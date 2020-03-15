@@ -44,8 +44,8 @@ export default class Collage extends SmartScene {
   }
 
   // support persistance by encoding needed props of self
-  getEncodingProps() {
-    return [...super.getEncodingProps(), ...['scenes']];
+  getEncodingProps(forCloning) {
+    return [...super.getEncodingProps(forCloning), ...['scenes']];
   }
 
   

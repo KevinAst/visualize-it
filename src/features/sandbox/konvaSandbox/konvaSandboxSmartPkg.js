@@ -110,6 +110,16 @@ pkgManager.registerPkg(konvaSandboxSmartPkg);
 
 
 //******************************************************************************
+//*** CRUDE TEST: Exercise clone process to insure NO runtime errors :-)
+//******************************************************************************
+
+const clonedPkg = konvaSandboxSmartPkg.smartClone();
+clonedPkg.id   = 'cloned.pkg';
+clonedPkg.name = 'Cloned Pkg';
+pkgManager.registerPkg(clonedPkg);
+
+
+//******************************************************************************
 //*** CRUDE TEST: Exercise JSON persistance to insure NO runtime errors :-)
 //******************************************************************************
 

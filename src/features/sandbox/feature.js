@@ -6,6 +6,7 @@ import                  './konvaSandbox/konvaSandboxSmartPkg'; // unnamed import
 
 const generalCompsPkg      = pkgManager.getPackage('generalComps');
 const konvaSandboxSmartPkg = pkgManager.getPackage('com.astx.KONVA');
+const clonedPkg            = pkgManager.getPackage('cloned.pkg');
 
 // feature: sandbox
 //          sandbox to play with konva.js
@@ -22,5 +23,8 @@ export default createFeature({
 
     // our sandbox resource-based system package
     leftNavManager.addLeftNav(konvaSandboxSmartPkg);
+
+    // our clonedPkg
+    leftNavManager.addLeftNav(clonedPkg);
   },
 });
