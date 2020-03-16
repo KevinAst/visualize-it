@@ -3,6 +3,7 @@ import Scene          from 'core/Scene';
 import SmartClassRef  from 'core/SmartClassRef';
 import SmartPkg       from 'core/SmartPkg';
 import pkgManager     from 'core/pkgManager';
+import {replaceAll}   from 'util/strUtil';
 import {createLogger} from 'util/logger';
 import                     './generalComps'; // unnamed import activating it's package registration
 
@@ -114,8 +115,16 @@ pkgManager.registerPkg(konvaSandboxSmartPkg);
 //******************************************************************************
 
 const clonedPkg = konvaSandboxSmartPkg.smartClone();
+
+// rename, so we can load the JSON
+// ... so it is NOT a duplicate from what already may be in LeftNav
+//     NOTE: Even with this rename, the clonedPkg will retain the original
+//           self referenced pkg of: "com.astx.KONVA"
+//           ... SO the konvaSandboxSmartPkg must be pre-registered for 
+//               the clonedPkg to operate
 clonedPkg.id   = 'cloned.pkg';
 clonedPkg.name = 'Cloned Pkg';
+
 pkgManager.registerPkg(clonedPkg);
 
 
@@ -129,16 +138,23 @@ pkgManager.registerPkg(clonedPkg);
 // 3. into a file (ex: C:\Users\kevin\Dropbox\Camera Uploads\visualize-it\myFirst.vit)
 // 4. load the package from that file (via the visualize-it file menu)
 
-const savedId   = konvaSandboxSmartPkg.id;  // temporarily rename, so we can load the JSON (i.e. NOT a duplicate from what is already in LeftNav)
-const savedName = konvaSandboxSmartPkg.name;
-konvaSandboxSmartPkg.id   = savedId   + '2'; // ... "com.astx.KONVA2"
-konvaSandboxSmartPkg.name = savedName + 'I'; // ... "Konva Sandbox II"
+// convert to JSON
+log(`PERSISTENT TEST: JSONIZE smartPkg:\n`, {konvaSandboxSmartPkg});
+const json = konvaSandboxSmartPkg.toSmartJSON();
+log(`PERSISTENT TEST: HERE is the json:\n`, {json});
 
-log(`PERSISTENT TEST: JSONIZE smartPkg: `, {konvaSandboxSmartPkg});
-const smartJSON = konvaSandboxSmartPkg.toSmartJSON();
-log(`PERSISTENT TEST: HERE is the json: `, {smartJSON, str: JSON.stringify(smartJSON) });
-const rehydratedSmartPkg = SmartPkg.fromSmartJSON(smartJSON);
-log(`PERSISTENT TEST: HERE is the RE-HYDRATED smartPkg: `, {rehydratedSmartPkg});
+// for this conversion to be self-sufficient, we need to change the pkgId/pkgName in the JSON
+const pkgId   = konvaSandboxSmartPkg.id;
+const pkgName = konvaSandboxSmartPkg.name;
+let   jsonStr = JSON.stringify(json, null, 2);
+jsonStr = replaceAll(jsonStr,          // pkgId (including any self referenced pkgId)
+                     `"${pkgId}"`,     //   ex: "com.astx.KONVA"
+                     `"${pkgId}2"`);   //   ex: "com.astx.KONVA2"
+jsonStr = replaceAll(jsonStr,          // pkgName
+                     `"${pkgName}"`,   //   ex: "Konva Sandbox I"
+                     `"${pkgName}I"`); //   ex: "Konva Sandbox II"
+log(`PERSISTENT TEST: HERE is the "pretty" jsonStr (after id changes):\n`, jsonStr);
 
-konvaSandboxSmartPkg.id   = savedId; // reset the temporary name changes
-konvaSandboxSmartPkg.name = savedName;
+// rehydrate the JSON back to a SmartPkg object
+const rehydratedSmartPkg = SmartPkg.fromSmartJSON(JSON.parse(jsonStr));
+log(`PERSISTENT TEST: HERE is the RE-HYDRATED smartPkg:\n`, {rehydratedSmartPkg});
