@@ -13,7 +13,7 @@ function escapeRegExp(str) {
 }
 
 /**
- * Replace all occurrances of `find` with `replace` in the supplied
+ * Replace all occurrences of `find` with `replace` in the supplied
  * `str`.
  * 
  * @param {string} str the string to operate on.
