@@ -2,8 +2,7 @@ import {createLogic}        from 'redux-logic';
 import _tabManager          from './featureName';
 import _tabManagerAct       from './actions';
 import * as sel             from './state';
-
-import tabManager          from './tabManager';
+import tabRegistry          from './tabRegistry';
 
 /**
  * Supplement the 'activateTab' action with the following directives
@@ -103,7 +102,7 @@ export const supplementActivateTab = createLogic({
     //*** supplement our action with pgmDirectives (see JSDocs above)
     //***
 
-    action.tabName = tabManager.getTabController(req_tabId).getTabName(); // ... AI: may error - returns undefined if NOT registered?
+    action.tabName = tabRegistry.getTabController(req_tabId).getTabName(); // ... AI: may error - returns undefined if NOT registered?
 
     action.pgmDirectives = {
       next_activeTabId,
@@ -196,7 +195,7 @@ export const syncTargetDispMode = createLogic({
       // sync it's Konva state to match the object model's initial state
       // ... see JavaDoc (above)
       // console.log(`xx LOGIC: ${_tabManager}.syncTargetDispMode ... syncing now!`);
-      const tabController = tabManager.getTabController(action.tabId); // ... AI: may error - returns undefined if NOT registered?
+      const tabController = tabRegistry.getTabController(action.tabId); // ... AI: may error - returns undefined if NOT registered?
       const target        = tabController.getTarget();
       target.setDispMode( target.getDispMode() );
     }

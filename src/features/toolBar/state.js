@@ -5,7 +5,7 @@ import {slicedReducer}      from 'feature-redux';
 import _toolBar             from './featureName';
 import _toolBarAct          from './actions';
 import DispMode             from 'core/DispMode';
-import {tabManager}         from 'features';
+import {tabRegistry}        from 'features';
 
 // ***
 // *** Our feature reducer, managing state for our toolBar process.
@@ -15,7 +15,7 @@ const reducer = slicedReducer(_toolBar, expandWithFassets( (fassets) => combineR
 
   // dispMode: string ... 'view'/'edit'/'animate' via DispMode enum
   dispMode: reducerHash({
-    [fassets.actions.activateTab]: (state, action) => tabManager.getTabController(action.tabId).getTarget().getDispMode().enumKey,
+    [fassets.actions.activateTab]: (state, action) => tabRegistry.getTabController(action.tabId).getTarget().getDispMode().enumKey,
     [_toolBarAct.dispModeChanged]: (state, action) => action.dispMode.enumKey,
   }, DispMode.view.enumKey), // initialState
 

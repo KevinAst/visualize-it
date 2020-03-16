@@ -3,20 +3,21 @@ import verify        from 'util/verify';
 import {isString}    from 'util/typeCheck';
 
 /**
- * TabManager is the manager of ALL tabs (TabControllers).
+ * TabRegistry provides a registry of ALL tabs (TabControllers).
  *
- * Registered tabs have the potential of being displayed.
+ * Tab registration occurs early.  Registered entries have the
+ * "potential" of being displayed.
  *
- * When a tab is initially referenced (a dynamic process),
- * it will be created through the TabController.xxx() API.
+ * When a tab is initially referenced (a dynamic process), it will be
+ * created through the `TabController.getTabPanelComp()` API.
  * 
- * Once a tab has been displayed, all interaction to it will funnel
+ * Once a tab has been displayed, all interaction to it funnels
  * through the TabController API.
  */
-class TabManager {
+class TabRegistry {
 
   /**
-   * Create a TabManager.
+   * Create a TabRegistry.
    */
   constructor() {
     // carve out our tabRegistry
@@ -30,7 +31,7 @@ class TabManager {
    * Register the supplied `tabController` as a potential tab that can
    * be rendered in our system.
    *
-   * @param {TabController} tabController the controller to register
+   * @param {TabController} tabController the controller to register.
    *
    * @throws {Error} an Error is thrown for invalid params
    * (NO LONGER: or if the controller has already been registered).
@@ -38,7 +39,7 @@ class TabManager {
   registerTab(tabController) {
 
     // validate parameters
-    const check = verify.prefix('TabManager.registerTab() parameter violation: ');
+    const check = verify.prefix('TabRegistry.registerTab() parameter violation: ');
 
     // ... tabController
     check(tabController,                          'tabController is required');
@@ -46,7 +47,7 @@ class TabManager {
 
     // maintain our tabRegistry catalog
     const tabId = tabController.getTabId();
-    // console.log(`xx TabManager.registerTab() registering tabController(${tabId}): `, tabController);
+    // console.log(`xx TabRegistry.registerTab() registering tabController(${tabId}): `, tabController);
     if (this.tabRegistry[tabId]) { // NO LONGER: verify tabController is not already loaded!
       // ... we tightly control the tabId federated name-space,
       //     so any re-registration is presumably due to left-nav menu regeneration
@@ -55,7 +56,7 @@ class TabManager {
       //       * the DispMode is NOT retained in the tab panel itself
       //         ... need more research
       //       * SHOULD BE OK: I can't imagine what could change that would impact the TabController
-      // throw new Error(`***ERROR*** TabManager.registerTab() tabId: ${tabId} is already registered :-(`);
+      // throw new Error(`***ERROR*** TabRegistry.registerTab() tabId: ${tabId} is already registered :-(`);
     }
     else {
       this.tabRegistry[tabId] = tabController;
@@ -73,7 +74,7 @@ class TabManager {
    */
   getTabController(tabId) {
     // validate parameters
-    const check = verify.prefix('TabManager.getTabController() parameter violation: ');
+    const check = verify.prefix('TabRegistry.getTabController() parameter violation: ');
     // ... tabId
     check(tabId,             'tabId is required');
     check(isString(tabId),   'tabId must be a string');
@@ -84,6 +85,6 @@ class TabManager {
 
 }
 
-// expose our single tabManager utility ... AI: singleton code smell
-const tabManager = new TabManager();
-export default tabManager;
+// expose our single tabRegistry utility ... AI: singleton code smell
+const tabRegistry = new TabRegistry();
+export default tabRegistry;

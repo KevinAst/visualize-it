@@ -7,7 +7,7 @@ import {useSelector,
 
 import DispMode         from 'core/DispMode';
 
-import {tabManager}     from 'features';
+import {tabRegistry}    from 'features';
 
 import {createLogger}   from 'util/logger';
 
@@ -54,7 +54,7 @@ export default function VitToolBar() {
     );
   }
 
-  const activeTarget = tabManager.getTabController(activeTabId).getTarget();
+  const activeTarget = tabRegistry.getTabController(activeTabId).getTarget();
 
   return (
     <Toolbar variant="dense">

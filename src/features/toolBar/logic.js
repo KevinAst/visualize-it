@@ -1,7 +1,7 @@
 import {createLogic}       from 'redux-logic';
 import _toolBar            from './featureName';
 import _toolBarAct         from './actions';
-import {tabManager}        from 'features';
+import {tabRegistry}       from 'features';
 
 
 /**
@@ -17,7 +17,7 @@ export const syncDispModeChangesToObjectModel = createLogic({
     // propagate this change to the object model via the TabController
     const appState      = getState();
     const activeTabId   = fassets.sel.getActiveTabId(appState);
-    const tabController = tabManager.getTabController(activeTabId);
+    const tabController = tabRegistry.getTabController(activeTabId);
     tabController.getTarget().setDispMode(action.dispMode);
 
     done();

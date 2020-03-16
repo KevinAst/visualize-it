@@ -9,7 +9,7 @@ import {openPkg,
 import pkgManager       from 'core/pkgManager';
 
 import {leftNavManager,
-        tabManager}     from 'features';
+        tabRegistry}    from 'features';
 
 import discloseError    from 'util/discloseError';
 import verify           from 'util/verify';
@@ -152,7 +152,7 @@ async function handleSavePkg(activeTabId, saveAs=false) {
  */
 function resolvePkg(activeTabId) {
   // locate the package that contains the resource in the active tab
-  const tabController = tabManager.getTabController(activeTabId);
+  const tabController = tabRegistry.getTabController(activeTabId);
   const targetObj     = tabController.getTarget(); // can be: Scene/Collage or SmartComp (for classes)
   let   pkg           = targetObj.getPackage();
 

@@ -4,7 +4,7 @@ import PropTypes                from 'prop-types';
 import {useDispatch}            from 'react-redux';
 import {useFassets}             from 'feature-u';
 
-import {tabManager,
+import {tabRegistry,
         TabControllerScene,
         TabControllerCollage,
         TabControllerClass}     from 'features';
@@ -146,7 +146,7 @@ function genTreeItems(smartPkg, handleActivateTab) {
             console.error(errMsg, {smartObj});
             throw new Error(errMsg);
           }
-          tabManager.registerTab(tabController);
+          tabRegistry.registerTab(tabController);
 
           log(`genTreeItems(): TreeItem tabManager node ... id: ${id}`);
           return (
@@ -166,7 +166,7 @@ function genTreeItems(smartPkg, handleActivateTab) {
           const id = `${accumulativeId}-${compName}`;
 
           // register this entry to our tabManager (allowing it to be visualized)
-          tabManager.registerTab( new TabControllerClass(id, compName, compClass, smartPkg) ); // ??!! need to pass smartPkg to allow it to be hooked up to comp instance
+          tabRegistry.registerTab( new TabControllerClass(id, compName, compClass, smartPkg) ); // ??!! need to pass smartPkg to allow it to be hooked up to comp instance
           
           log(`genTreeItems(): TreeItem tabManager node ... id: ${id}`);
           return (
