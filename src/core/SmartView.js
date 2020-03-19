@@ -53,6 +53,9 @@ export default class SmartView extends SmartModel {
     
     // retain parameters in self
     this.scene = scene;
+
+    // maintain our view parentage
+    this.scene.setParentView(this);
   }
 
   // support persistance by encoding needed props of self
@@ -69,17 +72,38 @@ export default class SmartView extends SmartModel {
   }
 
   /**
-   * Get self's size ... {width, height}.
+   * Get self's size.
    *
-   * NOTE: Because view size is derived from it's contained scene(s), 
-   *       you may only set the size within the scene object (where it is mastered).
-   *
-   * @returns {Size} our current size.
+   * @returns {Size} our current size: {width, height}
    */
-  size(size) {
-    // NOTE: this method does NOT require mounting, because it's contained scene masters the size!
-    verify(size===undefined, `***ERROR*** ${this.diagClassName()}.size() can only be invoked as a getter (with no params) ... size is mastered in the scene, AND derived in the view.`);
-    return this.scene.size(); // return current size (from our contained scene)
+  getSize() {
+    // cached size takes precedence
+    if (this.sizeCache) {
+      return this.sizeCache;
+    }
+
+    // compute size
+    // ... simply defer to our contained scene
+    this.sizeCache = this.scene.getSize();
+
+    return this.sizeCache;
+  }
+
+  /**
+   * Perform any static binding of self's size change (such as HTML or
+   * Konva bindings).
+   *
+   * @param {Size} oldSize - the previous size ... {width, height}.
+   * @param {Size} newSize - the new size ... {width, height}.
+   */
+  bindSizeChanges(oldSize, newSize) {
+    // sync size to our Konva.Stage
+    this.konvaStage.size(newSize);
+    this.konvaStage.draw();
+
+    // sync size to our containingHtmlElm
+    this.containingHtmlElm.style.width  = `${newSize.width}px`;
+    this.containingHtmlElm.style.height = `${newSize.height}px`;
   }
 
 
@@ -119,8 +143,11 @@ export default class SmartView extends SmartModel {
   mount(containingHtmlElm) {
     log(`mounting SmartView id: ${this.id}`);
     
+    // retain our containingHtmlElm
+    this.containingHtmlElm = containingHtmlElm;
+
     // create our stage where our scene will be mounted
-    const {width, height} = this.size();
+    const {width, height} = this.getSize();
     this.konvaStage = new Konva.Stage({
       container: containingHtmlElm,
       x:         0, // we assume an offset at the origin
@@ -130,8 +157,11 @@ export default class SmartView extends SmartModel {
     });
     
     // mount our scene into this stage
-    this.scene.mount(this.konvaStage, containingHtmlElm); // ... containingHtmlElm needed to dynamically resize collage
+    this.scene.mount(this.konvaStage);
 
+    // regenerate actual size, once mounting is complete
+    // ... propogate this request into our scene
+    this.scene.regenSizeTrickleUp();
   }
 }
 SmartView.unmangledName = 'SmartView';

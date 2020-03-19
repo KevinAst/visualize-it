@@ -60,9 +60,7 @@ export default class TabControllerClass extends TabController {
     // wrap our single component in a scene (see NOTE above)
     this.scene = new Scene({
       id: `view-${this.compName}`,
-      comps: [this.comp], // 
-      width:  300,   // ?? we need a way for the comp to tell us it's size
-      height: 300,   //    ... once it is mounted, we can interrogate Konva HOWEVER that is too late
+      comps: [this.comp],
     });
 
     this.scene.setParent(smartPkg); // ??!! hook up our parentage properly ... simulating what would happen in a real pkg

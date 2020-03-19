@@ -21,8 +21,6 @@ import {toast}           from 'util/notify';
  *   the context of a Collage, where multiple scenes are offset within
  *   a viewport).
  *
- * - a scene DIRECTLY manges the width/height properties
- *
  * - different scenes may visualize various aspects of a system (for
  *   example a functional breakdown)
  *   * each scene INTERNALLY correlates to a separate Konva.Layer
@@ -58,23 +56,17 @@ export default class Scene extends SmartScene {
    * @param {string} [name=id] - the human interpretable name of this
    * scene (DEFAULT to id).
    *
-   * @param {SmartComp[]} comps - the set of components (SmartComp) that 
-   * make up this scene (logically our display list).
-   *
    * @param {int} [x=0] - the optional x offset of this scene within it's container (used by Collage container - managing multiple Scenes)
    * @param {int} [y=0] - the optional y offset of this scene within it's container (used by Collage container - managing multiple Scenes)
    *
-   * @param {int} width - the width of this scene (mastered in scene).
-   * @param {int} height - the height of this scene (mastered in scene).
+   * @param {SmartComp[]} comps - the set of components (SmartComp) that 
+   * make up this scene (logically our display list).
    */
   constructor({id,
                name,
-               comps,
                x=0,
                y=0,
-               _size, // INTERNAL USE (for rehydration) takes precedence over width/height: _size: {width, height}
-               width, // NOTE: we keep as width/height rather than size: {width, height} (for now) ... CONSISTENT with Konva.Stage API (not that that matters ... it is an internal)
-               height,
+               comps,
                ...unknownArgs}={}) {
 
     super({id, name});
@@ -94,22 +86,6 @@ export default class Scene extends SmartScene {
     // ... y
     check(isNumber(y), `y must be a number (when supplied), NOT: ${y}`);
 
-    // ... INTERNAL USE (for rehydration) takes precedence over width/height: _size: {width, height}
-    if (_size) { 
-      width  = _size.width;
-      height = _size.height;
-    }
-
-    // ... width
-    check(width,                   'width is required');
-    check(Number.isInteger(width), `width must be an integer, NOT: ${width}`);
-    check(width>0,                 `width must be a positive integer, NOT: ${width}`);
-
-    // ... height
-    check(height,                   'height is required');
-    check(Number.isInteger(height), `height must be an integer, NOT: ${height}`);
-    check(height>0,                 `height must be a positive integer, NOT: ${height}`);
-
     // ... unknown arguments
     checkUnknownArgs(check, unknownArgs, arguments);
 
@@ -123,7 +99,6 @@ export default class Scene extends SmartScene {
     // retain parameters in self
     this.x     = x;
     this.y     = y;
-    this._size = {width, height}; // NOTE: we use _size so as NOT to clash with size() method
     this.comps = comps;
 
     // maintain our parentage
@@ -134,7 +109,7 @@ export default class Scene extends SmartScene {
   getEncodingProps(forCloning) {
 
     // define our "baseline"
-    const encodingProps = [['x',0], ['y',0], '_size'];
+    const encodingProps = [['x',0], ['y',0]];
 
     // conditionally include non-temporal props:
     // - for pseudoClass MASTERs
@@ -195,9 +170,12 @@ export default class Scene extends SmartScene {
       const comp = this.comps.find( (comp) => comp.id === e.target.id() );
       // console.log(`xx Konva Scene Layer dragend: matching comp: `, comp);
 
-      // sync the modified x/y
+      // sync Konva changes to Object Model
       comp.x = e.target.x();
       comp.y = e.target.y();
+
+      // sync any container size changes
+      this.regenSizeTrickleUp();
     });
 
 
@@ -246,6 +224,8 @@ export default class Scene extends SmartScene {
         comp.scaleY   = e.target.scaleY();
       });
 
+      // sync any container size changes
+      this.regenSizeTrickleUp();
     });
   }
 
@@ -274,16 +254,11 @@ export default class Scene extends SmartScene {
    *
    * @param {Konva.Stage} containingKonvaStage - the container of
    * this scene (a Konva.Stage).
-   *
-   * @param {HtmlElm} containingHtmlElm - The overall containing
-   * HTML element (needed for dynamic resizing in Collage).
    */
-  mount(containingKonvaStage, containingHtmlElm) { 
+  mount(containingKonvaStage) { 
 
     // retain our stage for selected event processing
     this.containingKonvaStage = containingKonvaStage;
-
-    // NOTE: containingHtmlElm is currently NOT needed for Scene
 
     // create our layer where our components will be mounted
     this.konvaSceneLayer = new Konva.Layer({
@@ -303,27 +278,66 @@ export default class Scene extends SmartScene {
 
 
   /**
-   * Get/Set self's size ... {width, height}.
+   * Get self's current size (dynamically calculated).
    *
-   * NOTE: Because the pallet size is mastered in the scene, it can be
-   *       set here.  A view size is derived from it's contained scene(s).
-   *
-   * @param {Size} [size] - the optional size that when
-   * supplied will set self's size.
-   *
-   * @returns {Size|self} for getter: our current size,
-   * for setter: self (supporting chainable setters).
+   * @returns {Size} self's current size ... {width, height}.
    */
-  size(size) {
-    // NOTE: this method does NOT require mounting, because Scene masters the size!
-    if (size===undefined) {      // getter:
-      return this._size;
+  getSize() {
+    // cached size takes precedence
+    if (this.sizeCache) {
+      return this.sizeCache;
     }
-    else {                       // setter:
-      this._size = {width: size.width, height: size.height}; // new copy for good measure
-      return this;               // return self (for chaining)
+
+    // compute size
+    // ... this sizeCache will be re-set whenever size has the potential of changing:
+    //     - both in our initial mount (replacing "approximation" with "exact" size)
+    //     - and during interactive edit changes (reflecting an updated size)
+    // ... see: SmartModel.regenSizeTrickleUp()
+    if (this.konvaSceneLayer) { // ... when mounted
+      // dynamically calculate the size from our Layer/Canvas content
+      const size = this.sizeCache = {width: 10, height: 10}; // ... minimum size
+      this.konvaSceneLayer.getChildren().each( (shape,n) => {
+        if (shape.getClassName() !== 'Transformer') { // ... really dislike how Konva does Transformer (making it part of our display list)
+          const shapeBounds = shape.getClientRect();  // ... consider transformation
+          size.width  = Math.max(size.width,  shapeBounds.x + shapeBounds.width); 
+          size.height = Math.max(size.height, shapeBounds.y + shapeBounds.height); 
+        }
+      });
     }
+    else { // ... when NOT mounted
+      // provide initial size approximation (will be re-set when mounted)
+      // ... AI: depending on initial flicker (of size changing when mounted)
+      //         - OP1: persist the sizeCache
+      //                ... although doesn't help component classes (the class may contain an .approxSize property)
+      //         - OP1: hide content till fully mounted
+      //         - OP2: some polymorphic API for initialSize()/approxSize()/guesstimateSize()
+      //                ... UNSURE: in what object ... more research needed
+      this.sizeCache = {width: 100, height: 100};
+    }
+
+    return this.sizeCache;
   }
+
+  /**
+   * Perform any static binding of self's size change (such as HTML or
+   * Konva bindings).
+   *
+   * @param {Size} oldSize - the previous size ... {width, height}.
+   * @param {Size} newSize - the new size ... {width, height}.
+   */
+  bindSizeChanges(oldSize, newSize) {
+    // sync our newSize to our Konva.Layer
+    // NOTE: This is NOT needed (even though originally I thought it was)
+    //        - according to the Konva docs, the width/height are taken from the parent stage
+    //          ... NOT the Layer/Canvas
+    //        - makes sense, because size is NOT set in any of our Layer/Canvas context
+    //          ... in our constructor() or our mount()
+    //       We must however define this method (as a no-op) to fulfill the SmartView.bindSizeChanges() abstraction
+    // no-op:
+    // this.konvaSceneLayer.size(newSize);
+    // this.konvaSceneLayer.draw();
+  }
+
 
   /**
    * Get/set our draggable scene flag.

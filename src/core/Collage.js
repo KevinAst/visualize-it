@@ -93,14 +93,8 @@ export default class Collage extends SmartScene {
       scene.x = e.target.x();
       scene.y = e.target.y();
 
-      // reset the stage size which is dynamically calculated!
-      const newSize = this.size();
-      // ... adjust the Stage
-      this.containingKonvaStage.size(newSize);
-      this.containingKonvaStage.draw();
-      // ... adjust the Stage's corollary HTML elm
-      this.containingHtmlElm.style.width  = `${newSize.width}px`;
-      this.containingHtmlElm.style.height = `${newSize.height}px`;
+      // sync any container size changes
+      this.regenSizeTrickleUp();
     });
   }
 
@@ -120,16 +114,10 @@ export default class Collage extends SmartScene {
    *
    * @param {Konva.Stage} containingKonvaStage - The container of
    * this collage (a Konva.Stage).
-   *
-   * @param {HtmlElm} containingHtmlElm - The overall containing
-   * HTML element (needed for dynamic resizing in Collage).
    */
-  mount(containingKonvaStage, containingHtmlElm) {
+  mount(containingKonvaStage) {
     // retain containingKonvaStage for event handling
     this.containingKonvaStage = containingKonvaStage;
-
-    // retain containingHtmlElm (needed to dynamically resize)
-    this.containingHtmlElm = containingHtmlElm;
 
     // propagate this request to each of our scenes (one canvas per scene)
     this.scenes.forEach( (scene) => scene.mount(containingKonvaStage) );
@@ -137,26 +125,57 @@ export default class Collage extends SmartScene {
 
 
   /**
-   * Get self's size ... {width, height}.
+   * Get self's current size (dynamically calculated).
    *
-   * NOTE: Because the collage size is derived from it's contained scenes, 
-   *       you may only set the size within the Scene object (where it is mastered).
-   *
-   * @returns {Size} our current size.
+   * @returns {Size} self's current size ... {width, height}.
    */
-  size(size) {
-    // NOTE: this method does NOT require mounting, because it's contained scene's masters the size!
-    verify(size===undefined, `***ERROR*** ${this.diagClassName()}.size() can only be invoked as a getter (with no params) ... size is mastered in the scene, AND derived in the collage.`);
+  getSize() {
+    // cached size takes precedence
+    if (this.sizeCache) {
+      return this.sizeCache;
+    }
 
-    // compute our size accumulated from all our scenes
-    const viewSize = this.scenes.reduce( (accum, scene) => {
-      const sceneSize = scene.size();
-      accum.width  = Math.max(accum.width,  scene.x + sceneSize.width); 
-      accum.height = Math.max(accum.height, scene.y + sceneSize.height);
-      return accum;
-    }, {width:0, height:0});
-    return viewSize;
+    // compute size
+    // ... this sizeCache will be re-set whenever size has the potential of changing:
+    //     - both in our initial mount (replacing "approximation" with "exact" size)
+    //     - and during interactive edit changes (reflecting an updated size)
+    // ... see: SmartModel.regenSizeTrickleUp()
+    if (this.containingKonvaStage) { // ... when mounted (CONSIDER NOT reasoning over mount - reverting to scene defaults 100% of the time)
+      // dynamically accumulate the size from our scenes
+      this.sizeCache = this.scenes.reduce( (accum, scene) => {
+        const sceneSize = scene.getSize();
+        accum.width  = Math.max(accum.width,  scene.x + sceneSize.width); 
+        accum.height = Math.max(accum.height, scene.y + sceneSize.height);
+        return accum;
+      }, {width:100, height:100}); // ... minimum size
+    }
+    else { // ... when NOT mounted
+      // provide initial size approximation (will be re-set when mounted)
+      // ... AI: depending on initial flicker (of size changing when mounted)
+      //         - OP1: persist the sizeCache
+      //                ... although doesn't help component classes (the class may contain an .approxSize property)
+      //         - OP1: hide content till fully mounted
+      //         - OP2: some polymorphic API for initialSize()/approxSize()/guesstimateSize()
+      //                ... UNSURE: in what object ... more research needed
+      this.sizeCache = {width: 200, height: 200};
+    }
+
+    return this.sizeCache;
   }
+
+  /**
+   * Perform any static binding of self's size change (such as HTML or
+   * Konva bindings).
+   *
+   * @param {Size} oldSize - the previous size ... {width, height}.
+   * @param {Size} newSize - the new size ... {width, height}.
+   */
+  bindSizeChanges(oldSize, newSize) {
+    // propagate this to our scenes
+    // ... not really needed because our Scene currently no-ops (but that's OK)
+    this.scenes.forEach( (scene) => scene.bindSizeChanges(oldSize, newSize) );
+  }
+
 
   /**
    * Get/set our draggable scene flag.

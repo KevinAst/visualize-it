@@ -160,7 +160,7 @@ export default class SmartModel {
    *   ```js
    *   getEncodingProps(forCloning) {
    *     // define our "baseline"
-   *     const encodingProps = [['x',0], ['y',0], '_size'];
+   *     const encodingProps = [['x',0], ['y',0]];
    *   
    *     // conditionally include non-temporal props:
    *     // - for pseudoClass MASTERs
@@ -215,7 +215,7 @@ export default class SmartModel {
     // when self is a SmartPkg, we have found it!
     // ... we use a "duct type" check
     //     in lieu of `this instanceof SmartPkg`
-    //     to avoid SmartPkg import (introducing a potential "Circular Dependency")
+    //     to avoid SmartPkg import (introducing a "Circular Dependency")
     if (this.getPkgId) {
       return this;
     }
@@ -236,7 +236,7 @@ export default class SmartModel {
   }
 
   /**
-   * Return self's parent object, with respect to the "primary"
+   * Set self's parent object, with respect to the "primary"
    * containment tree (i.e. NOT view related).
    *
    * @param {SmartObject} parent - the parent object of self.
@@ -244,6 +244,111 @@ export default class SmartModel {
   setParent(parent) {
     this.parent = parent;
   }
+
+
+  /**
+   * Return the SmartView self belongs to.
+   *
+   * @returns {SmartView} the top-level view self belongs to, `undefined` when
+   * outside our supported "view" containment tree.
+   */
+  getView() {
+    // when self is a SmartView, we have found it!
+    // ... we use diagClassName() check
+    //     in lieu of `this instanceof SmartView`
+    //     to avoid SmartView import (introducing a "Circular Dependency")
+    //     AI: only issue here is if we should introduce other SmartView derivations, this check would no longer work :-(
+    //         - we could use another a "duct type" check, but there is nothing distinct about the SmartView API
+    //           * use: this.scene ... potentially non-unique
+    //           * use: special API given for this specific "duck type" reason
+    if (this.diagClassName() === 'SmartView') {
+      return this;
+    }
+    // follow our parent view chain, till we find the SmartView
+    const  parentView = this.getParentView();
+    return parentView ? parentView.getView() : undefined;
+  }
+  
+  /**
+   * Return self's parent view object, with respect to the "view"
+   * containment tree (i.e. NOT "primary" related).
+   *
+   * @returns {SmartObject} the parent view object of self, `undefined` for
+   * top-level (e.g. SmartView).
+   */
+  getParentView() {
+    // `this.parentView` takes precedence, otherwise `this.parent` is a "shared chain"
+    return this.parentView ? this.parentView : this.parent;
+  }
+  
+  /**
+   * Set self's parent view object, with respect to the "view"
+   * containment tree (i.e. NOT "primary" related).
+   *
+   * @param {SmartObject} parent - the parent view object of self.
+   */
+  setParentView(parentView) {
+    this.parentView = parentView;
+  }
+
+  /**
+   * Trickle up a potential size change within our "view" containment
+   * tree.
+   *
+   * This is the entry point to alter dynamic size changes.  It is invoked
+   * whenever there is a potential of the size change:
+   *  - both in our initial mount (replacing "approximation" with "exact" size)
+   *  - and during interactive edit changes (reflecting an updated size)
+   */
+  regenSizeTrickleUp() {
+
+    // HELPER: regenerate self's size
+    //         returns: sizeChange <boolean>
+    const regenSize = () => { // ... arrow function preserves `this` context
+      // retain our oldSize
+      // ... via our cache (exists when getSize() previously invoked)
+      const oldSize = this.sizeCache ? this.sizeCache : {width:-1, height:-1};
+
+      // clear cache allowing getSize() to regenerate
+      this.sizeCache = undefined;
+
+      // regen our size (i.e. our newSize)
+      // ... internally, this retains our cache once more :-)
+      const newSize = this.getSize();
+      
+      // perform any static binding of new size
+      // ... when size has changed
+      const sizeChanged = !(oldSize.width===newSize.width && oldSize.height===newSize.height);
+      if (sizeChanged) {
+        this.bindSizeChanges(oldSize, newSize);
+      }
+      
+      // that's all folks
+      // ... NOTE: trickle up occurs by our invoker: regenSizeTrickleUp()
+      return sizeChanged;
+    }
+
+    // HELPER: trickle up a potential size change within our "view" containment
+    const trickleUp = () => { // ... arrow function preserves `this` context
+      const parent = this.getParentView();
+      if (parent) {
+        parent.regenSizeTrickleUp();
+      }
+    }
+
+    // when self promotes size - regen the size -and- trickle up ONLY when size has changed
+    if (this.getSize) {
+      const sizeChanged = regenSize();
+      if (sizeChanged) {
+        trickleUp();
+      }
+    }
+    // when self does NOT monitor size, always trickle up (our parent may care about size)
+    else {
+      trickleUp();
+    }
+  }
+
 
   /**
    * Return self's dispMode (used in top-level objects targeted by a tab).
@@ -347,7 +452,6 @@ export default class SmartModel {
    *                 smartPkg:  'core',
    *                 id:        'BoilerScene',
    *                 name:      'A Scene focused on the boiler components of our system',
-   *                 _size:     {width: 300, height: 250},
    *                 comps: [
    *                   {...smartObj...},
    *                   {...smartObj...},
@@ -362,7 +466,6 @@ export default class SmartModel {
    *                 smartPkg:  'ACME',
    *                 id:        'BoilerScene',
    *                 name:      'A Scene focused on the boiler components of our system',
-   *                 _size:     {width: 300, height: 250},
    *                 .... NOTE: all other members are re-constituted from the master definition
    *                            ... i.e. the pseudoClass
    *               }
@@ -782,6 +885,14 @@ SmartModel.unmangledName = 'SmartModel';
  *   SmartModel.fromSmartJSON(smartJSON)
  *   ```
  */
+
+
+/**
+ * @typedef {{width, height}} Size
+ * 
+ * A `size` consisting of {width, height}.
+ */
+
 
 /**
  * @typedef {ref} ObjectLiteral

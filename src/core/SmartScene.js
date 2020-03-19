@@ -36,26 +36,32 @@ export default class SmartScene extends SmartModel {
    *
    * @param {Konva.Stage} containingKonvaStage - The container of
    * this scene (a Konva.Stage).
-   *
-   * @param {HtmlElm} containingHtmlElm - The overall containing
-   * HTML element (needed for dynamic resizing in Collage).
    */
-  mount(containingKonvaStage, containingHtmlElm) {
+  mount(containingKonvaStage) {
     throw new Error(`***ERROR*** SmartScene pseudo-interface-violation: ${this.diagClassName()}(id:${this.id}).mount() is an abstract method that MUST BE implemented!`);
   }
 
+
   /**
-   * Get/Set self's size ... {width, height}.
+   * Get self's current size (dynamically calculated).
    *
-   * @param {Size} [size] - the optional size that when
-   * supplied will set self's size (only for Scene - NOT Collage objects).
-   *
-   * @returns {Size|self} for getter: our current size,
-   * for setter: self (supporting chainable setters).
+   * @returns {Size} self's current size ... {width, height}.
    */
-  size(size) {
-    throw new Error(`***ERROR*** SmartScene pseudo-interface-violation: ${this.diagClassName()}(id:${this.id}).size() is an abstract method that MUST BE implemented!`);
+  getSize() {
+    throw new Error(`***ERROR*** SmartScene pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.getSize() is an abstract method that MUST BE implemented!`);
   }
+
+  /**
+   * Perform any static binding of self's size change (such as HTML or
+   * Konva bindings).
+   *
+   * @param {Size} oldSize - the previous size ... {width, height}.
+   * @param {Size} newSize - the new size ... {width, height}.
+   */
+  bindSizeChanges(oldSize, newSize) {
+    throw new Error(`***ERROR*** SmartScene pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.bindSizeChanges() is an abstract method that MUST BE implemented!`);
+  }
+
 
   /**
    * Get/set our draggable scene flag.

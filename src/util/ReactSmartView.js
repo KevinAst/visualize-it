@@ -24,7 +24,7 @@ function ReactSmartView({view, ...otherProps}) {
   //        ex: view.backgroundColor, view.width, view.height 
   //        THE BORDER is provided by US (not sure) to expose the view border and/or ability to edit width/height (unsure about this last one)
   log('here is my view: ', view);
-  const {width, height} = view.size();
+  const {width, height} = view.getSize();
   return <div ref={stageElm} {...otherProps} style={{backgroundColor: 'gray', width, height, border: '1px solid black'}}/>;
 }
 
