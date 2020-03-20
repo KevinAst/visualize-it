@@ -130,7 +130,7 @@ export default class SmartView extends SmartModel {
     this.scene.mount(this.konvaStage);
 
     // regenerate actual size, once mounting is complete
-    // ... propogate this request into our scene
+    // ... propagate this request into our scene
     this.scene.regenSizeTrickleUp();
   }
 }
