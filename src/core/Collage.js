@@ -186,27 +186,5 @@ export default class Collage extends SmartScene {
     this.scenes.forEach( (scene) => scene.bindSizeChanges(oldSize, newSize) );
   }
 
-
-  /**
-   * Get/set our draggable scene flag.
-   *
-   * @param {boolean} [draggable] - the optional setting that when
-   * supplied will set the scene's draggability.
-   *
-   * @returns {boolean|self} for getter: our current draggable
-   * setting, for setter: self (supporting chainable setters).
-   */
-  // AI: OBSOLETE (based on current enableXxxMode() implementation)
-  draggable(draggable) {
-    // NOTE: checkMounted() is accomplished at the Scene level
-    if (draggable===undefined) {         // getter:
-      return this.scenes[0].draggable(); // return boolean setting of our first scene (assumes it is synced)
-    }
-    else {                               // setter: sets across all our scenes
-      this.scenes.forEach( (scene) => scene.draggable(draggable) );
-      return this;                       // return self (for chaining)
-    }
-  }
-
 }
 Collage.unmangledName = 'Collage';

@@ -101,29 +101,6 @@ export default class SmartView extends SmartModel {
 
 
   /**
-   * Get/set the draggable flag of our contained scene.
-   *
-   * @param {boolean} [draggable] - the optional setting that when
-   * supplied will set the scene's draggability.
-   *
-   * @returns {boolean|self} for getter: the current draggable
-   * setting of our contained scene, for setter: self (supporting
-   * chainable setters).
-   */
-  // AI: OBSOLETE (based on current enableXxxMode() implementation)
-  draggableScene(draggable) {
-    // NOTE: checkMounted() is accomplished at the Scene level
-    if (draggable===undefined) {     // getter:
-      return this.scene.draggable(); // return boolean setting of our scene
-    }
-    else {                             // setter:
-      this.scene.draggable(draggable); //   sets our scene
-      return this;                     // return self (for chaining)
-    }
-  }
-
-
-  /**
    * Mount the visuals of this view, binding the graphics to the
    * underlying canvas.
    *

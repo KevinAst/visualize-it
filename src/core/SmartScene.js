@@ -62,19 +62,5 @@ export default class SmartScene extends SmartModel {
     throw new Error(`***ERROR*** SmartScene pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.bindSizeChanges() is an abstract method that MUST BE implemented!`);
   }
 
-
-  /**
-   * Get/set our draggable scene flag.
-   *
-   * @param {boolean} [draggable] - the optional setting that when
-   * supplied will set the scene's draggability.
-   *
-   * @returns {boolean|self} for getter: our current draggable
-   * setting, for setter: self (supporting chainable setters).
-   */
-  // AI: OBSOLETE (based on current enableXxxMode() implementation)
-  draggable(draggable) {
-    throw new Error(`***ERROR*** SmartScene pseudo-interface-violation: ${this.diagClassName()}(id:${this.id}).draggable() is an abstract method that MUST BE implemented!`);
-  }
 }
 SmartScene.unmangledName = 'SmartScene';

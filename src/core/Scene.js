@@ -339,27 +339,5 @@ export default class Scene extends SmartScene {
     // this.konvaSceneLayer.draw();
   }
 
-
-  /**
-   * Get/set our draggable scene flag.
-   *
-   * @param {boolean} [draggable] - the optional setting that when
-   * supplied will set the scene's draggability.
-   *
-   * @returns {boolean|self} for getter: our current draggable
-   * setting, for setter: self (supporting chainable setters).
-   */
-  // AI: OBSOLETE (based on current enableXxxMode() implementation)
-  draggable(draggable) {
-    this.checkMounted('draggable');
-    if (draggable===undefined) {               // getter:
-      return this.konvaSceneLayer.draggable(); // return boolean setting
-    }
-    else {                                       // setter:
-      this.konvaSceneLayer.draggable(draggable); // set internal object
-      return this;                               // return self (for chaining)
-    }
-  }
-
 }
 Scene.unmangledName = 'Scene';
