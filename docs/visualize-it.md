@@ -21,9 +21,14 @@
 - [Logic]
 - [Internals]
   - [Tab Manager]
-  - [Component Catalog]
-  - [Systems Resources]
-  - [Class Abstractions]
+  - [Packages]
+  - [Object Model]
+    - [Class Hierarchy]
+    - [Object Mapping to Konva]
+    - [Class Detail]
+  - [Dynamic Sizing]
+  - [Animation Requirements]
+  - [Collage Requirements]
 - [Action Items]
 
 
@@ -473,7 +478,7 @@ Data (?Meta):
                    - ? however other times, it may be more open and dynamic
                      ... ex: a monitored component could technically latch on to any property?
 
-- ??$$ we need to integrate an "OM: Object Model" (our OWN) to the "GM: Graphic Model" (the chosen tool)
+- ?? we need to integrate an "OM: Object Model" (our OWN) to the "GM: Graphic Model" (the chosen tool)
 
 - the OM contains:
   * various business parameters (as needed)
@@ -829,30 +834,146 @@ tabManager: {
 
 
 <!--- *** SUB-SECTION *************************************************************** --->
-## Component Catalog
+## Packages
 
-?? I think this concept (currently ether) will be replaced with our libManager feature which has knowledge of all loaded libraries (SmartLib)
+**visualize-it** models it's resources in packages.  A package can
+hold components, or systems (scenes and collages), or a combination of
+both.  Packages contain resources that drive everything
+*visualize-it** does, including the visualization of systems,
+animation, etc.  Packages can be retrieved, edited, and saved.
 
-AI: Because SmartComp catalogs are dynamically retrieved at run-time,
-they will have a similar registry process. This way we can support
-persistance of our views (containing SmartComps), where the referenced
-classes can be re-instantiated on retrieval.  The registry key would be
-a federated classname (ex: myXyzLib-ValveXyz).
+**visualize-it** models packages through the `SmartPkg` class, and
+`pkgManager` is a service that manages all packages.
 
-NOTE: I think this is true ... because the SmartView is a concrete
-class, it can be implied in our persistance.  In other words there is
-no registry for views.
+**SmartPkg**s: _(from JavaDoc)_
+  - are cataloged by pkgManager
+    ... the basis resolving classRefs in our persistence model
+  - and optionally viewed in the LeftNav
+    ... the basis of the builder app management (viewing/editing
+        entries, including entries in other entries, etc.)
+    ... LeftNav exposure is optional because some packages are NOT visual
+        (such as "core") ... just needed for pkgManager promotion
+
+SmartPkg is a concrete class that can model ANY visualize-it package:
+  - a component package (holding component definitions)
+  - a system package (holding scenes and collages)
+  - even a hybrid package (combining both component and system resources)
+
+A SmartPkg can represent EITHER:
+  - code-based packages (containing class references)
+    * NOT editable (unless we decide to dynamically manage and persist code)
+    * NOT persistable ... save/retrieve (ditto)
+  - resource-based packages (with NO class references)
+    * editable
+    * persistable ... save/retrieve
+
+Entries from one package can have dependencies on other external
+packages (for example, a "system" package may contain component
+instances from classes defined in a "component" package).
+
+All SmartPkgs have an ID (pkgId):
+  - the ID qualifies the package through which classRefs are distributed
+    * so the pkgId belongs to classRefs ONLY, NOT entries
+      ... because entries are NOT shared across packages
+    * SmartPkg will auto-inject it's package ID in all classRefs
+      it contains!
+      - this allows our persistence process to record BOTH the
+        pkgId and className from which each object is
+        instantiated
+        ... allowing it to be re-hydrated (because we can locate the
+            class - via pkgManager)
+  - object instances contained in a package can be based on classes
+    from external packages (i.e. dependent packages)
+    ... this point is more related to persistence characteristic
+        (not so much dealing with SmartPkg itself)
+    * typically top-level objects are from the core package, which
+      is globally available (however that is a minor point)
+    * in addition, objects can be instances of classes defined
+      within the same package (as you would expect)
+  - SO IN SUMMARY: the distinction between "classRef" and "object instance":
+    * "instances" ALWAYS belong to the "self-contained" package
+    * "instances" can be created from types that belong to either self's package or "other" packages
+
+SmartPkg entries are defined in an object structure (with depth)
+that represents the visual hierarchy by which they are promoted.
+  - entries utilize an object structure (with depth)
+  - any client-defined structure is supported (i.e. a collection of
+    whatever with arbitrary nesting of named nodes)
+  - named nodes (contained in plain objects) represent a logical directory
+    * where the name is a displayed human readable node
+    * and can be nested (supporting sub-structure depth)
+  - arrays represent resource items (or nested named nodes)
+    * entries can be:
+      1. smartObject to view/use
+         ```
+         can be:
+         - Classes ... SingleValve, TwoWayValve, etc. (NOT SUPPORTED BY RESOURCE-BASED PKG)
+         - SmartModel instance obj ... Collage
+         - SmartModel pseudoClass
+           * pseudoClass Master ...... DynamicComp, Scene, 
+           * pseudoClass INSTANCE .... comp instances IN Scene -or- scene instances in Collage
+         ```
+      2. plain object representing nested sub-entries mixed into the
+         entries array
+
+Here is a sample `entries`:
+```js
+entries: {
+  components: {
+    valves: [
+      // ... example of class (i.e. a class function) ... NOT supported by a resource-based pkg
+      SingleValve,
+      TwoWayValve,
+
+      // ... example of Pseudo Class MASTER (a DynamicComp(), dynamically editable)
+      DynamicComp({withPseudoClassName, andOthers}),
+    ],
+    pumps: [
+      PowerPump,
+      { // ... nested sub-entries mixed into the entries array
+        "Pumps Cat 2": [
+          SubPump1,
+          SubPump2,
+        ],
+      },
+      SumpPump,
+    ],
+  },
+  scenes: [
+    // ... a pseudoClass MASTER (can be edited: the comps add/remove/position/transform)
+    Scene(...comps),
+    Scene(...comps),
+    ...
+  ],
+  collages: [
+    // ... collage instance that holds scene instances (pseudoClass INSTANCEs)
+    //      - VERY TRUE: scene instances will hold their unique x/y offsets
+    //      - Collage MUST validate that scene instances are used
+    //        ?? TODO: make this so (even though it is tightly controlled, wouldn't hurt to validate it)
+    //      - IMPORTANT: to resolve this, MUST FIRST resolve Scene pseudoClass MASTER
+    //        ... because it is referenced in the same pkg!
+    Collage(...scenes)
+    Collage(...scenes)
+    ...
+  ],
+}
+```
+
+SmartPkg entries are promoted through two internal catalogs,
+providing easy access independent of the visual hierarchy (i.e. the
+visual structure with depth).  The two catalogs are:
+
+```
+ + getClassRef(className): SmartClassRef ... used by pkgManager
+ + getEntry(entryId):      entry         ... used by tabManager (currently NOT used)
+```
+
+
+
 
 
 <!--- *** SUB-SECTION *************************************************************** --->
-## Systems Resources
-
-see NOTE (above)
-
-
-
-<!--- *** SUB-SECTION *************************************************************** --->
-## visualize-it Object Model
+## Object Model
 
 ### Class Hierarchy
 
@@ -861,24 +982,27 @@ see NOTE (above)
     │
     ├── SmartView .......... a viewport in which scene(s) are displayed/visualized
 isA │
-    ├── SmartScene ......... a graphical abstraction that visualizes a system (either in part or whole)
+    ├── SmartPallet ........ a graphical abstraction that visualizes a system (either in part or whole)
     │    ├── Scene ......... a visualization of a single Scene (a container of SmartComps)
     │    └── Collage ....... a visualization of multiple Scenes (a container of Scenes)
     │
-    └── SmartComp        ... a graphical abstraction of a system component
-         ├── DynamicComp ... a resource-based component - maintained by visualize-it's builder
-         └── others      ... class-based components - developed in JavaScript code
+    ├── SmartComp        ... a graphical abstraction of a system component
+    │    ├── DynamicComp ... a resource-based component - maintained by visualize-it's builder
+    │    └── others      ... class-based components - developed in JavaScript code
+    │
+    └── SmartPkg         ... a visualize-it package, containing components, 
+                             or systems (scenes and collages), or a combination of both
 ```
 
 
 ### Object Mapping to Konva
 
 ```
-Cardinality  KonvaJS           visualize-it
-===========  ================  =============
-             Stage (<div>)     SmartView     ... a viewport in which scene(s) are displayed/visualized
-   1:M         Layer (Canvas)    SmartScene  ... a graphical perspective that visualizes a system (part or whole)
-   1:M           Shape/Group       SmartComp ... a graphical representation of a system component
+KonvaJS               visualize-it
+====================  =================
+Stage (<div>)         SmartView         ... a viewport in which scene(s) are displayed/visualized
+  Layer (Canvas) 1:M    SmartPallet 1:1 ... a graphical perspective that visualizes a system (part or whole)
+    Shape/Group  1:M      SmartComp 1:M ... a graphical representation of a system component
 ```
 
 
@@ -895,7 +1019,7 @@ SmartModel:  an abstract top-level base class providing consistency in
 
 
 SmartView:   a viewport in which scene(s) are displayed/visualized
-             - Derivations of the contained SmartScene will handle the specifics
+             - Derivations of the contained SmartPallet will handle the specifics
                of visualizing a single scene (Scene obj) or multiple scenes
                (Collage obj).
              - In all cases, this visualization can be "displayed":
@@ -905,10 +1029,10 @@ SmartView:   a viewport in which scene(s) are displayed/visualized
                        (rather than specified/retained in our editor)
 
 
-SmartScene:  an abstract base class representing the graphical perspective
+SmartPallet: an abstract base class representing the graphical perspective
              that visualizes a system (either in part or whole).
 
-  Scene:     a SmartScene derivation that models a single Scene to be displayed/visualized.
+  Scene:     a SmartPallet derivation that models a single Scene to be displayed/visualized.
 
              A Scene represents a graphical perspective that visualizes a system
              (either in part or whole).
@@ -933,7 +1057,7 @@ SmartScene:  an abstract base class representing the graphical perspective
                  - an animation layer
                  > NEEDS WORK: may want to do things in our static layer (like change component color)
 
-  Collage:   a SmartScene derivation in which multiple Scenes are displayed/visualized.
+  Collage:   a SmartPallet derivation in which multiple Scenes are displayed/visualized.
 
 
 SmartComp:   an abstract graphical representation of a system component:
@@ -949,11 +1073,107 @@ SmartComp:   an abstract graphical representation of a system component:
                         isA  ├── DynamicComp ... a concrete derivation for dynamic-based resource-loaded compLibs
                              │                   ... managed by the visualize-it component editor
                              └── others      ... for code-based compLibs
+
+
+SmartPkg:    a visualize-it package, containing components, or systems (scenes and collages),
+             or a combination of both
+
+
+pkgManager:  a service that manages of ALL packages (SmartPkg)
+             loaded and maintained in the visualize-it system.
+  
+             Entries from one package can have dependencies on other external
+             packages (for example, a "system" package may contain component
+             instances from classes defined in a "component" package).
+   
+             Because the pkgManager service is aware of all packages, it
+             provides a clearing house to resolve classRefs, during persistence
+             hydration ... see: `SmartModel.fromSmartJSON()`
+
+pkgPersist:  a set of package persistent utilities (openPkg(), savePkg(), etc.)
+
+PseudoClass:   xx??
+
+SmartClassRef: xx??
+
+DispMode:      xx??
 ```
 
 
 
-### Animation Requirements
+
+<!--- *** SUB-SECTION *************************************************************** --->
+## Dynamic Sizing
+
+**visualize-it** promotes an architecture where sizes that are
+dynamically determined!
+
+All visual containers determine their size dynamically.  Rudimentary
+to this concept, a container's size is dynamically determined by it's
+content.  The size is basically big enough to hold the visuals it
+contains.  The size trickles up from the lowest-level graphic to it's
+container, and subsequently to it's container's container, and so on.
+
+Ultimately this size is derived from the "mounted" visuals
+(i.e. within the Konva realm).  Prior to mounting, this size is either
+determined by a "cached" size (an optimization when persisted), or is
+an approximation (that is re-calculated when the mount occurs).
+
+As a result of this feature, you don't have to worry about size.  This
+is a detail that is automatically handled by **visualize-it**.
+
+**INTERNAL**
+
+- There are only a few methods that manage the dynamics of size:
+
+  **SUMMARY CHART** _(of where size API is implemented)_:
+  ```
+                        SmartModel                                        (contains
+                                  isA SmartView  SmartPallet               Scenes)
+  method:                                                   isA Scene      Collage    NOTES
+  ====================  ==========    =========  ==========     =========  =========  =================================================
+  regenSizeTrickleUp()  Y                                                             Invoked 1: end of mount, producing "actual" size (see: SmartView.mount()), and
+                                                                                              2: after interactive changes occur, producing "changed" size (see: Collage/Scene.enableEditMode() event monitors)
+  
+  getSize()                           Y          Y-abstract     Y          Y          Dynamically computes size (caching for performance)
+  
+  bindSizeChanges()                   Y          Y-abstract     Y *1*      Y *1*      Invoked ONLY when size has changed
+                                                                                      *1*: no-ops with explanation why
+  ```
+
+
+
+
+- Size is NOT considered in version hash BECAUSE it is derived from other artifacts.
+  We don't want the introduction of an "accurate size" (vs. an early approximation) to cause staleness.
+
+- As it turns out, only the top-most object structures care
+  about size, BECAUSE Konva dynamically manages it's pallet
+  size from the Konva.Stage:
+
+  ```
+  * SmartView/Konva.Stage(<div>) ..... manifests this to the outer html elm binding (<div>)
+                                       - this merely diverts size to it's contained this.scene.size()
+                                         ... which in visualize-it may be multiple items
+                                             ex: a Collage consists of multiple scenes
+                                       - NOTE: this object is NOT in the chain of objects that are persisted
+  * SmartPallet/Konva.Layer(Canvas) ... manages size()
+                                       - currently: 
+                                         * SmartPallet is the top-level entry point into a graphic pallet
+                                           ... does little other than introduce abstract mount()/size() methods
+                                           - Collage.size() accumulates it's contained this.scenes()
+                                             ... all within the SmartObject realm
+                                           - Scene.size() persists a fixed size
+                                           - FUTURE: CompClassPack
+                                       - ultimately we want SmartPallet to be the manager of size
+                                         * NOTE: at this level, size can be (optionally) persisted as an optimization
+                                         * HOPEFULLY we can derive actual size from the mounted Konva realm
+  ```
+
+
+
+<!--- *** SUB-SECTION *************************************************************** --->
+## Animation Requirements
 
 ```
 - may want to support an "animation" layer
@@ -969,7 +1189,8 @@ SmartComp:   an abstract graphical representation of a system component:
 
 
 
-### Collage Requirements
+<!--- *** SUB-SECTION *************************************************************** --->
+## Collage Requirements
 
 AI: This discussion may be a bit misplaced
 
@@ -977,13 +1198,13 @@ In support of our visualization requirement to be able to display ONE
 or MORE scenes, we introduce a "Collage" concept, where multiple
 scenes are managed.
 
-As a result, we maintain the following SmartScene class hierarchy:
+As a result, we maintain the following SmartPallet class hierarchy:
 
 ```
-    SmartScene ......... an abstract base class representing the graphical perspective
+    SmartPallet ........ an abstract base class representing the graphical perspective
      │                   that visualizes a system (either in part or whole)
-isA  ├── Scene ......... a SmartScene derivation that models a single Scene to be displayed/visualized.
-     └── Collage ....... a SmartScene derivation in which multiple Scenes are displayed/visualized.
+isA  ├── Scene ......... a SmartPallet derivation that models a single Scene to be displayed/visualized.
+     └── Collage ....... a SmartPallet derivation in which multiple Scenes are displayed/visualized.
 ```
 
 
@@ -1004,21 +1225,26 @@ isA  ├── Scene ......... a SmartScene derivation that models a single Scen
 <!--- *** LINKS ***************************************************************** --->
 
 <!--- feature-u ---> 
-[Overview]:                 #overview
-[Tool Manifestation]:       #tool-manifestation
-  [Visualizations]:         #visualizations
-  [Component Libraries]:    #component-libraries
-[Sample Code]:              #sample-code
-[Data Model]:               #data-model
-[Communications Protocol]:  #communications-protocol
-[View]:                     #view
-[Components]:               #components
-[Perspectives]:             #perspectives
-[Logic]:                    #logic
-[Internals]:                #internals
-  [Tab Manager]:            #tab-manager
-  [Component Catalog]:      #component-catalog
-  [Systems Resources]:      #systems-resources
-  [Class Abstractions]:     #class-abstractions
-[Action Items]:             #action-items
-
+[Overview]:                   #overview
+[Tool Manifestation]:         #tool-manifestation
+  [Visualizations]:           #visualizations
+  [Component Libraries]:      #component-libraries
+[Sample Code]:                #sample-code
+[Data Model]:                 #data-model
+[Communications Protocol]:    #communications-protocol
+[View]:                       #view
+[Components]:                 #components
+[Perspectives]:               #perspectives
+[Logic]:                      #logic
+[Internals]:                  #internals
+ [Tab Manager]:               #tab-manager
+ [Component Catalog]:         #component-catalog
+ [Packages]:                  #packages
+ [Object Model]:              #object-model
+  [Class Hierarchy]:          #class-hierarchy
+  [Object Mapping to Konva]:  #object-mapping-to-konva
+  [Class Detail]:             #class-detail
+ [Dynamic Sizing]:            #dynamic-sizing
+ [Animation Requirements]:   #animation-requirements
+ [Collage Requirements]:     #collage-requirements
+[Action Items]:               #action-items
