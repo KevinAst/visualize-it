@@ -77,16 +77,9 @@ export default class SmartView extends SmartModel {
    * @returns {Size} our current size: {width, height}
    */
   getSize() {
-    // cached size takes precedence
-    if (this.sizeCache) {
-      return this.sizeCache;
-    }
-
-    // compute size
-    // ... simply defer to our contained scene
-    this.sizeCache = this.scene.getSize();
-
-    return this.sizeCache;
+    // simply defer to our scene size
+    // ... use our scene's sizeCache (no need for our own)
+    return this.scene.getSize();
   }
 
   /**

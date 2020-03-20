@@ -1,11 +1,12 @@
-import Konva             from 'konva';
-import PseudoClass       from './PseudoClass';
-import SmartScene        from './SmartScene';
-import {ancestorOfLayer} from './konvaUtil';
-import verify            from 'util/verify';
-import checkUnknownArgs  from 'util/checkUnknownArgs';
-import {isNumber}        from 'util/typeCheck';
-import {toast}           from 'util/notify';
+import Konva                from 'konva';
+import PseudoClass          from './PseudoClass';
+import SmartScene           from './SmartScene';
+import {ancestorOfLayer,
+        containerSizeFudge} from './konvaUtil';
+import verify               from 'util/verify';
+import checkUnknownArgs     from 'util/checkUnknownArgs';
+import {isNumber}           from 'util/typeCheck';
+import {toast}              from 'util/notify';
 
 /**
  * Scene is a SmartScene derivation that models a single Scene to be
@@ -299,8 +300,8 @@ export default class Scene extends SmartScene {
       this.konvaSceneLayer.getChildren().each( (shape,n) => {
         if (shape.getClassName() !== 'Transformer') { // ... really dislike how Konva does Transformer (making it part of our display list)
           const shapeBounds = shape.getClientRect();  // ... consider transformation
-          size.width  = Math.max(size.width,  shapeBounds.x + shapeBounds.width); 
-          size.height = Math.max(size.height, shapeBounds.y + shapeBounds.height); 
+          size.width  = Math.max(size.width,  shapeBounds.x + shapeBounds.width   + containerSizeFudge);
+          size.height = Math.max(size.height, shapeBounds.y + shapeBounds.height  + containerSizeFudge); 
         }
       });
     }

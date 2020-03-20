@@ -1,14 +1,15 @@
-import React          from 'react';
-import ReactSmartView from 'util/ReactSmartView';
+import React                from 'react';
+import ReactSmartView       from 'util/ReactSmartView';
 
-import TabController  from './TabController';
+import TabController        from './TabController';
 
-import PseudoClass    from 'core/PseudoClass';
-import SmartView      from 'core/SmartView';
-import Scene          from 'core/Scene';
+import PseudoClass          from 'core/PseudoClass';
+import SmartView            from 'core/SmartView';
+import Scene                from 'core/Scene';
+import {containerSizeFudge} from 'core/konvaUtil';
 
-import verify         from 'util/verify';
-import {isClass}      from 'util/typeCheck';
+import verify               from 'util/verify';
+import {isClass}            from 'util/typeCheck';
 
 
 /**
@@ -55,7 +56,9 @@ export default class TabControllerClass extends TabController {
     // instantiate a single component from self's class
     // ... this is what we will render in our tab :-)
     this.compName = PseudoClass.getClassName(clazz);
-    this.comp     = new clazz({id: `comp-${this.compName}`}); // CONSIDER: hopefully no other param context is needed ... I think we are OK
+    this.comp     = new clazz({id: `comp-${this.compName}`, // I think we are OK ... hopefully no other param context is needed
+                               x:  containerSizeFudge,
+                               y:  containerSizeFudge});
 
     // wrap our single component in a scene (see NOTE above)
     this.scene = new Scene({
