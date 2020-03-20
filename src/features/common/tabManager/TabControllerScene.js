@@ -48,7 +48,7 @@ export default class TabControllerScene extends TabController {
 
   // wrap our scene in the panel display
   createTabPanelComp() {
-    const view = new SmartView({id: `view-${this.getTabId()}`, name: `view-${this.getTabName()}`, scene: this.scene});
+    const view = new SmartView({id: `view-${this.getTabId()}`, name: `view-${this.getTabName()}`, pallet: this.scene});
     const panelComp = () => <ReactSmartView view={view}/>;
     return panelComp;
   }

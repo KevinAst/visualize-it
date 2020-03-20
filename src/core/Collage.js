@@ -1,13 +1,13 @@
-import SmartScene        from './SmartScene';
+import SmartPallet       from './SmartPallet';
 import Scene             from './Scene';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
 import {toast}           from 'util/notify';
 
 /**
- * Collage is a SmartScene derivation in which multiple Scenes are displayed/visualized.
+ * Collage is a SmartPallet derivation in which multiple Scenes are displayed/visualized.
  */
-export default class Collage extends SmartScene {
+export default class Collage extends SmartPallet {
 
   /**
    * Create a Collage.

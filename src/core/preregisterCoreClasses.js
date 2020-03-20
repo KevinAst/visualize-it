@@ -24,7 +24,7 @@ pkgManager.registerPkg( new SmartPkg({
 //    SmartComp,        NOT: an abstract class (see docs above)
 //    SmartModel        NOT: an abstract class (see docs above)
       SmartPkg,      // the root of our persistent model
-//    SmartScene,       NOT: an abstract class (see docs above)
+//    SmartPallet,      NOT: an abstract class (see docs above)
       SmartView,
     ],
   },

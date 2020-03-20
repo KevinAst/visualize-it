@@ -1,6 +1,6 @@
 import Konva                from 'konva';
 import PseudoClass          from './PseudoClass';
-import SmartScene           from './SmartScene';
+import SmartPallet          from './SmartPallet';
 import {ancestorOfLayer,
         containerSizeFudge} from './konvaUtil';
 import verify               from 'util/verify';
@@ -9,7 +9,7 @@ import {isNumber}           from 'util/typeCheck';
 import {toast}              from 'util/notify';
 
 /**
- * Scene is a SmartScene derivation that models a single Scene to be
+ * Scene is a SmartPallet derivation that models a single Scene to be
  * displayed/visualized.
  *
  * A Scene represents a graphical perspective that visualizes a system
@@ -46,7 +46,7 @@ import {toast}              from 'util/notify';
  *           instances (copies of the `Foo` object) may be may created
  *           and referenced many times within the various Collages.
  */
-export default class Scene extends SmartScene {
+export default class Scene extends SmartPallet {
 
   /**
    * Create a Scene.

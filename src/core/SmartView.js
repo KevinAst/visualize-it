@@ -1,5 +1,5 @@
 import SmartModel        from './SmartModel';
-import SmartScene        from './SmartScene';
+import SmartPallet       from './SmartPallet';
 import Konva             from 'konva';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
@@ -9,9 +9,9 @@ import {createLogger}    from 'util/logger';
 const log = createLogger('***DIAG*** <SmartView> ... ').enable();
 
 /**
- * SmartView is a viewport in which scene(s) are displayed/visualized.
+ * SmartView is a viewport in which pallet(s) are displayed/visualized.
  * 
- * Derivations of the contained SmartScene will handle the specifics
+ * Derivations of the contained SmartPallet will handle the specifics
  * of visualizing a single scene (Scene obj) or multiple scenes
  * (Collage obj).
  * 
@@ -31,11 +31,11 @@ export default class SmartView extends SmartModel {
    * @param {string} id - the unique identifier of this view.
    * @param {string} [name=id] - the human interpretable name of this
    * view (DEFAULT to id).
-   * @param {SmartScene} scene - the scene visualized in this view
+   * @param {SmartPallet} pallet - the pallet visualized in this view
    * (can be a single scene (Scene obj) or multiple scenes (Collage
    * obj).
    */
-  constructor({id, name, scene, ...unknownArgs}={}) {
+  constructor({id, name, pallet, ...unknownArgs}={}) {
 
     super({id, name});
 
@@ -44,23 +44,27 @@ export default class SmartView extends SmartModel {
     
     // ... id/name validated by base class
 
-    // ... scene
-    check(scene,                       'scene is required');
-    check(scene instanceof SmartScene, 'scene must be a SmartScene instance');
+    // ... pallet
+    check(pallet,                        'pallet is required');
+    check(pallet instanceof SmartPallet, 'pallet must be a SmartPallet instance');
 
     // ... unknown arguments
     checkUnknownArgs(check, unknownArgs, arguments);
     
     // retain parameters in self
-    this.scene = scene;
+    this.pallet = pallet;
 
     // maintain our view parentage
-    this.scene.setParentView(this);
+    this.pallet.setParentView(this);
   }
 
   // support persistance by encoding needed props of self
+  // ... currently SmartView is NOT persisted
+  //     - the persistance entry point is SmartPkg -to- SmartPallet (skipping SmartView)
+  //     - however we support `getEncodingProps()` should it be needed
+  //       ... either a smartClone() operation or future needs of persistence
   getEncodingProps(forCloning) {
-    return [...super.getEncodingProps(forCloning), ...['scene']];
+    return [...super.getEncodingProps(forCloning), ...['pallet']];
   }
 
   /**
@@ -77,9 +81,9 @@ export default class SmartView extends SmartModel {
    * @returns {Size} our current size: {width, height}
    */
   getSize() {
-    // simply defer to our scene size
-    // ... use our scene's sizeCache (no need for our own)
-    return this.scene.getSize();
+    // simply defer to our pallet size
+    // ... use our pallet's sizeCache (no need for our own)
+    return this.pallet.getSize();
   }
 
   /**
@@ -116,7 +120,7 @@ export default class SmartView extends SmartModel {
     // retain our containingHtmlElm
     this.containingHtmlElm = containingHtmlElm;
 
-    // create our stage where our scene will be mounted
+    // create our stage where our pallet will be mounted
     const {width, height} = this.getSize();
     this.konvaStage = new Konva.Stage({
       container: containingHtmlElm,
@@ -126,12 +130,12 @@ export default class SmartView extends SmartModel {
       height,
     });
     
-    // mount our scene into this stage
-    this.scene.mount(this.konvaStage);
+    // mount our pallet into this stage
+    this.pallet.mount(this.konvaStage);
 
     // regenerate actual size, once mounting is complete
-    // ... propagate this request into our scene
-    this.scene.regenSizeTrickleUp();
+    // ... propagate this request into our pallet
+    this.pallet.regenSizeTrickleUp();
   }
 }
 SmartView.unmangledName = 'SmartView';

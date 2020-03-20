@@ -80,7 +80,7 @@ export default class PseudoClass {
                name='the MASTER pseudoClass definition of type: ... see container.id',
                ...unknownArgs}={}) {
 
-    // validate SmartScene() constructor parameters
+    // validate constructor parameters
     const check = verify.prefix('PseudoClass() constructor parameter violation: ');
 
     // ... id

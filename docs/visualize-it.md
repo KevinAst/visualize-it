@@ -978,19 +978,19 @@ visual structure with depth).  The two catalogs are:
 ### Class Hierarchy
 
 ```
-   SmartModel .............. a top-level base class providing consistency in common attrs/APIs/utils/etc.
+   SmartModel <A> .......... a top-level base class providing consistency in common attrs/APIs/utils/etc.
     │
     ├── SmartView .......... a viewport in which scene(s) are displayed/visualized
 isA │
-    ├── SmartPallet ........ a graphical abstraction that visualizes a system (either in part or whole)
+    ├── SmartPallet <A> .... a graphical abstraction that visualizes a system (either in part or whole)
     │    ├── Scene ......... a visualization of a single Scene (a container of SmartComps)
     │    └── Collage ....... a visualization of multiple Scenes (a container of Scenes)
     │
-    ├── SmartComp        ... a graphical abstraction of a system component
+    ├── SmartComp <A> ...... a graphical abstraction of a system component
     │    ├── DynamicComp ... a resource-based component - maintained by visualize-it's builder
-    │    └── others      ... class-based components - developed in JavaScript code
+    │    └── others ........ class-based components - developed in JavaScript code
     │
-    └── SmartPkg         ... a visualize-it package, containing components, 
+    └── SmartPkg ........... a visualize-it package, containing components, 
                              or systems (scenes and collages), or a combination of both
 ```
 
