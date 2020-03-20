@@ -131,21 +131,31 @@ export default class Collage extends SmartScene {
    */
   getSize() {
     // cached size takes precedence
+    // ... this sizeCache will be re-set whenever size has the potential of changing:
+    //     - both in our initial mount (replacing "approximation" with "exact" size)
+    //     - and during interactive edit changes (reflecting an updated size)
+    // ... see: SmartModel.regenSizeTrickleUp()
     if (this.sizeCache) {
       return this.sizeCache;
     }
 
     // compute size
-    // ... this sizeCache will be re-set whenever size has the potential of changing:
-    //     - both in our initial mount (replacing "approximation" with "exact" size)
-    //     - and during interactive edit changes (reflecting an updated size)
-    // ... see: SmartModel.regenSizeTrickleUp()
-    if (this.containingKonvaStage) { // ... when mounted (CONSIDER NOT reasoning over mount - reverting to scene defaults 100% of the time)
+    if (this.containingKonvaStage) { // ... when mounted
       // dynamically accumulate the size from our scenes
       this.sizeCache = this.scenes.reduce( (accum, scene) => {
+
+        // recalculate this scene size
+        // KEY: we force the scene to recalculate it's size
+        //      ... by clearing it's sizeCache
+        //      BECAUSE our sizeCache has NOT been established (see above)
+        //      ... either first time, or something has changed
+        scene.sizeCache = undefined;
         const sceneSize = scene.getSize();
-        accum.width  = Math.max(accum.width,  scene.x + sceneSize.width); 
-        accum.height = Math.max(accum.height, scene.y + sceneSize.height);
+
+        // accumulate this scene size
+        // ... NOTE: the sceneSize already contains the scene.x/y offset
+        accum.width  = Math.max(accum.width,  sceneSize.width); 
+        accum.height = Math.max(accum.height, sceneSize.height);
         return accum;
       }, {width:100, height:100}); // ... minimum size
     }

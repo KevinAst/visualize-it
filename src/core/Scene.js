@@ -284,15 +284,15 @@ export default class Scene extends SmartScene {
    */
   getSize() {
     // cached size takes precedence
+    // ... this sizeCache will be re-set whenever size has the potential of changing:
+    //     - both in our initial mount (replacing "approximation" with "exact" size)
+    //     - and during interactive edit changes (reflecting an updated size)
+    // ... see: SmartModel.regenSizeTrickleUp()
     if (this.sizeCache) {
       return this.sizeCache;
     }
 
     // compute size
-    // ... this sizeCache will be re-set whenever size has the potential of changing:
-    //     - both in our initial mount (replacing "approximation" with "exact" size)
-    //     - and during interactive edit changes (reflecting an updated size)
-    // ... see: SmartModel.regenSizeTrickleUp()
     if (this.konvaSceneLayer) { // ... when mounted
       // dynamically calculate the size from our Layer/Canvas content
       const size = this.sizeCache = {width: 10, height: 10}; // ... minimum size
