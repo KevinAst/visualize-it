@@ -3,10 +3,8 @@ import React,
         useCallback,
         useMemo}        from 'react';
 
-import SmartComp        from 'core/SmartComp';
 import {openPkg, 
         savePkg}        from 'core/pkgPersist';
-import pkgManager       from 'core/pkgManager';
 
 import {leftNavManager,
         tabRegistry}    from 'features';
@@ -155,17 +153,6 @@ function resolvePkg(activeTabId) {
   const tabController = tabRegistry.getTabController(activeTabId);
   const targetObj     = tabController.getTarget(); // can be: Scene/Collage or SmartComp (for classes)
   let   pkg           = targetObj.getPackage();
-
-  // for components (when classes are registered as SmartPkg entries),
-  // there is no registered package (because the class is the contained item within the package)
-  // ... in this case:
-  //     - we use the package the component was created from (which is in fact the contained SmartPkg)
-  //     - ultimately, however, this pkg is not persistable (because it is based on class)
-  if (!pkg && targetObj instanceof SmartComp) {
-    const classRef = targetObj.getClassRef();
-    const pkgId    = classRef.getClassPkgId();
-    pkg = pkgManager.getPackage(pkgId);
-  }
 
   // verify the package is resolved
   verify(pkg, `***ERROR*** <FileMenu> "save/saveAs" operation ... could not locate the SmartPkg for the '${activeTabId}' active tab :-(`);
