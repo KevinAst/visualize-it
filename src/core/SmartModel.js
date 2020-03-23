@@ -6,6 +6,7 @@ import checkUnknownArgs  from 'util/checkUnknownArgs';
 import pkgManager        from './pkgManager';
 import PseudoClass       from './PseudoClass';
 import DispMode          from './DispMode';
+import {toast}           from 'util/notify';
 
 /**
  * SmartModel is the abstract top-level base class of the visualize-it
@@ -384,6 +385,17 @@ export default class SmartModel {
       this.enableViewMode();
     }
     else if (dispMode === DispMode.edit) {
+      // perform a pre-check to prevent edit mode when containing package cannot be persisted
+      // ... ex: when the package contains code
+      const pkg = this.getPackage();
+      if (!pkg.canPersist()) {
+        toast.warn({msg: `The "${this.getName()}" resource cannot be edited ` + 
+                         `... normally it can, however it belongs to the "${pkg.getPkgName()}" package which ` +
+                         `contains code (therefore you would not be able to save your changes).`});
+        return;
+      }
+
+      // go forward with our normal edit enablement
       this.enableViewMode(); // a neutral reset
       this.enableEditMode();
     }
