@@ -984,7 +984,8 @@ visual structure with depth).  The two catalogs are:
 isA │
     ├── SmartPallet <A> .... a graphical abstraction that visualizes a system (either in part or whole)
     │    ├── Scene ......... a visualization of a single Scene (a container of SmartComps)
-    │    └── Collage ....... a visualization of multiple Scenes (a container of Scenes)
+    │    ├── Collage ....... a visualization of multiple Scenes (a container of Scenes)
+    │    └── CompRef ....... a component classRef container that can be packaged (in SmartPkg) and visualized
     │
     ├── SmartComp <A> ...... a graphical abstraction of a system component
     │    ├── DynamicComp ... a resource-based component - maintained by visualize-it's builder
@@ -1059,6 +1060,9 @@ SmartPallet: an abstract base class representing the graphical perspective
 
   Collage:   a SmartPallet derivation in which multiple Scenes are displayed/visualized.
 
+  CompRef:   a component classRef container that can be packaged (in SmartPkg) and visualized
+             ... either a real class [a SmartComp derivation], 
+                 or a resource-based pseudoClass [a DynamicComp]
 
 SmartComp:   an abstract graphical representation of a system component:
              - bound to a data model (for visual affects and animation)
@@ -1074,6 +1078,13 @@ SmartComp:   an abstract graphical representation of a system component:
                              │                   ... managed by the visualize-it component editor
                              └── others      ... for code-based compLibs
 
+DispMode:    an enumeration designating the various **visualize-it** Display Modes
+             (view, edit, animate)
+
+
+             *******************
+             * Package Related *
+             *******************
 
 SmartPkg:    a visualize-it package, containing components, or systems (scenes and collages),
              or a combination of both
@@ -1092,11 +1103,34 @@ pkgManager:  a service that manages of ALL packages (SmartPkg)
 
 pkgPersist:  a set of package persistent utilities (openPkg(), savePkg(), etc.)
 
-PseudoClass:   xx??
 
-SmartClassRef: xx??
+               ***************************
+               * Meta-Class Distinctions *
+               ***************************
 
-DispMode:      xx??
+               SM   DESC
+               ===  ============================
+CompRef        YES  provides a way in which a real class can be packaged in a SmartPkg, adhering to the
+                    SmartModel polymorphic API!
+
+SmartClassRef  NO   a unifier for real classes and pseudoClasses
+                    - verifies existence of class.unmangledName!
+                    - a `smartClassRef` property is dynamically attached to all classes (both real and
+                      pseudoClass) by the SmartPkg package manager
+                      * PROMOTED:
+                        + SM.getClassRef(): SmartClassRef
+                      * MAINTAINED by SmartPkg (via adornContainedClasses() method):
+                        - pseudoClass.smartClassRef
+                        - realClass.smartClassRef
+                    - unifying API:
+                      + getClassName():    string
+                      + getClassPkgName(): string                    <<< WHERE WE GET PKG NAME for persistence
+                      + createSmartObject(namedParams): smartObject  <<< KEY
+                    - RETURNED/USED BY:
+                      + pkgManager.getClassRef(pkgName, className): SmartClassRef
+                      > ABOVE USED BY <static> SM.fromSmartJSON(smartJSON)
+
+PseudoClass    NO   contained in resource-based objects marking it as either a pseudoClass MASTER -or- INSTANCE
 ```
 
 
@@ -1164,7 +1198,7 @@ is a detail that is automatically handled by **visualize-it**.
                                            - Collage.size() accumulates it's contained this.scenes()
                                              ... all within the SmartObject realm
                                            - Scene.size() persists a fixed size
-                                           - FUTURE: CompClassPack
+                                           - FUTURE: CompRef
                                        - ultimately we want SmartPallet to be the manager of size
                                          * NOTE: at this level, size can be (optionally) persisted as an optimization
                                          * HOPEFULLY we can derive actual size from the mounted Konva realm

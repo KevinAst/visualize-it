@@ -7,7 +7,7 @@ import {useFassets}             from 'feature-u';
 import {tabRegistry,
         TabControllerScene,
         TabControllerCollage,
-        TabControllerClass}     from 'features';
+        TabControllerCompRef}   from 'features';
 
 import genDualClickHandler      from 'util/genDualClickHandler';
 import {createLogger}           from 'util/logger';
@@ -17,7 +17,8 @@ import {isPlainObject,
 import SmartModel               from 'core/SmartModel';
 import Scene                    from 'core/Scene';
 import Collage                  from 'core/Collage';
-import PseudoClass              from 'core/PseudoClass';
+import CompRef                  from 'core/CompRef';
+import SmartClassRef            from 'core/SmartClassRef';
 
 import {LeftNavCollapsibleItem} from 'features';
 import ExpandLessIcon           from '@material-ui/icons/ExpandMore';   // in effect WHEN EXPANDED  ... i.e. clicking will collapse
@@ -25,8 +26,6 @@ import ExpandMoreIcon           from '@material-ui/icons/ChevronRight'; // in ef
 import TreeItem                 from '@material-ui/lab/TreeItem';
 import TreeView                 from '@material-ui/lab/TreeView';
 import {makeStyles}             from '@material-ui/core/styles';
-
-
 
 
 // our internal diagnostic logger (normally disabled)
@@ -161,12 +160,16 @@ function genTreeItems(smartPkg, handleActivateTab) {
         else if (isClass(arrItem)) {
           const compClass = arrItem;
 
-          const compName = PseudoClass.getClassName(compClass);
-          
-          const id = `${accumulativeId}-${compName}`;
+          // create our CompRef HERE, PRETENDING it was already in the smartPkg :-)
+          // ... ?? ultimately this will be accomplished at the time we are creating our SmartPkg entries
+          const compClassRef = new SmartClassRef(compClass, smartPkg.getPkgId());
+          const compName     = compClassRef.getClassName();
+          const id           = `${accumulativeId}-${compName}`; // AI: accumulativeId may be an overkill in this case
+          const compRef      = new CompRef({id, name:compName, compClassRef});
+          compRef.setParent(smartPkg);
 
           // register this entry to our tabManager (allowing it to be visualized)
-          tabRegistry.registerTab( new TabControllerClass(id, compName, compClass, smartPkg) ); // ??!! need to pass smartPkg to allow it to be hooked up to comp instance
+          tabRegistry.registerTab( new TabControllerCompRef(id, compName, compRef) );
           
           log(`genTreeItems(): TreeItem tabManager node ... id: ${id}`);
           return (

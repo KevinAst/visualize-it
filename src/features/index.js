@@ -18,7 +18,7 @@ import LeftNavCollapsibleItem  from 'features/common/baseUI/comp/LeftNavCollapsi
 import tabRegistry             from 'features/common/tabManager/tabRegistry';
 import TabControllerScene      from 'features/common/tabManager/TabControllerScene';
 import TabControllerCollage    from 'features/common/tabManager/TabControllerCollage';
-import TabControllerClass      from 'features/common/tabManager/TabControllerClass';
+import TabControllerCompRef    from 'features/common/tabManager/TabControllerCompRef';
 
 
 //***
@@ -64,5 +64,5 @@ export {
   tabRegistry,
   TabControllerScene,
   TabControllerCollage,
-  TabControllerClass,
+  TabControllerCompRef,
 };
