@@ -92,7 +92,16 @@ export default class SmartComp extends SmartModel {
    * NOTE: this is also invoked prior to other display modes, as a neutral reset :-)
    */
   enableViewMode() {
-    // L8TR: do something when animate is supported
+    // clear everything from any of the other DispModes
+    // ... sequentially follow each item in the "other" DispModes
+    // L8TR: do something when edit/animate is supported
+  }
+
+  /**
+   * Enable self's "edit" DispMode (used in top-level objects targeted by a tab).
+   */
+  enableEditMode() {
+    // L8TR: do something when we support edit of DynamicComp
   }
 
   /**

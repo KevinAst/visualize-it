@@ -5,7 +5,6 @@ import {containerSizeFudge} from './konvaUtil';
 
 import verify               from 'util/verify';
 import checkUnknownArgs     from 'util/checkUnknownArgs';
-import {toast}              from 'util/notify';
 
 
 /**
@@ -89,34 +88,6 @@ export default class CompRef extends SmartPallet {
   }
 
   
-  /**
-   * Enable self's "view" DispMode (used in top-level objects targeted by a tab).
-   *
-   * NOTE: this is also invoked prior to other display modes, as a neutral reset :-)
-   */
-  enableViewMode() {
-    // clear everything from any of the other DispModes
-    // ... sequentially follow each item in the "other" DispModes
-    // yet to do ... currently class-based CompRef is NOT editable
-  }
-
-  /**
-   * Enable self's "edit" DispMode (used in top-level objects targeted by a tab).
-   */
-  enableEditMode() {
-    // yet to do ... currently class-based CompRef are NOT editable TILL we start supporting DynamicComp
-    toast.warn({msg: `The "${this.getName()}" component is NOT EDITABLE ` + // AI: dumb toast, will never see it
-                     `... it is a code-based class ` +
-                     `(you should NEVER see this message)`});
-  }
-
-  /**
-   * Enable self's "animate" DispMode (used in top-level objects targeted by a tab).
-   */
-  enableAnimateMode() {
-    // yet to do
-  }
-
   /**
    * Mount the visuals of this compRef, binding the graphics to the
    * underlying canvas.
