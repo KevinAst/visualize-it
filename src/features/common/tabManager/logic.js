@@ -102,7 +102,8 @@ export const supplementActivateTab = createLogic({
     //*** supplement our action with pgmDirectives (see JSDocs above)
     //***
 
-    action.tabName = tabRegistry.getTabController(req_tabId).getTabName(); // ... AI: may error - returns undefined if NOT registered?
+    const tabController = tabRegistry.getTabController(req_tabId); // ... undefined when tab NOT registered
+    action.tabName = tabController ? tabController.getTabName() : 'UNKNOWN';
 
     action.pgmDirectives = {
       next_activeTabId,
