@@ -152,7 +152,7 @@ function resolvePkg(activeTabId) {
   // locate the package that contains the resource in the active tab
   const tabController = tabRegistry.getTabController(activeTabId);
   const targetObj     = tabController.getTarget(); // can be: Scene/Collage or SmartComp (for classes)
-  let   pkg           = targetObj.getPackage();
+  let   pkg           = targetObj.getPkg();
 
   // verify the package is resolved
   verify(pkg, `***ERROR*** <FileMenu> "save/saveAs" operation ... could not locate the SmartPkg for the '${activeTabId}' active tab :-(`);

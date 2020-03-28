@@ -56,7 +56,7 @@ class PkgManager {
    *
    * - makes SmartPkg resources available to low-level processes (for
    *   example, classRefs used in resolving resource-based hydration)
-   *   ... see: getClassRef() / getEntry()
+   *   ... see: getClassRef() / getPkgEntry()
    * 
    * - is independent of LeftNav visualization (this is accomplished
    *   through `leftNavManager.addLeftNav(smartPkg)`)
@@ -82,9 +82,8 @@ class PkgManager {
     const check = verify.prefix(`${this.constructor.unmangledName}.registerPkg() parameter violation: `);
 
     // ... smartPkg
-    check(smartPkg,                     'smartPkg is required');
-    check(smartPkg.getPkgId,            'smartPkg must be a SmartPkg instance'); // use "duct type" check
-  //check(smartPkg instanceof SmartPkg, 'smartPkg must be a SmartPkg instance'); // to avoid SmartPkg import (see: "Circular Dependency" note above)
+    check(smartPkg,         'smartPkg is required');
+    check(smartPkg.isPkg(), 'smartPkg must be a SmartPkg instance');
 
     // maintain our package catalog
     const pkgId = smartPkg.getPkgId();
@@ -105,10 +104,10 @@ class PkgManager {
    * @returns {SmartPkg} the package (SmartPkg) registered to the
    * supplied `pkgId` (undefined for NOT registered).
    */
-  getPackage(pkgId) {
+  getPkg(pkgId) {
 
     // validate parameters
-    const check = verify.prefix('PkgManager.getPackage() parameter violation: ');
+    const check = verify.prefix('PkgManager.getPkg() parameter violation: ');
     // ... pkgId
     check(pkgId,             'pkgId is required');
     check(isString(pkgId),   'pkgId must be a string');
@@ -169,10 +168,10 @@ class PkgManager {
    * @returns {entry} the entry matching the supplied params,
    * undefined for not-found.
    */
-  getEntry(pkgId, entryId) {
+  getPkgEntry(pkgId, entryId) {
 
     // validate parameters
-    const check = verify.prefix('PkgManager.getEntry() parameter violation: ');
+    const check = verify.prefix('PkgManager.getPkgEntry() parameter violation: ');
     // ... pkgId
     check(pkgId,           'pkgId is required');
     check(isString(pkgId), 'pkgId must be a string');
@@ -187,7 +186,7 @@ class PkgManager {
     }
     
     // resolve the entry, if any (when defined in package)
-    return smartPkg.getEntry(entryId);
+    return smartPkg.getPkgEntry(entryId);
   }
 
 }

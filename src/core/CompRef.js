@@ -117,7 +117,7 @@ export default class CompRef extends SmartPallet {
     // ... this sizeCache will be re-set whenever size has the potential of changing:
     //     - both in our initial mount (replacing "approximation" with "exact" size)
     //     - and during interactive edit changes (reflecting an updated size)
-    // ... see: SmartModel.regenSizeTrickleUp()
+    // ... see: SmartModel.trickleUpChange()
     if (this.sizeCache) {
       return this.sizeCache;
     }

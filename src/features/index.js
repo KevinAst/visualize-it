@@ -6,6 +6,7 @@ import sandbox                from './sandbox/feature';
 //import authServiceMock        from './common/auth/subFeatures/authServiceMock/feature';
 import initFirebase           from './common/initFirebase/feature';
 import baseUI                 from './common/baseUI/feature';
+import changeManagerFeature   from './common/changeManager/feature';
 import tabManager             from './common/tabManager/feature';
 import toolBar                from './toolBar/feature';
 import logActions             from './common/diagnostic/logActions/feature';
@@ -15,6 +16,7 @@ import pwa                    from './common/pwa/feature';
 import leftNavManager          from 'features/common/baseUI/LeftNavManager';
 import LeftNavMenuPallet       from 'features/common/baseUI/comp/LeftNavMenuPallet';
 import LeftNavCollapsibleItem  from 'features/common/baseUI/comp/LeftNavCollapsibleItem';
+import changeManager           from './common/changeManager/changeManager';
 import tabRegistry             from 'features/common/tabManager/tabRegistry';
 import TabControllerScene      from 'features/common/tabManager/TabControllerScene';
 import TabControllerCollage    from 'features/common/tabManager/TabControllerCollage';
@@ -34,6 +36,7 @@ export default [
   // common app-neutral features
 
   baseUI,
+  changeManagerFeature,
   tabManager,
   toolBar,
   
@@ -60,6 +63,8 @@ export {
   leftNavManager,
   LeftNavMenuPallet,
   LeftNavCollapsibleItem,
+
+  changeManager,
 
   tabRegistry,
   TabControllerScene,

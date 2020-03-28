@@ -15,15 +15,15 @@ export default createFeature({
   appInit({showStatus, fassets, getState, dispatch}) {
 
     // our sandbox code-based component package
-    const generalCompsPkg = pkgManager.getPackage('generalComps');
+    const generalCompsPkg = pkgManager.getPkg('generalComps');
     leftNavManager.addLeftNav(generalCompsPkg);
 
     // our sandbox resource-based system package
-    const konvaSandboxSmartPkg = pkgManager.getPackage('com.astx.KONVA');
+    const konvaSandboxSmartPkg = pkgManager.getPkg('com.astx.KONVA');
     leftNavManager.addLeftNav(konvaSandboxSmartPkg);
 
     // our clonedPkg
-    const clonedPkg = pkgManager.getPackage('cloned.pkg');
+    const clonedPkg = pkgManager.getPkg('cloned.pkg');
     leftNavManager.addLeftNav(clonedPkg);
   },
 });

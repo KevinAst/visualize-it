@@ -1,12 +1,17 @@
 import verify            from 'util/verify';
 import {isString,
         isObject,
-        isPlainObject}   from 'util/typeCheck';
+        isPlainObject,
+        isClass}         from 'util/typeCheck';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
 import pkgManager        from './pkgManager';
 import PseudoClass       from './PseudoClass';
 import DispMode          from './DispMode';
+import crc               from 'util/crc';
 import {toast}           from 'util/notify';
+// import {changeManager}   from 'features'; // ?? ReferenceError: Cannot access 'SmartPallet' before initialization
+import changeManager     from 'features/common/changeManager/changeManager'; // ?? BETTER
+
 
 /**
  * SmartModel is the abstract top-level base class of the visualize-it
@@ -204,6 +209,282 @@ export default class SmartModel {
   }
 
   /**
+   * Return the crc hash for this object, uniquely identifying self.
+   * 
+   * This hash is generated as needed, utilizing an optimized cache.
+   * 
+   * NOTE: This algorithm is fully implemented within the SmartModel
+   *       base class.  With the polymorphic knowledge of which
+   *       properties to process (see getEncodingProps()) it rarely
+   *       needs to be overwritten.
+   *
+   * @returns {number} self's crc hash that uniquely identifies self
+   */
+  getCrc() {
+
+    // calculate/retain our crc as needed
+    if (!this._crc) { // ... either first time, or cache is being regenerated
+      // driven by self's instance properties
+      const encodingProps = this.getEncodingProps(false);
+
+      // regenerate our cached crc
+      this._crc = encodingProps.reduce( (accumCrc, prop) => {
+
+        // decipher propName/propValue
+        // ... we are NOT interested in the defaultValue found in the optional ordered pair: [propName, defaultValue]
+        const [propName] = Array.isArray(prop) ? prop : [prop];
+        const propValue  = this[propName];
+
+        // recursively accumulate the crc of each instance props
+        // ... interpreting arrays, primitives, and SmartModel
+        accumCrc = crc(propName,     accumCrc); // accum the prop name  (string) ... for good measure (shouldn't hurt)
+        accumCrc = genCrc(propValue, accumCrc); // accum the prop value (any type)
+        return accumCrc;
+      }, 0); // ... seed our crc with zero (0)
+
+      // console.log(`xx ${this.diagClassName()}.getCrc() CALCULATING CRC from props: ${encodingProps} ... CRC: ${this._crc}`);
+    }
+    else {
+      // console.log(`xx ${this.diagClassName()}.getCrc() using CACHE ... CRC: ${this._crc}`);
+    }
+
+    // that's all folks
+    return this._crc;
+
+
+    // internal recursive function that generates a crc for the supplied `ref`.
+    // - this algorithm is needed to support additional types over and
+    //   above smartObjs
+    // - the algorithm is recursive, picking up all sub-references
+    //   (with depth)
+    // - ALL data types are handled (EXCEPT for class-based objects
+    //   that are NOT smartObjs):
+    //   * arrays
+    //   * plain objects (as in object literals)
+    //   * smartObjs (class-based object derivations of SmartModel)
+    //   * primitives (string, number, boolean, etc.)
+    //   * NOT SUPPORTED: class-based objects that are NOT smartObjs
+    // RETURNS: the generated crc value for the supplied `ref` (an accumulation)
+    function genCrc(ref, accumCrc=0) {
+
+      // handle NO ref
+      // ... simply pass through it's crc (null, undefined, etc. ... even false is OK :-)
+      if (!ref) {
+        accumCrc = crc(ref, accumCrc);
+        return accumCrc;
+      }
+
+      // handle arrays
+      // ... simply fold in the crc of each array item
+      else if (Array.isArray(ref)) {
+        const arr = ref;
+        accumCrc  = arr.reduce( (accum, item) => genCrc(item, accum), accumCrc );
+        return accumCrc;
+      }
+
+      // handle objects
+      // ... various object types (see below)
+      else if (isObject(ref)) {
+        
+        // handle smartObjs (class-based object derivations of SmartModel)
+        // ... fold in it's getCrc()
+        // ... should be OK to use a crc as the value of another crc calc
+        if (ref instanceof SmartModel) {
+          const smartObj = ref;
+          accumCrc = crc(smartObj.getCrc(), accumCrc);
+          return accumCrc;
+        }
+
+        // handle plain objects
+        // ... simply fold in the crc of each property
+        else if (isPlainObject(ref)) {
+          const plainObj = ref;
+          accumCrc = Object.entries(plainObj).reduce( (accum, [subPropName, subPropValue]) => {
+            accum = crc(subPropName,     accum); // accum the prop name  (string) ... for good measure (shouldn't hurt)
+            accum = genCrc(subPropValue, accum); // accum the prop value (any type)
+            return accum;
+          }, accumCrc );
+          return accumCrc;
+        }
+
+        // handle classes
+        // ... simply fold in class name (unsure if this is needed)
+        else if (isClass(ref)) {
+          const clazz = ref;
+          accumCrc = crc(clazz.name, accumCrc);
+          return accumCrc;
+        }
+
+        // UNSUPPORTED: class-based objects that are NOT smartObjs
+        // ... CONSIDER (as needed) adding support for common objects like Date, etc
+        else {
+          throw new Error(`***ERROR*** SmartModel.getCrc() processing ref object of type ${ref.constructor.name} is NOT supported ... only SmartModel derivations are supported :-(`);
+        }
+
+      }
+
+      // handle primitives (string, number, boolean, etc.)
+      // ... simply accumulate it's crc
+      else {
+        accumCrc = crc(ref, accumCrc);
+        return accumCrc;
+      }
+
+    } // end of ... genCrc(ref)
+
+  }
+
+  /**
+   * Return an indicator as to whether self is "in sync" with it's
+   * base version (i.e. the version saved on disk).
+   *
+   * An "out of sync" state indicates that modifications have occurred,
+   * and that a "save" operation is needed.
+   *
+   * @returns {boolean} self's "in sync" status with it's base version
+   * (true: in-sync, false: out-of-sync).
+   */
+  isInSync() {
+    return this.getBaseCrc() === this.getCrc();
+  }
+
+  /**
+   * Return the baseline crc hash for this object.
+   *
+   * This represents the crc from an initial version (typically a
+   * saved resource), and is used to determine when an item is "out of
+   * sync" (i.e. needs to be saved).
+   *
+   * @returns {number} self's baseline crc
+   */
+  getBaseCrc() {
+    // NOTE: when NOT defined, we still do NOT want to dynamically save this._baseCrc
+    //       - EX:   this._baseCrc = this.getCrc();
+    //       - BAD:  it is really too late for this
+    //               ... we have no idea if this time represents our baseline
+    //       - GOOD: just depend on resetBaseCrc() being invoked at the appropriate times
+    return this._baseCrc;
+  }
+
+  /**
+   * Reset the baseline crc throughout our containment tree.
+   *
+   * This represents the crc from an initial version (typically a
+   * saved resource), and is used to determine when an item is "out of
+   * sync" (i.e. needs to be saved).
+   * 
+   * This method is invoked:
+   *  - at SmartPkg constructor (covering code-based packages)
+   *  - and at persistance time (load/save)
+   *  - NO: dynamically on getBaseCrc() ... see NOTE in getBaseCrc()
+   * 
+   * NOTE: This algorithm is fully implemented within the SmartModel
+   *       base class.  With the polymorphic knowledge of which
+   *       properties to process (see getEncodingProps()) it rarely
+   *       needs to be overwritten.
+   */
+  resetBaseCrc() {
+
+    // reset self's baseline crc
+    const old_baseCrc = this._baseCrc;
+    this._baseCrc     = this.getCrc();
+
+    // trickle this request down through our containment tree, driven by self's instance properties
+    const encodingProps = this.getEncodingProps(false);
+    encodingProps.forEach( (prop) => {
+
+      // decipher propName/propValue
+      // ... we are NOT interested in the defaultValue found in the optional ordered pair: [propName, defaultValue]
+      const [propName] = Array.isArray(prop) ? prop : [prop];
+      const propValue  = this[propName];
+
+      // trickle request down
+      resetBaseCrc(propValue);
+    });
+
+    // retain baseCrc state changes for ePkgs (when baseCrc changes)
+    const baseCrcChanged = old_baseCrc !== this._baseCrc;
+    if (this.isEPkg() && baseCrcChanged) {
+      changeManager.ePkgChanged(this);
+    }
+
+    // internal recursive function that trickles the reset request down our containment tree
+    // - this algorithm is needed to pass through additional types over and
+    //   above smartObjs
+    // - the algorithm is recursive, picking up all sub-references
+    //   (with depth)
+    // - ALL data types are handled (EXCEPT for class-based objects
+    //   that are NOT smartObjs):
+    //   * arrays
+    //   * plain objects (as in object literals)
+    //   * smartObjs (class-based object derivations of SmartModel)
+    //   * primitives (string, number, boolean, etc.)
+    //   * NOT SUPPORTED: class-based objects that are NOT smartObjs
+    function resetBaseCrc(ref) {
+
+      // handle NO ref
+      if (!ref) {
+      }
+
+      // handle arrays
+      // ... simply fold in the crc of each array item
+      else if (Array.isArray(ref)) {
+        const arr = ref;
+        arr.forEach( (item) => resetBaseCrc(item) );
+      }
+
+      // handle objects
+      // ... various object types (see below)
+      else if (isObject(ref)) {
+        
+        // handle smartObjs (class-based object derivations of SmartModel)
+        if (ref instanceof SmartModel) {
+          const smartObj = ref;
+          smartObj.resetBaseCrc();
+        }
+
+        // handle plain objects
+        else if (isPlainObject(ref)) {
+          const plainObj = ref;
+          Object.values(plainObj).forEach( (item) => resetBaseCrc(item) );
+        }
+
+        // handle classes
+        else if (isClass(ref)) {
+          // simply no-op ... currently there is NO crc recorded in raw classes
+        }
+
+        // UNSUPPORTED: class-based objects that are NOT smartObjs
+        // ... CONSIDER (as needed) adding support for common objects like Date, etc
+        else {
+          throw new Error(`***ERROR*** SmartModel.resetBaseCrc() processing ref object of type ${ref.constructor.name} is NOT supported ... only SmartModel derivations are supported :-(`);
+        }
+
+      }
+
+      // handle primitives (string, number, boolean, etc.)
+      else {
+        // ... resetBaseCrc does NOTHING for primitives
+      }
+
+    } // end of ... resetBaseCrc(ref)
+
+  }
+
+  /**
+   * Return an indicator as to whether self is a package (SmartPkg) or
+   * not.
+   *
+   * NOTE: This method uses a "duct-type" check to avoid a circular
+   *       dependency incurred with a SmartPkg import.
+   *
+   * @returns {boolean} `true`: self is a package (SmartPkg), `false` otherwise.
+   */
+  isPkg() {
+    return this.getPkgId ? true : false; // duct-type check (see NOTE above)
+  }
+
+  /**
    * Return the SmartPkg self belongs to.
    * 
    * NOTE: This is the SmartPkg that self belongs to (e.g. 'com.astx.KONVA'),
@@ -212,17 +493,79 @@ export default class SmartModel {
    * @returns {SmartPkg} the package self belongs to, `undefined` when
    * outside our supported "primary" containment tree.
    */
-  getPackage() {
+  getPkg() {
     // when self is a SmartPkg, we have found it!
-    // ... we use a "duct type" check
-    //     in lieu of `this instanceof SmartPkg`
-    //     to avoid SmartPkg import (introducing a "Circular Dependency")
-    if (this.getPkgId) {
+    if (this.isPkg()) {
       return this;
     }
     // follow our parent chain, till we find the SmartPkg
     const  parent = this.getParent();
-    return parent ? parent.getPackage() : undefined;
+    return parent ? parent.getPkg() : undefined;
+  }
+
+  /**
+   * Return an indicator as to whether self is a PkgEntry or not.
+   *
+   * PkgEntries are top-level entries registered to a package (SmartPkg).
+   * - They are visible in the LeftNav.
+   * - They are displayed in a tab (ex: Scene, Collage, Comp).
+   * - They are visually critical in monitoring whether they are in-sync
+   *   with their file resources.
+   *
+   * PkgEntries are managed by SmartPkg, simply marking them using the
+   * `markAsPkgEntry()` method.
+   *
+   * @returns {boolean} `true`: self is a PkgEntry, `false` otherwise.
+   */
+  isPkgEntry() {
+    return this._pkgEntry ? true : false;
+  }
+
+  /**
+   * Mark self as a PkgEntry (see notes in `isPkgEntry()`).
+   */
+  markAsPkgEntry() {
+    // mark self as a PkgEntry
+    this._pkgEntry = true;
+
+    // ALSO: maintain changeManager state
+    changeManager.registerEPkg(this);
+  }
+
+  /**
+   * Return an indicator as to whether self is an EPkg:
+   * - either a pkg (SmartPkg)
+   * - or a pkgEntry (top-level entries registered to a package (SmartPkg)
+   *
+   * These two objects are consolidated in the EPkg nomenclature, to
+   * accommodate the `changeManager` feature state, where EPkgs are
+   * tracked.
+   *
+   * @returns {boolean} `true`: self is an EPkg, `false` otherwise.
+   */
+  isEPkg() {
+    return this.isPkg() || this.isPkgEntry();
+  }
+
+  /**
+   * Return the EPkg ID (see notes in isEPkg).
+   *
+   * Examples:
+   * - 'com.astx.KONVA' .......... for pkg (SmartPkg)
+   * - 'com.astx.KONVA/scene1' ... for pkgEntry
+   *
+   * @returns {string} self's EPkg ID, undefined if NOT an EPkg.
+   */
+  getEPkgId() {
+    if (this.isPkg()) {
+      return this.getPkgId();
+    }
+    else if (this.isPkgEntry()) {
+      return `${this.getPkg().getPkgId()}/${this.getId()}`;
+    }
+    else {
+      return undefined;
+    }
   }
 
   /**
@@ -293,24 +636,40 @@ export default class SmartModel {
   }
 
   /**
-   * Trickle up a potential size change within our "view" containment
-   * tree.
+   * Trickle up low-level changes to our parentage (both the "primary"
+   * and "view" containment tree.
    *
-   * This is the entry point to alter dynamic size changes.  It is invoked
-   * whenever there is a potential of the size change:
-   *  - both in our initial mount (replacing "approximation" with "exact" size)
-   *  - and during interactive edit changes (reflecting an updated size)
+   * This propagates changes to various aspects, such as:
+   *  - size
+   *  - crc
+   *
+   * The `trickleUpChange()` when any change occurs
+   *  - centrally by `changeManger.applyChange()`
+   *  - also during an initial mount (replacing "approximation" size
+   *    with "exact" size) ... see: `SmartView.mount()`
+   *
+   * @param {boolean} [sizeChanged=true] - an internal indicator as to
+   * whether size has changed.  This should NOT be set by any public
+   * invocation - only by our internal recursion.  It is an
+   * optimization, that no-ops size re-calculation when the size has
+   * NOT changed.  The entry-level default assumes size may have
+   * changed (so it will always check for size changes)
    */
-  regenSizeTrickleUp() {
+  trickleUpChange(sizeChanged=true) {
 
-    // HELPER: regenerate self's size
-    //         returns: sizeChange <boolean>
-    const regenSize = () => { // ... arrow function preserves `this` context
+    //***
+    //*** manage size (many things can impact container size)
+    //***
+
+    // when self promotes size, and size has changed (in our lower-containment tree)
+    // ... regen self's size, keeping track of whether sizeChanged (for optimization)
+    if (this.getSize && sizeChanged) {
+
       // retain our oldSize
-      // ... via our cache (exists when getSize() previously invoked)
+      // ... via our cache (this exists when getSize() previously invoked)
       const oldSize = this.sizeCache ? this.sizeCache : {width:-1, height:-1};
 
-      // clear cache allowing getSize() to regenerate
+      // clear our sizeCache allowing getSize() to regenerate
       this.sizeCache = undefined;
 
       // regen our size (i.e. our newSize)
@@ -318,36 +677,46 @@ export default class SmartModel {
       const newSize = this.getSize();
       
       // perform any static binding of new size
-      // ... when size has changed
-      const sizeChanged = !(oldSize.width===newSize.width && oldSize.height===newSize.height);
+      // ... only when size has changed
+      sizeChanged = !(oldSize.width===newSize.width && oldSize.height===newSize.height);
       if (sizeChanged) {
         this.bindSizeChanges(oldSize, newSize);
       }
-      
-      // that's all folks
-      // ... NOTE: trickle up occurs by our invoker: regenSizeTrickleUp()
-      return sizeChanged;
     }
 
-    // HELPER: trickle up a potential size change within our "view" containment
-    const trickleUp = () => { // ... arrow function preserves `this` context
-      const parent = this.getParentView();
-      if (parent) {
-        parent.regenSizeTrickleUp();
-      }
+    //***
+    //*** manage crc changes
+    //***
+
+    // re-calculate self's crc
+    const oldCrc = this._crc;
+    this._crc    = undefined;     // clear the cached _crc
+    const newCrc = this.getCrc(); // ... allowing getCrc() to recalculate it
+
+    // retain crc state changes for ePkgs (when crc changes)
+    const crcChanged = oldCrc !== newCrc;
+    // console.log(`xx trickleUpChange on obj: ${this.diagClassName()} for CRC old: ${oldCrc} / new: ${newCrc} ... isEPkg(): ${this.isEPkg()} / crcChanged: ${crcChanged}`);
+    if (this.isEPkg() && crcChanged) {
+      // console.log(`xx YES YES YES self is an EPkg who's CRC CHANGED ... issuing changeManager.ePkgChanged()`);
+      changeManager.ePkgChanged(this);
     }
 
-    // when self promotes size - regen the size -and- trickle up ONLY when size has changed
-    if (this.getSize) {
-      const sizeChanged = regenSize();
-      if (sizeChanged) {
-        trickleUp();
-      }
+    //***
+    //*** trickle up change to higher level
+    //***
+
+    // both to the "primary" containment tree
+    const parent = this.parent;
+    if (parent) {
+      parent.trickleUpChange(sizeChanged);
     }
-    // when self does NOT monitor size, always trickle up (our parent may care about size)
-    else {
-      trickleUp();
+
+    // and the "view" containment tree
+    const parentView = this.parentView;
+    if (parentView) {
+      parentView.trickleUpChange(sizeChanged);
     }
+
   }
 
 
@@ -387,7 +756,7 @@ export default class SmartModel {
     else if (dispMode === DispMode.edit) {
       // perform a pre-check to prevent edit mode when containing package cannot be persisted
       // ... ex: when the package contains code
-      const pkg = this.getPackage();
+      const pkg = this.getPkg();
       if (!pkg.canPersist()) {
         toast.warn({msg: `The "${this.getName()}" resource cannot be edited ` + 
                          `... normally it can, however it belongs to the "${pkg.getPkgName()}" package which ` +
@@ -558,6 +927,12 @@ export default class SmartModel {
             return accum;
           }, {} );
           return plainObjJSON;
+        }
+
+        // handle classes
+        else if (isClass(ref)) {
+          // NOTE: should never see this with visualize-it's pre-check: SmartPkg.canPersist()
+          throw new Error(`***ERROR*** SmartModel.toSmartJSON() processing ref object of type ${ref.constructor.name} is NOT supported ... classes or functions CANNOT be persisted through the smartJSON format :-(`);
         }
 
         // UNSUPPORTED: class-based objects that are NOT smartObjs
@@ -833,6 +1208,12 @@ export default class SmartModel {
             return accum;
           }, {} );
           return clonedPlainObj;
+        }
+
+        // handle classes
+        // ... simply pas-through as-is (i.e. clone is N/A because they are immutable)
+        else if (isClass(ref)) {
+          return ref;
         }
 
         // UNSUPPORTED: class-based objects that are NOT smartObjs

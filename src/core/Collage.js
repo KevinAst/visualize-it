@@ -82,7 +82,7 @@ export default class Collage extends SmartPallet {
       scene.y = e.target.y();
 
       // sync any container size changes
-      this.regenSizeTrickleUp();
+      scene.trickleUpChange();
     });
   }
 
@@ -122,7 +122,7 @@ export default class Collage extends SmartPallet {
     // ... this sizeCache will be re-set whenever size has the potential of changing:
     //     - both in our initial mount (replacing "approximation" with "exact" size)
     //     - and during interactive edit changes (reflecting an updated size)
-    // ... see: SmartModel.regenSizeTrickleUp()
+    // ... see: SmartModel.trickleUpChange()
     if (this.sizeCache) {
       return this.sizeCache;
     }

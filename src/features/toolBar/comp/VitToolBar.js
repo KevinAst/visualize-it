@@ -63,7 +63,7 @@ export default function VitToolBar() {
                   color="inherit"
                   noWrap
                   className={classes.title}>
-        {activeTarget.getPackage().getPkgName()}
+        {activeTarget.getPkg().getPkgName()}
       </Typography>
 
       <IconButton><FingerPrintIcon/></IconButton>

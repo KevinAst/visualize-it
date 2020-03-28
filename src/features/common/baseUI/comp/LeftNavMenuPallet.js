@@ -3,6 +3,8 @@ import PropTypes                from 'prop-types';
 
 import {useDispatch}            from 'react-redux';
 import {useFassets}             from 'feature-u';
+import {useSelector,
+        shallowEqual}           from 'react-redux';
 
 import {tabRegistry,
         TabControllerScene,
@@ -55,10 +57,15 @@ function LeftNavMenuPallet({smartPkg}) {
     (tabId, tabName) => handleActivateTab(tabId, tabName, false) // doubleClick: permanent tab ... preview is false
   );
 
+  const fassets = useFassets();
+  const inSync  = useSelector((appState) => fassets.sel.isEPkgInSync(appState, smartPkg.getEPkgId()), shallowEqual); // AI: see note on shallowEqual (below)
+  const name    = smartPkg.getPkgName() + (inSync ? '' : ' **'); // AI: consider color too
+
   // render our TreeView/TreeItem generation process driven by smartPkg content!
   log(`rendering top-level content for smartPkg.id: ${smartPkg.id} ... expecting ONE TIME (for this entry)`);
+  // console.log(`xx rendering top-level <LeftNavMenuPallet> content for smartPkg.id: ${smartPkg.id} ... expecting ONE TIME (for this entry)`);
   return (
-    <LeftNavCollapsibleItem name={smartPkg.getPkgName()}>
+    <LeftNavCollapsibleItem name={name}>
       <TreeView className={classes.root}
                 defaultCollapseIcon={<ExpandLessIcon/>}
                 defaultExpandIcon={<ExpandMoreIcon/>}>
@@ -130,29 +137,29 @@ function genTreeItems(smartPkg, handleActivateTab) {
         if (arrItem instanceof SmartModel) {
 
           const smartObj = arrItem;
-          const id       = `${accumulativeId}-${smartObj.id}`;
+          const nodeId   = `${accumulativeId}-${smartObj.id}`;
 
           // register this entry to our tabManager (allowing it to be visualized)
           let tabController = null;
           if (smartObj instanceof Scene) {
-            tabController = new TabControllerScene(id, smartObj.name, smartObj);
+            tabController = new TabControllerScene(nodeId, smartObj.name, smartObj);
           }
           else if (smartObj instanceof Collage) {
-            tabController = new TabControllerCollage(id, smartObj.name, smartObj);
+            tabController = new TabControllerCollage(nodeId, smartObj.name, smartObj);
           }
           else {
-            const errMsg = `***ERROR*** <LeftNavMenuPallet> found UNSUPPORTED smartObj entry (under accumulativeId: ${id})  ... must be a Scene or Collage ... see logs for entry`
+            const errMsg = `***ERROR*** <LeftNavMenuPallet> found UNSUPPORTED smartObj entry (under accumulativeId: ${nodeId})  ... must be a Scene or Collage ... see logs for entry`
             console.error(errMsg, {smartObj});
             throw new Error(errMsg);
           }
           tabRegistry.registerTab(tabController);
 
-          log(`genTreeItems(): TreeItem tabManager node ... id: ${id}`);
+          log(`genTreeItems(): TreeItem tabManager node ... nodeId: ${nodeId}`);
           return (
-            <TreeItem key={id}
-                      nodeId={id}
-                      label={smartObj.name}
-                      onClick={() => handleActivateTab(id, smartObj.name)}/>
+            <SmartTreeItem key={nodeId}
+                           nodeId={nodeId}
+                           ePkg={smartObj}
+                           onClick={() => handleActivateTab(nodeId, smartObj.name)}/>
           );
         }
 
@@ -164,19 +171,19 @@ function genTreeItems(smartPkg, handleActivateTab) {
           // ... ?? ultimately this will be accomplished at the time we are creating our SmartPkg entries
           const compClassRef = new SmartClassRef(compClass, smartPkg.getPkgId());
           const compName     = compClassRef.getClassName();
-          const id           = `${accumulativeId}-${compName}`; // AI: accumulativeId may be an overkill in this case
-          const compRef      = new CompRef({id, name:compName, compClassRef});
+          const nodeId       = `${accumulativeId}-${compName}`;
+          const compRef      = new CompRef({id:compName, name:compName, compClassRef});
           compRef.setParent(smartPkg);
 
           // register this entry to our tabManager (allowing it to be visualized)
-          tabRegistry.registerTab( new TabControllerCompRef(id, compName, compRef) );
+          tabRegistry.registerTab( new TabControllerCompRef(nodeId, compName, compRef) );
           
-          log(`genTreeItems(): TreeItem tabManager node ... id: ${id}`);
+          log(`genTreeItems(): TreeItem tabManager node ... nodeId: ${nodeId}`);
           return (
-            <TreeItem key={id}
-                      nodeId={id}
-                      label={compName}
-                      onClick={() => handleActivateTab(id, compName)}/>
+            <SmartTreeItem key={nodeId}
+                           nodeId={nodeId}
+                           ePkg={compRef}
+                           onClick={() => handleActivateTab(nodeId, compName)}/>
           );
 
         }
@@ -209,3 +216,38 @@ function genTreeItems(smartPkg, handleActivateTab) {
   // invoke our recursive routine
   return accumTreeItems(smartPkg.entries);
 }
+
+
+/**
+ * <SmartTreeItem> is an `<TreeItem>` wrapper that employs redux state
+ * for various artifacts which triggers appropriate refreshes
+ * dynamically.
+ *
+ * NOTE: This component re-renders on parent re-expansion ... however
+ *       I think this is due to the architecture of the MUI TreeItem!
+ */
+function SmartTreeItem({nodeId, ePkg, onClick}) {
+  const fassets   = useFassets();
+  // AI: Don't understand: Why by just adding this selector, it renders 100% of the time?
+  //    ... should only re-render when inSync value changes
+  //        ANSWER: - has to do with useSelector === semantics HOWEVER I would expect true/false to ALWAYS be ===
+  //                  ... https://thoughtbot.com/blog/using-redux-with-react-hooks
+  //                  ... https://react-redux.js.org/next/api/hooks#equality-comparisons-and-updates
+  //                - for now, I used the shallowEqual
+  //                - BUT I REALLY DON'T UNDERSTAND THIS
+//const inSync = useSelector((appState) => fassets.sel.isEPkgInSync(appState, ePkg.getEPkgId()), [fassets]);    // AI: works but way to many unneeded renders
+  const inSync = useSelector((appState) => fassets.sel.isEPkgInSync(appState, ePkg.getEPkgId()), shallowEqual); // AI: shallowEqual
+
+  const label = ePkg.getName() + (inSync ? '' : ' **'); // AI: consider color too
+  // console.log(`xx rendering child <SmartTreeItem label="${label}"> ... inSync: ${inSync} ... hopefully we can trigger re-renders on this`);
+  return (
+    <TreeItem {...{nodeId, label, onClick}}/>
+  )
+}
+
+// props validation
+SmartTreeItem.propTypes = {
+  nodeId:   PropTypes.string.isRequired,
+  ePkg:     PropTypes.object.isRequired,
+  onClick:  PropTypes.func.isRequired,
+};

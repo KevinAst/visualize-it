@@ -165,7 +165,7 @@ export default class Scene extends SmartPallet {
       comp.y = e.target.y();
 
       // sync any container size changes
-      this.regenSizeTrickleUp();
+      comp.trickleUpChange();
     });
 
 
@@ -212,10 +212,11 @@ export default class Scene extends SmartPallet {
         comp.rotation = e.target.rotation();
         comp.scaleX   = e.target.scaleX();
         comp.scaleY   = e.target.scaleY();
+
+        // sync any container size changes
+        comp.trickleUpChange();
       });
 
-      // sync any container size changes
-      this.regenSizeTrickleUp();
     });
   }
 
@@ -277,7 +278,7 @@ export default class Scene extends SmartPallet {
     // ... this sizeCache will be re-set whenever size has the potential of changing:
     //     - both in our initial mount (replacing "approximation" with "exact" size)
     //     - and during interactive edit changes (reflecting an updated size)
-    // ... see: SmartModel.regenSizeTrickleUp()
+    // ... see: SmartModel.trickleUpChange()
     if (this.sizeCache) {
       return this.sizeCache;
     }

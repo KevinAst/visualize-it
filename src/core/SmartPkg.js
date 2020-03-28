@@ -5,6 +5,8 @@ import {isPlainObject,
         isClass}         from 'util/typeCheck';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
+// import {changeManager}   from 'features'; // ?? ReferenceError: Cannot access 'SmartPallet' before initialization
+import changeManager     from 'features/common/changeManager/changeManager'; // ?? BETTER
 
 /**
  * SmartPkg models visualize-it packages.
@@ -129,7 +131,7 @@ import checkUnknownArgs  from 'util/checkUnknownArgs';
  * 
  * ```
  *  + getClassRef(className): SmartClassRef ... used by pkgManager
- *  + getEntry(entryId):      entry         ... used by tabManager (currently NOT used)
+ *  + getPkgEntry(entryId):   entry         ... used by ?? suspect needed for pseudoClass modification sync in other PkgEntries
  * ```
  */
 export default class SmartPkg extends SmartModel {
@@ -174,6 +176,19 @@ export default class SmartPkg extends SmartModel {
 
     // introduce the value-added meta API to all our classes (including package registration)
     this.adornContainedClasses();
+
+    // mark our top-level entries as PkgEntries
+    Object.values(this._entryCatalog).forEach( (entry) => {
+      entry.markAsPkgEntry(); // ... internally markAsPkgEntry() will register them to changeManager
+    });
+
+    // reset the baseline crc throughout our containment tree
+    this.resetBaseCrc();
+
+    // register self's (SmartPkg) state to changeManager
+    changeManager.registerEPkg(this);
+
+    // console.log(`xx HERE IS A SmartPkg: `, this);
   }
 
   // support persistance by encoding needed props of self
@@ -295,6 +310,8 @@ export default class SmartPkg extends SmartModel {
           // catalog classes in our _classRefCatalog
           const className = PseudoClass.getClassName(realClass);
           this._classRefCatalog[className] = realClass;
+
+          // AI: most likely we need to register SOMETHING from a class in our this._entryCatalog (as is done for PseudoClassMaster above)
         }
 
         // can be a nested sub-directory (mixed in with our tab activation entries)
@@ -376,7 +393,7 @@ export default class SmartPkg extends SmartModel {
    * @returns {entry} the entry matching the supplied `entryId`,
    * undefined for not-found.
    */
-  getEntry(entryId) {
+  getPkgEntry(entryId) {
     return this._entryCatalog[entryId];
   }
 

@@ -135,7 +135,7 @@ export default class SmartView extends SmartModel {
 
     // regenerate actual size, once mounting is complete
     // ... propagate this request into our pallet
-    this.pallet.regenSizeTrickleUp();
+    this.pallet.trickleUpChange();
   }
 }
 SmartView.unmangledName = 'SmartView';
