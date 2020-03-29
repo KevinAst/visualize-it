@@ -103,6 +103,9 @@ export async function openPkg(pkgResourcePath) {
   // register this package in our pkgManager
   pkgManager.registerPkg(pkg);
 
+  // reset the pkg baseline crc (reflecting what was pulled from our file)
+  // pkg.resetBaseCrc(); // ... N/A because this is accomplished in the SmartPkg constructor
+
   // that's all folks
   return pkg;
 }
@@ -194,6 +197,8 @@ export async function savePkg(pkg, saveAs=false) {
   // retain the pkgResourcePath
   pkg.setPkgResourcePath(fileHandle);
 
+  // reset the pkg baseline crc (reflecting what has been filed)
+  pkg.resetBaseCrc();
 }
 
 
