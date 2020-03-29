@@ -5,8 +5,7 @@ import {isPlainObject,
         isClass}         from 'util/typeCheck';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
-// import {changeManager}   from 'features'; // ?? ReferenceError: Cannot access 'SmartPallet' before initialization
-import changeManager     from 'features/common/changeManager/changeManager'; // ?? BETTER
+import {changeManager}   from 'features/xtra';
 
 /**
  * SmartPkg models visualize-it packages.

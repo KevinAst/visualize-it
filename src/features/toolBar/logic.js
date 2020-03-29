@@ -1,7 +1,7 @@
 import {createLogic}       from 'redux-logic';
 import _toolBar            from './featureName';
 import _toolBarAct         from './actions';
-import {tabRegistry}       from 'features';
+import {tabRegistry}       from 'features/xtra';
 
 
 /**

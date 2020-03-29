@@ -5,7 +5,7 @@ import {slicedReducer}      from 'feature-redux';
 import _toolBar             from './featureName';
 import _toolBarAct          from './actions';
 import DispMode             from 'core/DispMode';
-import {tabRegistry}        from 'features';
+import {tabRegistry}        from 'features/xtra';
 
 // ***
 // *** Our feature reducer, managing state for our toolBar process.

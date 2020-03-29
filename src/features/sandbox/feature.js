@@ -1,6 +1,6 @@
 import {createFeature}  from 'feature-u';
 import featureFlags     from 'featureFlags'
-import {leftNavManager} from 'features';
+import {leftNavManager} from 'features/xtra';
 import pkgManager       from 'core/pkgManager';
 import                  './konvaSandbox/konvaSandboxSmartPkg'; // unnamed import activating it's package registration
 

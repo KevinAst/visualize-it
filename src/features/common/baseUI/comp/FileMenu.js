@@ -7,7 +7,7 @@ import {openPkg,
         savePkg}        from 'core/pkgPersist';
 
 import {leftNavManager,
-        tabRegistry}    from 'features';
+        tabRegistry}    from 'features/xtra';
 
 import discloseError    from 'util/discloseError';
 import verify           from 'util/verify';

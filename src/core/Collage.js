@@ -2,8 +2,7 @@ import SmartPallet       from './SmartPallet';
 import Scene             from './Scene';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
-// import {changeManager}   from 'features'; // ?? ReferenceError: Cannot access 'SmartPallet' before initialization
-import changeManager     from 'features/common/changeManager/changeManager'; // ?? BETTER
+import {changeManager}   from 'features/xtra';
 
 /**
  * Collage is a SmartPallet derivation in which multiple Scenes are displayed/visualized.

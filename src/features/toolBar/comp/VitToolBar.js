@@ -7,7 +7,7 @@ import {useSelector,
 
 import DispMode         from 'core/DispMode';
 
-import {tabRegistry}    from 'features';
+import {tabRegistry}    from 'features/xtra';
 
 import {createLogger}   from 'util/logger';
 

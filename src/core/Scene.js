@@ -6,9 +6,7 @@ import {ancestorOfLayer,
 import verify               from 'util/verify';
 import checkUnknownArgs     from 'util/checkUnknownArgs';
 import {isNumber, isEqual}  from 'util/typeCheck';
-
-// import {changeManager}   from 'features'; // ?? ReferenceError: Cannot access 'SmartPallet' before initialization
-import changeManager     from 'features/common/changeManager/changeManager'; // ?? BETTER
+import {changeManager}      from 'features/xtra';
 
 /**
  * Scene is a SmartPallet derivation that models a single Scene to be

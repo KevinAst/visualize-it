@@ -9,7 +9,7 @@ import {useSelector,
 import {tabRegistry,
         TabControllerScene,
         TabControllerCollage,
-        TabControllerCompRef}   from 'features';
+        TabControllerCompRef}   from 'features/xtra';
 
 import genDualClickHandler      from 'util/genDualClickHandler';
 import {createLogger}           from 'util/logger';
@@ -22,7 +22,7 @@ import Collage                  from 'core/Collage';
 import CompRef                  from 'core/CompRef';
 import SmartClassRef            from 'core/SmartClassRef';
 
-import {LeftNavCollapsibleItem} from 'features';
+import {LeftNavCollapsibleItem} from 'features/xtra';
 import ExpandLessIcon           from '@material-ui/icons/ExpandMore';   // in effect WHEN EXPANDED  ... i.e. clicking will collapse
 import ExpandMoreIcon           from '@material-ui/icons/ChevronRight'; // in effect WHEN COLLAPSED ... i.e. clicking will expand
 import TreeItem                 from '@material-ui/lab/TreeItem';

@@ -9,9 +9,7 @@ import PseudoClass       from './PseudoClass';
 import DispMode          from './DispMode';
 import crc               from 'util/crc';
 import {toast}           from 'util/notify';
-// import {changeManager}   from 'features'; // ?? ReferenceError: Cannot access 'SmartPallet' before initialization
-import changeManager     from 'features/common/changeManager/changeManager'; // ?? BETTER
-
+import changeManager     from 'features/common/changeManager/changeManager'; // AI: pull from horses mouth (rather than 'features/xtra') to avoid circular import in core/Scene.js ... ReferenceError: Cannot access 'SmartPallet' before initialization
 
 /**
  * SmartModel is the abstract top-level base class of the visualize-it
