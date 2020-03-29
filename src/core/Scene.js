@@ -5,7 +5,10 @@ import {ancestorOfLayer,
         containerSizeFudge} from './konvaUtil';
 import verify               from 'util/verify';
 import checkUnknownArgs     from 'util/checkUnknownArgs';
-import {isNumber}           from 'util/typeCheck';
+import {isNumber, isEqual}  from 'util/typeCheck';
+
+// import {changeManager}   from 'features'; // ?? ReferenceError: Cannot access 'SmartPallet' before initialization
+import changeManager     from 'features/common/changeManager/changeManager'; // ?? BETTER
 
 /**
  * Scene is a SmartPallet derivation that models a single Scene to be
@@ -157,15 +160,45 @@ export default class Scene extends SmartPallet {
 
       // locate our component matching the target Konva.Group
       // ... we correlate the id's between Konva/SmartObject
-      const comp = this.comps.find( (comp) => comp.id === e.target.id() );
+      const eventTargetId = e.target.id();
+      const comp = this.comps.find( (comp) => comp.id === eventTargetId );
       // console.log(`xx Konva Scene Layer dragend: matching comp: `, comp);
 
-      // sync Konva changes to Object Model
-      comp.x = e.target.x();
-      comp.y = e.target.y();
+      // helpers to service undo/redo
+      // ... NOTE: we use this.konvaSceneLayer (a lower-level obj) NOT this.containingKonvaStage
+      const oldLoc = {
+        x: comp.x,
+        y: comp.y
+      };
+      const newLoc = {
+        x: e.target.x(),
+        y: e.target.y()
+      };
+      const syncSmartObject = (loc) => {
+        comp.x = loc.x;
+        comp.y = loc.y;
+      }
+      const syncKonva = (loc) => {
+        const konvaObj = this.konvaSceneLayer.findOne(`#${eventTargetId}`);
+        konvaObj.x(loc.x);
+        konvaObj.y(loc.y);
+        this.konvaSceneLayer.draw();
+      }
 
-      // sync any container size changes
-      comp.trickleUpChange();
+      // apply our change
+      changeManager.applyChange({
+        changeFn(redo) {
+          syncSmartObject(newLoc);
+          redo && syncKonva(newLoc);
+          return comp;
+        },
+        undoFn() {
+          syncSmartObject(oldLoc);
+          syncKonva(oldLoc);
+          return comp;
+        }
+      });
+
     });
 
 
@@ -190,7 +223,7 @@ export default class Scene extends SmartPallet {
       // remove old transformers
       this.containingKonvaStage.find('Transformer').destroy();
 
-      // our real target it the top-level group (the konva representation of our component)
+      // our real target is the top-level group (the konva representation of our component)
       const konvaComp = ancestorOfLayer(e.target);
 
       // create/manage new transformer
@@ -201,20 +234,78 @@ export default class Scene extends SmartPallet {
 
       // sync Konva changes to Object Model
       konvaComp.on('transformend', (e) => { // ... NOTE: updates x/y/rotation/scaleX/scaleY ... NOT width/height at all
+
+        // AI: there is a Konva BUG: where the 'transformend' is fired multiple times per event
+        //     - not only is this bad from a performance perspective
+        //     - BUT IT HAS BAD side-effects related to undo
+        //     - research this:
+        //       KJB: appears to be related to "deselecting" the transformer when undo occurs
+        //            ... this is the normal scenario
+        //            ... KJB: I really don't like how Konva does selection in it's Transformer
+        //     - KJB: WORK-AROUND: no-op when Konva/SmartObject have the same transformation
+
+
         // locate our component matching the target Konva.Group
         // ... we correlate the id's between Konva/SmartObject
-        const comp = this.comps.find( (comp) => comp.id === e.target.id() );
+        const eventTargetId = e.target.id();
+        const comp = this.comps.find( (comp) => comp.id === eventTargetId );
         // console.log(`xx Konva Scene Layer transformend: x: ${e.target.x()}, y: ${e.target.y()}, rotation: ${e.target.rotation()}, scaleX: ${e.target.scaleX()}, scaleY: ${e.target.scaleY()},  ... matching comp: `, comp);
 
-        // sync the modified x/y/rotation/scaleX/scaleY
-        comp.x        = e.target.x();
-        comp.y        = e.target.y();
-        comp.rotation = e.target.rotation();
-        comp.scaleX   = e.target.scaleX();
-        comp.scaleY   = e.target.scaleY();
+        // helpers to service undo/redo
+        // ... NOTE: we use this.konvaSceneLayer (a lower-level obj) NOT this.containingKonvaStage
+        const oldTrans = {
+          x:        comp.x,
+          y:        comp.y,
+          rotation: comp.rotation,
+          scaleX:   comp.scaleX,
+          scaleY:   comp.scaleY,
+        };
+        const newTrans = {
+          x:        e.target.x(),
+          y:        e.target.y(),
+          rotation: e.target.rotation(),
+          scaleX:   e.target.scaleX(),
+          scaleY:   e.target.scaleY(),
+        };
 
-        // sync any container size changes
-        comp.trickleUpChange();
+        // no-op when Konva/SmartObject have the same transformation
+        // ... see: WORK-AROUND Konva BUG (above)
+        if (isEqual(oldTrans, newTrans)) {
+          // console.log('xx Scene: transformEnd NO-OP (identical transformation to self) *********************');
+          return;
+        }
+
+        const syncSmartObject = (trans) => {
+          comp.x        = trans.x;
+          comp.y        = trans.y;
+          comp.rotation = trans.rotation;
+          comp.scaleX   = trans.scaleX;
+          comp.scaleY   = trans.scaleY;
+        }
+        const syncKonva = (trans) => {
+          const konvaObj = this.konvaSceneLayer.findOne(`#${eventTargetId}`);
+          konvaObj.x(trans.x);
+          konvaObj.y(trans.y);
+          konvaObj.rotation(trans.rotation);
+          konvaObj.scaleX(trans.scaleX);
+          konvaObj.scaleY(trans.scaleY);
+          this.konvaSceneLayer.draw();
+        }
+
+        // apply our change
+        changeManager.applyChange({
+          changeFn(redo) {
+            syncSmartObject(newTrans);
+            redo && syncKonva(newTrans);
+            return comp;
+          },
+          undoFn() {
+            syncSmartObject(oldTrans);
+            syncKonva(oldTrans);
+            return comp;
+          }
+        });
+
       });
 
     });

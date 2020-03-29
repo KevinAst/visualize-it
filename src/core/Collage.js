@@ -2,6 +2,8 @@ import SmartPallet       from './SmartPallet';
 import Scene             from './Scene';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
+// import {changeManager}   from 'features'; // ?? ReferenceError: Cannot access 'SmartPallet' before initialization
+import changeManager     from 'features/common/changeManager/changeManager'; // ?? BETTER
 
 /**
  * Collage is a SmartPallet derivation in which multiple Scenes are displayed/visualized.
@@ -72,17 +74,46 @@ export default class Collage extends SmartPallet {
     this.containingKonvaStage.on('dragend', (e) => {
       // console.log(`xx Konva Stage dragend: index: ${e.target.index}, id: ${e.target.id()}, name: ${e.target.name()} x: ${e.target.x()}, y: ${e.target.y()} ... e:\n`, e);
 
-      // locate our scene matching the target Konva.Layer
+      // locate our scene matching the event target Konva.Layer
       // ... we correlate the id's between Konva/SmartObject
-      const scene = this.scenes.find( (scene) => scene.id === e.target.id() );
+      const eventTargetId = e.target.id();
+      const scene = this.scenes.find( (scene) => scene.id === eventTargetId );
       // console.log(`xx Konva Stage dragend: matching scene: `, scene);
 
-      // sync the modified x/y
-      scene.x = e.target.x();
-      scene.y = e.target.y();
+      // helpers to service undo/redo
+      const oldLoc = {
+        x: scene.x,
+        y: scene.y
+      };
+      const newLoc = {
+        x: e.target.x(),
+        y: e.target.y()
+      };
+      const syncSmartObject = (loc) => {
+        scene.x = loc.x;
+        scene.y = loc.y;
+      }
+      const syncKonva = (loc) => {
+        const konvaObj = this.containingKonvaStage.findOne(`#${eventTargetId}`);
+        konvaObj.x(loc.x);
+        konvaObj.y(loc.y);
+        this.containingKonvaStage.draw();
+      }
 
-      // sync any container size changes
-      scene.trickleUpChange();
+      // apply our change
+      changeManager.applyChange({
+        changeFn(redo) {
+          syncSmartObject(newLoc);
+          redo && syncKonva(newLoc);
+          return scene;
+        },
+        undoFn() {
+          syncSmartObject(oldLoc);
+          syncKonva(oldLoc);
+          return scene;
+        }
+      });
+
     });
   }
 
