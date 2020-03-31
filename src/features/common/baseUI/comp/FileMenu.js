@@ -126,8 +126,13 @@ async function handleSavePkg(activeTabId, saveAs=false) {
     }
 
     // save the package
-    const userCanceled = await savePkg(pkg, saveAs);
-    if (!userCanceled) {
+    const result = await savePkg(pkg, saveAs);
+    if (result === 'UserCancel') {
+    }
+    else if (result === 'SaveNotNeeded') {
+      toast.warn({msg: `The "${pkg.getName()}" package does NOT need to be saved ... you must first apply some changes`});
+    }
+    else {
       toast({msg: `The "${pkg.getPkgName()}" package has been saved!`});
     }
   }

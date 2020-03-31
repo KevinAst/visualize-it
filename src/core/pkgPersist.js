@@ -118,9 +118,10 @@ export async function openPkg(pkgResourcePath) {
  * @param {boolean} [saveAs=false] - true: save in a user
  * selected file, false: save in the original pkg's `pkgResourcePath`.
  *
- * @returns {void | 'UserCancel' via Promise} a "void" promise is
- * resolved when successfully complete -or- 'UserCancel' when user
- * cancels the request.
+ * @returns {void | 'UserCancel' | 'SaveNotNeeded' via Promise} a
+ * "void" promise is resolved when successfully complete
+ * -or- 'UserCancel' when user cancels the request
+ * -or- 'SaveNotNeeded' when save is not needed
  * 
  * @throws {Error} an Error is thrown in various unexpected scenarios.
  */
@@ -141,6 +142,13 @@ export async function savePkg(pkg, saveAs=false) {
   if (!window.chooseFileSystemEntries) {
     throw new Error('***ERROR*** savePkg() the "Native File System API TRIAL" is NOT available in this environment :-(')
       .defineAttemptingToMsg('save a package to a local file system');
+  }
+
+  // no-op when save operation that has NO changes
+  if (!saveAs &&             // a save request
+      pkg.pkgResourcePath && // that doesn't morph into a save-as
+      pkg.isInSync()) {      // and it has NO changes
+    return 'SaveNotNeeded';
   }
 
   // create the JSON content, representing our pkg
