@@ -65,26 +65,32 @@ export default function TabManager() {
               textColor="primary"
               variant="scrollable"
               scrollButtons="auto">
-          {tabs.map( tab => (
-             <Tab className={tab.tabId===previewTabId ? classes.tabPreview : classes.tabPermanent}
-                  key={tab.tabId}
-                  value={tab.tabId}
-                  label={(
-                    <Grid container
-                          // force dual items to edge
-                          justify="space-between">
-                      <Grid item>
-                        <Typography variant="subtitle2" color="inherit">
-                          {tab.tabName}
-                        </Typography>
+          {tabs.map( (tab) => {
+
+             const pkgEntry = tabRegistry.getTabController(tab.tabId).getTarget(); // ... tabId IS pkgEntry
+             const tabLabel = tab.tabName + (pkgEntry.isInSync() ? '' : ' **');
+
+             return (
+               <Tab className={tab.tabId===previewTabId ? classes.tabPreview : classes.tabPermanent}
+                    key={tab.tabId}
+                    value={tab.tabId}
+                    label={(
+                      <Grid container
+                            // force dual items to edge
+                            justify="space-between">
+                        <Grid item>
+                          <Typography variant="subtitle2" color="inherit">
+                            {tabLabel}
+                          </Typography>
+                        </Grid>
+                        <Grid item>
+                          <CloseIcon onClick={(e) => handleCloseTab(e, tab.tabId)}/>
+                        </Grid>
                       </Grid>
-                      <Grid item>
-                        <CloseIcon onClick={(e) => handleCloseTab(e, tab.tabId)}/>
-                      </Grid>
-                    </Grid>
-                  )}
-             />)
-           )}
+                    )}
+               />
+             );
+           } )}
         </Tabs>
       </AppBar>
       {tabs.map( tab => {
