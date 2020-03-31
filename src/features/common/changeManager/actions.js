@@ -18,6 +18,13 @@ export default generateActions.root({
                     },
     },
 
+    undoRedoChanged:  { // actions.undoRedoChanged(pkgEntryId, undoAvail, redoAvail): Action
+                        // > the supplied PkgEntry's undo/redu availability has changed
+                        actionMeta: {
+                          traits: ['pkgEntryId', 'undoAvail', 'redoAvail'],
+                        },
+    },
+
   },
 
 });

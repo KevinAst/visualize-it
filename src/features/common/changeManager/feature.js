@@ -1,7 +1,9 @@
 import {createFeature}    from 'feature-u';
 import _changeManager     from './featureName';
 import reducer,
-       {isEPkgInSync}     from './state';
+       {isEPkgInSync,
+        isUndoAvail,
+        isRedoAvail}      from './state';
 import changeManager      from './changeManager';
 
 
@@ -13,6 +15,8 @@ export default createFeature({
   fassets: {
     define: {
       'sel.isEPkgInSync':  isEPkgInSync,  // isEPkgInSync(appState, ePkgId): boolean
+      'sel.isUndoAvail':   isUndoAvail,   // isUndoAvail(appState, pkgEntryId): boolean
+      'sel.isRedoAvail':   isRedoAvail,   // isRedoAvail(appState, pkgEntryId): boolean
     },
   },
 

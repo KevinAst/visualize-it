@@ -483,7 +483,7 @@ export default class SmartModel {
   }
 
   /**
-   * Return the SmartPkg self belongs to.
+   * Return the pkg (SmartPkg) that self belongs to.
    * 
    * NOTE: This is the SmartPkg that self belongs to (e.g. 'com.astx.KONVA'),
    *       NOT the package self was created from: (e.g. 'core').
@@ -517,6 +517,22 @@ export default class SmartModel {
    */
   isPkgEntry() {
     return this._pkgEntry ? true : false;
+  }
+
+  /**
+   * Return the PkgEntry that self belongs to.
+   *
+   * @returns {PkgEntry} the PkgEntry self belongs to, `undefined` when
+   * outside our supported "primary" containment tree.
+   */
+  getPkgEntry() {
+    // when self is a PkgEntry, we have found it!
+    if (this.isPkgEntry()) {
+      return this;
+    }
+    // follow our parent chain, till we find the PkgEntry
+    const  parent = this.getParent();
+    return parent ? parent.getPkgEntry() : undefined;
   }
 
   /**
