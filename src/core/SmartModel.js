@@ -383,9 +383,8 @@ export default class SmartModel {
    */
   resetBaseCrc() {
 
-    // reset self's baseline crc
+    // retain self's prior baseline crc
     const old_baseCrc = this._baseCrc;
-    this._baseCrc     = this.getCrc();
 
     // trickle this request down through our containment tree, driven by self's instance properties
     const encodingProps = this.getEncodingProps(false);
@@ -400,8 +399,14 @@ export default class SmartModel {
       resetBaseCrc(propValue);
     });
 
+    // reset self's new baseline crc
+    // ... this is done AFTER our lower-level subordinate objects
+    //     - probably NOT necessary, because normally these CRCs are adjusted from the "ground up"
+    //     - HOWEVER, it doesn't hurt (more of a defensive measure)
+    const new_baseCrc = this._baseCrc = this.getCrc();
+
     // retain baseCrc state changes for ePkgs (when baseCrc changes)
-    const baseCrcChanged = old_baseCrc !== this._baseCrc;
+    const baseCrcChanged = old_baseCrc !== new_baseCrc;
     if (this.isEPkg() && baseCrcChanged) {
       changeManager.ePkgChanged(this);
     }
