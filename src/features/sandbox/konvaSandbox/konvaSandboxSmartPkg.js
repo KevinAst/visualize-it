@@ -106,18 +106,24 @@ pkgManager.registerPkg(konvaSandboxSmartPkg);
 //*** CRUDE TEST: Exercise clone process to insure NO runtime errors :-)
 //******************************************************************************
 
+// clone konvaSandboxSmartPkg
 const clonedPkg = konvaSandboxSmartPkg.smartClone();
 
-// rename, so we can load the JSON
-// ... so it is NOT a duplicate from what already may be in LeftNav
-//     NOTE: Even with this rename, the clonedPkg will retain the original
+// rename, so clonedPkg can co-exist (in pkgManager) with konvaSandboxSmartPkg
+// ... NOTE: Even with this rename, the clonedPkg will retain the original
 //           self referenced pkg of: "com.astx.KONVA"
 //           ... SO the konvaSandboxSmartPkg must be pre-registered for 
 //               the clonedPkg to operate
 clonedPkg.id   = 'cloned.pkg';
 clonedPkg.name = 'Cloned Pkg';
+// ... simulate what would happen if the manual change above was in our controlled environment
+clonedPkg.trickleUpChange(); // ... sync the change
+// ... re-baseline the baseCrc (so it doesn't start out needing to be saved)
+clonedPkg.resetBaseCrc();
 
+// register clonedPkg to our pkgManager
 pkgManager.registerPkg(clonedPkg);
+
 
 
 //******************************************************************************
