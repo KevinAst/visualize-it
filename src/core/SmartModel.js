@@ -740,7 +740,7 @@ export default class SmartModel {
 
 
   /**
-   * Return self's dispMode (used in top-level objects targeted by a tab).
+   * Return self's dispMode (maintained in top-level PkgEntry objects - visible in LeftNav and Tabs).
    * @returns {DispMode} the dispMode of self.
    */
   getDispMode() {
@@ -748,7 +748,7 @@ export default class SmartModel {
   }
 
   /**
-   * Set self's dispMode (used in top-level objects targeted by a tab).
+   * Set self's dispMode (maintained in top-level PkgEntry objects - visible in LeftNav and Tabs).
    *
    * @param {DispMode} dispMode - the display mode to set.
    *
@@ -808,7 +808,7 @@ export default class SmartModel {
   }
 
   /**
-   * Enable self's "view" DispMode (used in top-level objects targeted by a tab).
+   * Enable self's "view" DispMode (maintained in top-level PkgEntry objects - visible in LeftNav and Tabs).
    *
    * NOTE: this is also invoked prior to other display modes, as a neutral reset :-)
    */
@@ -817,14 +817,14 @@ export default class SmartModel {
   }
 
   /**
-   * Enable self's "edit" DispMode (used in top-level objects targeted by a tab).
+   * Enable self's "edit" DispMode (maintained in top-level PkgEntry objects - visible in LeftNav and Tabs).
    */
   enableEditMode() {
     throw new Error(`***ERROR*** SmartModel pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.enableEditMode() is an abstract method that MUST BE implemented!`);
   }
 
   /**
-   * Enable self's "animate" DispMode (used in top-level objects targeted by a tab).
+   * Enable self's "animate" DispMode (maintained in top-level PkgEntry objects - visible in LeftNav and Tabs).
    */
   enableAnimateMode() {
     throw new Error(`***ERROR*** SmartModel pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.enableAnimateMode() is an abstract method that MUST BE implemented!`);
