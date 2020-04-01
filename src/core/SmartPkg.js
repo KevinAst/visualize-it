@@ -400,10 +400,27 @@ export default class SmartPkg extends SmartModel {
    * A static method that reconstitutes SmartPkg objects from
    * smartJSON.
    *
-   * NOTE: This is specialized logic (from SmartModel.fromSmartJSON()),
+   * NOTE: This is specialized logic (from `SmartModel.fromSmartJSON()`),
    *       because it must FIRST resolve pseudoClass MASTER
    *       definitions, in support of self-referencing pseudoClasses
    *       (ex: collage referencing scene instances)
+   * 
+   *       This is accomplished in a two-phase process:
+   * 
+   *       - PHASE-1: pre-process the smartJSON to resolve pseudoClass MASTER definitions
+   *                  ... in support of self-referencing pseudoClasses
+   *                      (ex: collage referencing scene instances)
+   * 
+   *       - PHASE-2: hydrate the entire object
+   *                  ... now that pseudoClass MASTER definitions have been resolved
+   * 
+   *       KEY: After researching the possibility of "generically"
+   *            including this logic in `SmartModel.fromSmartJSON()`,
+   *            it is felt that the logic better belongs here!  It
+   *            contains specific logic around SmartPkg objects.  For
+   *            example it traverses the `entries` structure of a
+   *            SmartPkg (see: `resolvePseudoClassMasters(smartJSON.entries)`
+   *            below).
    * 
    * @param {JSON} smartJSON - the smartJSON structure representing
    * the SmartPkg object to rehydrate.
@@ -414,7 +431,6 @@ export default class SmartPkg extends SmartModel {
    * @throws {Error} an Error is thrown in various scenarios
    * (unresolved class references, invalid params, etc.).
    */
-  // ?? when complete, determine if this logic can (or should) be implemented in SmartModel
   static fromSmartJSON(smartJSON) {
 
     // validate supplied parameters
@@ -428,8 +444,8 @@ export default class SmartPkg extends SmartModel {
 
     //***
     //*** PHASE-1: pre-process the smartJSON to resolve pseudoClass MASTER definitions
-    //*** ... in support of self-referencing pseudoClasses
-    //***     (ex: collage referencing scene instances)
+    //***          ... in support of self-referencing pseudoClasses
+    //***              (ex: collage referencing scene instances)
     //***
 
     // NOTE: We currently mutate smartJSON with real objects (resolving pseudoClass MASTER TYPEs).
@@ -532,7 +548,7 @@ export default class SmartPkg extends SmartModel {
 
     //***
     //*** PHASE-2: hydrate the entire object
-    //*** ... now that we have resolved the pseudoClass MASTER definitions
+    //***          ... now that pseudoClass MASTER definitions have been resolved
     //***
 
     // utilize an extraClassResolver that can resolve self-referencing pseudoClasses
