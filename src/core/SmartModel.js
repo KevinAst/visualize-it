@@ -564,6 +564,9 @@ export default class SmartModel {
    * accommodate the `changeManager` feature state, where EPkgs are
    * tracked.
    *
+   * EPkgAI: EPkg may be obsolete with Svelte usage (it is an anomaly
+   *         of changeManager redux state management)
+   *
    * @returns {boolean} `true`: self is an EPkg, `false` otherwise.
    */
   isEPkg() {
@@ -577,7 +580,12 @@ export default class SmartModel {
    * - 'com.astx.KONVA' .......... for pkg (SmartPkg)
    * - 'com.astx.KONVA/scene1' ... for pkgEntry
    *
-   * @returns {string} self's EPkg ID, undefined if NOT an EPkg.
+   * EPkgAI: EPkg may be obsolete with Svelte usage (it is an anomaly
+   *         of changeManager redux state management)
+   *
+   * @returns {string} self's EPkg ID.
+   *
+   * @throws {Error} when self is NOT an EPkg.
    */
   getEPkgId() {
     if (this.isPkg()) {
@@ -587,7 +595,7 @@ export default class SmartModel {
       return `${this.getPkg().getPkgId()}/${this.getId()}`;
     }
     else {
-      return undefined;
+      throw new Error(`***ERROR*** ${this.diagClassName()}.getEPkgId() [id:${this.id}]: self is NOT an EPkg!`);
     }
   }
 
