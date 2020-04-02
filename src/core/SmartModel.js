@@ -193,14 +193,14 @@ export default class SmartModel {
   }
 
   /**
-   * Return the object id.
+   * Return self's object id.
    */
   getId() {
     return this.id;
   }
 
   /**
-   * Return the object name.
+   * Return self's object name.
    */
   getName() {
     return this.name;
@@ -554,7 +554,7 @@ export default class SmartModel {
   /**
    * Return an indicator as to whether self is an EPkg:
    * - either a pkg (SmartPkg)
-   * - or a pkgEntry (top-level entries registered to a package (SmartPkg)
+   * - or a pkgEntry (top-level entries registered to a SmartPkg)
    *
    * These two objects are consolidated in the EPkg nomenclature, to
    * accommodate the `changeManager` feature state, where EPkgs are
