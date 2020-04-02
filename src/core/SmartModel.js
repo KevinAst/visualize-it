@@ -627,31 +627,31 @@ export default class SmartModel {
     if (this.diagClassName() === 'SmartView') {
       return this;
     }
-    // follow our parent view chain, till we find the SmartView
-    const  parentView = this.getParentView();
-    return parentView ? parentView.getView() : undefined;
+    // follow our "view" containment tree, till we find the SmartView
+    const  viewParent = this.getViewParent();
+    return viewParent ? viewParent.getView() : undefined;
   }
   
   /**
-   * Return self's parent view object, with respect to the "view"
+   * Return self's parent object, with respect to the "view"
    * containment tree (i.e. NOT "primary" related).
    *
-   * @returns {SmartObject} the parent view object of self, `undefined` for
-   * top-level (e.g. SmartView).
+   * @returns {SmartObject} the "view" parent object of self,
+   * `undefined` when at top (e.g. SmartView).
    */
-  getParentView() {
-    // `this.parentView` takes precedence, otherwise `this.parent` is a "shared chain"
-    return this.parentView ? this.parentView : this.parent;
+  getViewParent() {
+    // `this.viewParent` takes precedence, otherwise `this.parent` is a "shared chain"
+    return this.viewParent ? this.viewParent : this.parent;
   }
   
   /**
-   * Set self's parent view object, with respect to the "view"
-   * containment tree (i.e. NOT "primary" related).
+   * Set self's parent object, with respect to the "view" containment
+   * tree (i.e. NOT "primary" related).
    *
-   * @param {SmartObject} parent - the parent view object of self.
+   * @param {SmartObject} parent - the "view" parent object of self.
    */
-  setParentView(parentView) {
-    this.parentView = parentView;
+  setViewParent(viewParent) {
+    this.viewParent = viewParent;
   }
 
   /**
@@ -731,9 +731,9 @@ export default class SmartModel {
     }
 
     // and the "view" containment tree
-    const parentView = this.parentView;
-    if (parentView) {
-      parentView.trickleUpChange(sizeChanged);
+    const viewParent = this.viewParent;
+    if (viewParent) {
+      viewParent.trickleUpChange(sizeChanged);
     }
 
   }

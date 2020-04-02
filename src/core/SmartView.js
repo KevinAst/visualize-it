@@ -54,8 +54,8 @@ export default class SmartView extends SmartModel {
     // retain parameters in self
     this.pallet = pallet;
 
-    // maintain our view parentage
-    this.pallet.setParentView(this);
+    // maintain our "view" containment tree parentage
+    this.pallet.setViewParent(this);
   }
 
   // support persistance by encoding needed props of self
