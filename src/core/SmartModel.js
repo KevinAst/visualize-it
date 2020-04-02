@@ -488,13 +488,15 @@ export default class SmartModel {
   }
 
   /**
-   * Return the pkg (SmartPkg) that self belongs to.
+   * Return the pkg (SmartPkg) self belongs to (or self when it is a
+   * SmartPkg).
    * 
    * NOTE: This is the SmartPkg that self belongs to (e.g. 'com.astx.KONVA'),
    *       NOT the package self was created from: (e.g. 'core').
    *
-   * @returns {SmartPkg} the package self belongs to, `undefined` when
-   * outside our supported "primary" containment tree.
+   * @returns {SmartPkg} the pkg (SmartPkg) self belongs to (or self
+   * when it is a SmartPkg), `undefined` when outside our supported
+   * "primary" containment tree.
    */
   getPkg() {
     // when self is a SmartPkg, we have found it!
@@ -525,10 +527,12 @@ export default class SmartModel {
   }
 
   /**
-   * Return the PkgEntry that self belongs to.
+   * Return the PkgEntry self belongs to (or self when it is a
+   * PkgEntry).
    *
-   * @returns {PkgEntry} the PkgEntry self belongs to, `undefined` when
-   * outside our supported "primary" containment tree.
+   * @returns {PkgEntry} the PkgEntry self belongs to (or self when it
+   * is a PkgEntry), `undefined` when outside our supported "primary"
+   * containment tree.
    */
   getPkgEntry() {
     // when self is a PkgEntry, we have found it!
@@ -610,10 +614,12 @@ export default class SmartModel {
 
 
   /**
-   * Return the SmartView self belongs to.
+   * Return the SmartView self belongs to (or self when it is a
+   * SmartView)
    *
-   * @returns {SmartView} the top-level view self belongs to, `undefined` when
-   * outside our supported "view" containment tree.
+   * @returns {SmartView} the SmartView self belongs to (or self when
+   * it is a SmartView), `undefined` when outside our supported "view"
+   * containment tree.
    */
   getView() {
     // when self is a SmartView, we have found it!
