@@ -67,6 +67,11 @@ export default class SmartView extends SmartModel {
     return [...super.getEncodingProps(forCloning), ...['pallet']];
   }
 
+  // change isaView() to indicate we are SmartView instances
+  isaView() {
+    return true;
+  }
+
   /**
    * Verify self has been mounted.
    * @param {string} [method] - the method name on which behalf we are checking.

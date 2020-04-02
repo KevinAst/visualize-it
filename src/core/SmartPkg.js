@@ -209,6 +209,11 @@ export default class SmartPkg extends SmartModel {
     return this.name;
   }
 
+  // change isaView() to indicate we are SmartPkg instances
+  isaPkg() {
+    return true;
+  }
+
   /**
    * Return self's pkgResourcePath (if any).
    * 

@@ -67,9 +67,8 @@ class ChangeManager {
     // validate parameters
     const check = verify.prefix('changeManager.registerEPkg() parameter violation: ');
     // ... ePkg
-    check(ePkg,          'ePkg is required');
-    check(ePkg.isEPkg,   'ePkg must be a SmartPkg instance');
-    check(ePkg.isEPkg(), 'ePkg must be an EPkg instance');
+    check(ePkg,                           'ePkg is required');
+    check(ePkg.isaEPkg && ePkg.isaEPkg(), 'ePkg must be an EPkg smartObject');
 
     // process request
     // ... dispatch action that will maintain this new state
@@ -85,9 +84,8 @@ class ChangeManager {
     // validate parameters
     const check = verify.prefix('changeManager.ePkgChanged() parameter violation: ');
     // ... ePkg
-    check(ePkg,          'ePkg is required');
-    check(ePkg.isEPkg,   'ePkg must be a SmartPkg instance');
-    check(ePkg.isEPkg(), 'ePkg must be an EPkg instance');
+    check(ePkg,                           'ePkg is required');
+    check(ePkg.isaEPkg && ePkg.isaEPkg(), 'ePkg must be an EPkg smartObject');
 
     // process request
     // ... dispatch action that will maintain this changed state

@@ -407,7 +407,7 @@ export default class SmartModel {
 
     // retain baseCrc state changes for ePkgs (when baseCrc changes)
     const baseCrcChanged = old_baseCrc !== new_baseCrc;
-    if (this.isEPkg() && baseCrcChanged) {
+    if (this.isaEPkg() && baseCrcChanged) {
       changeManager.ePkgChanged(this);
     }
 
@@ -475,16 +475,20 @@ export default class SmartModel {
   }
 
   /**
-   * Return an indicator as to whether self is a package (SmartPkg) or
-   * not.
+   * Return an indicator as to whether self is a pkg (SmartPkg).
    *
-   * NOTE: This method uses a "duct-type" check to avoid a circular
-   *       dependency incurred with a SmartPkg import.
+   * NOTE: These isaXyz() methods provide a way to perform instanceof
+   *       checks without requiring core class imports, which is more
+   *       vulnerable to circular dependencies (especially in core)!
+   *
+   *       As a convenience, these methods can be used on ANY JavaScript
+   *       object, because they have been overloaded on Object.prototype!
+   *       ... see: src/core/preregisterCoreClasses.js
    *
    * @returns {boolean} `true`: self is a package (SmartPkg), `false` otherwise.
    */
-  isPkg() {
-    return this.getPkgId ? true : false; // duct-type check (see NOTE above)
+  isaPkg() {
+    return false; // ... NOTE: overridden in SmartPkg
   }
 
   /**
@@ -500,7 +504,7 @@ export default class SmartModel {
    */
   getPkg() {
     // when self is a SmartPkg, we have found it!
-    if (this.isPkg()) {
+    if (this.isaPkg()) {
       return this;
     }
     // follow our parent chain, till we find the SmartPkg
@@ -520,9 +524,13 @@ export default class SmartModel {
    * PkgEntries are managed by SmartPkg, simply marking them using the
    * `markAsPkgEntry()` method.
    *
+   * NOTE: As a convenience, this method can be used on ANY JavaScript
+   *       object, because it has been overloaded on Object.prototype!
+   *       ... see: src/core/preregisterCoreClasses.js
+   *
    * @returns {boolean} `true`: self is a PkgEntry, `false` otherwise.
    */
-  isPkgEntry() {
+  isaPkgEntry() {
     return this._pkgEntry ? true : false;
   }
 
@@ -536,7 +544,7 @@ export default class SmartModel {
    */
   getPkgEntry() {
     // when self is a PkgEntry, we have found it!
-    if (this.isPkgEntry()) {
+    if (this.isaPkgEntry()) {
       return this;
     }
     // follow our parent chain, till we find the PkgEntry
@@ -545,7 +553,7 @@ export default class SmartModel {
   }
 
   /**
-   * Mark self as a PkgEntry (see notes in `isPkgEntry()`).
+   * Mark self as a PkgEntry (see notes in `isaPkgEntry()`).
    */
   markAsPkgEntry() {
     // mark self as a PkgEntry
@@ -564,17 +572,21 @@ export default class SmartModel {
    * accommodate the `changeManager` feature state, where EPkgs are
    * tracked.
    *
+   * NOTE: As a convenience, this method can be used on ANY JavaScript
+   *       object, because it has been overloaded on Object.prototype!
+   *       ... see: src/core/preregisterCoreClasses.js
+   *
    * EPkgAI: EPkg may be obsolete with Svelte usage (it is an anomaly
    *         of changeManager redux state management)
    *
    * @returns {boolean} `true`: self is an EPkg, `false` otherwise.
    */
-  isEPkg() {
-    return this.isPkg() || this.isPkgEntry();
+  isaEPkg() {
+    return this.isaPkg() || this.isaPkgEntry();
   }
 
   /**
-   * Return the EPkg ID (see notes in isEPkg).
+   * Return the EPkg ID (see notes in isaEPkg).
    *
    * Examples:
    * - 'com.astx.KONVA' .......... for pkg (SmartPkg)
@@ -588,10 +600,10 @@ export default class SmartModel {
    * @throws {Error} when self is NOT an EPkg.
    */
   getEPkgId() {
-    if (this.isPkg()) {
+    if (this.isaPkg()) {
       return this.getPkgId();
     }
-    else if (this.isPkgEntry()) {
+    else if (this.isaPkgEntry()) {
       return `${this.getPkg().getPkgId()}/${this.getId()}`;
     }
     else {
@@ -620,6 +632,22 @@ export default class SmartModel {
     this.parent = parent;
   }
 
+  /**
+   * Return an indicator as to whether self is a view (SmartView).
+   *
+   * NOTE: These isaXyz() methods provide a way to perform instanceof
+   *       checks without requiring core class imports, which is more
+   *       vulnerable to circular dependencies (especially in core)!
+   *
+   *       As a convenience, these methods can be used on ANY JavaScript
+   *       object, because they have been overloaded on Object.prototype!
+   *       ... see: src/core/preregisterCoreClasses.js
+   *
+   * @returns {boolean} `true`: self is a view (SmartView), `false` otherwise.
+   */
+  isaView() {
+    return false; // ... NOTE: overridden in SmartView
+  }
 
   /**
    * Return the SmartView self belongs to (or self when it is a
@@ -631,16 +659,10 @@ export default class SmartModel {
    */
   getView() {
     // when self is a SmartView, we have found it!
-    // ... we use diagClassName() check
-    //     in lieu of `this instanceof SmartView`
-    //     to avoid SmartView import (introducing a "Circular Dependency")
-    //     AI: only issue here is if we should introduce other SmartView derivations, this check would no longer work :-(
-    //         - we could use another a "duct type" check, but there is nothing distinct about the SmartView API
-    //           * use: this.scene ... potentially non-unique
-    //           * use: special API given for this specific "duck type" reason
-    if (this.diagClassName() === 'SmartView') {
+    if (this.isaView()) {
       return this;
     }
+
     // follow our "view" containment tree, till we find the SmartView
     const  viewParent = this.getViewParent();
     return viewParent ? viewParent.getView() : undefined;
@@ -728,8 +750,8 @@ export default class SmartModel {
 
     // retain crc state changes for ePkgs (when crc changes)
     const crcChanged = oldCrc !== newCrc;
-    // console.log(`xx trickleUpChange on obj: ${this.diagClassName()} for CRC old: ${oldCrc} / new: ${newCrc} ... isEPkg(): ${this.isEPkg()} / crcChanged: ${crcChanged}`);
-    if (this.isEPkg() && crcChanged) {
+    // console.log(`xx trickleUpChange on obj: ${this.diagClassName()} for CRC old: ${oldCrc} / new: ${newCrc} ... isaEPkg(): ${this.isaEPkg()} / crcChanged: ${crcChanged}`);
+    if (this.isaEPkg() && crcChanged) {
       // console.log(`xx YES YES YES self is an EPkg who's CRC CHANGED ... issuing changeManager.ePkgChanged()`);
       changeManager.ePkgChanged(this);
     }
