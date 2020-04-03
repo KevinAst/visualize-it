@@ -12,7 +12,7 @@ import _changeManagerAct    from './actions';
 const reducer = slicedReducer(_changeManager, combineReducers({
 
   // ePkgs: {      // indexed ePkg entries
-  //   [ePkgId]: { // ex: 'com.astx.KONVA' for pkg (SmartPkg) or 'com.astx.KONVA/scene1' for pkgEntry
+  //   [ePkgId]: { // ex: 'com.astx.ACME' for pkg (SmartPkg) or 'com.astx.ACME/scene1' for pkgEntry
   //     crc:     123,
   //     baseCrc: 456
   //   },
@@ -25,7 +25,7 @@ const reducer = slicedReducer(_changeManager, combineReducers({
 
   
   // undoRedo: {       // indexed PkgEntries
-  //   [pkgEntryId]: { // ex: 'com.astx.KONVA/scene1'
+  //   [pkgEntryId]: { // ex: 'com.astx.ACME/scene1'
   //     undoAvail: true,
   //     redoAvail: false
   //   },

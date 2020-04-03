@@ -96,13 +96,12 @@ class PkgManager {
   }
 
   /**
-   * Return the package (SmartPkg) registered to the supplied
+   * Return the package (SmartPkg) registered to the supplied `pkgId`.
+   *
+   * @param {string} pkgId - the package ID to acquire (ex: 'com.astx.ACME');
+   *
+   * @returns {SmartPkg} the package (SmartPkg) registered to the supplied
    * `pkgId` (undefined for NOT registered).
-   *
-   * @param {string} pkgId - the package ID to retrieve.
-   *
-   * @returns {SmartPkg} the package (SmartPkg) registered to the
-   * supplied `pkgId` (undefined for NOT registered).
    */
   getPkg(pkgId) {
 
@@ -165,8 +164,8 @@ class PkgManager {
    * @param {string} pkgId - the package ID that the entry belongs to.
    * @param {string} entryId - the entry ID of the entry to return.
    *
-   * @returns {entry} the entry matching the supplied params,
-   * undefined for not-found.
+   * @returns {PkgEntry} the entry matching the supplied params,
+   * `undefined` for not-found.
    */
   getPkgEntry(pkgId, entryId) {
 

@@ -148,7 +148,7 @@ class ChangeManager {
     targetObj.trickleUpChange();
 
     // register our undo operation - associated to the target's PkgEntry
-    const pkgEntryId = targetObj.getPkgEntry().getEPkgId(); // ex: 'com.astx.KONVA/scene1'
+    const pkgEntryId = targetObj.getPkgEntry().getEPkgId(); // ex: 'com.astx.ACME/scene1'
     // console.log(`xx changeManager ... pkgEntryId: '${pkgEntryId}'`);
     this.registerUndoRedoOp(pkgEntryId, undoFn, changeFn);
   }
@@ -157,7 +157,7 @@ class ChangeManager {
    * An internal method that registers the supplied undo/redo operation.
    *
    * @param {string} pkgEntryId - the PkgEntryId for which this
-   * operation applies (ex: 'com.astx.KONVA/scene1').
+   * operation applies (ex: 'com.astx.ACME/scene1').
    * 
    * @param {function} undoFn - the function that "undoes" the low-level
    * change.
@@ -191,7 +191,7 @@ class ChangeManager {
    * Apply an "undo" operation to the supplied PkgEntry.
    *
    * @param {string} pkgEntryId - identifies the PkgEntry for which
-   * this operation applies (ex: 'com.astx.KONVA/scene1').
+   * this operation applies (ex: 'com.astx.ACME/scene1').
    */
   applyUndo(pkgEntryId) {
     // validate parameters
@@ -220,7 +220,7 @@ class ChangeManager {
    * Apply an "redo" operation to the supplied PkgEntry.
    *
    * @param {string} pkgEntryId - identifies the PkgEntry for which
-   * this operation applies (ex: 'com.astx.KONVA/scene1').
+   * this operation applies (ex: 'com.astx.ACME/scene1').
    */
   applyRedo(pkgEntryId) {
     // validate parameters
@@ -256,7 +256,7 @@ export default changeManager;
  * a given PkgEntry.
  *
  * @param {string} pkgEntryId - the PkgEntryId for which self's undo/redo
- * operations apply (ex: 'com.astx.KONVA/scene1').
+ * operations apply (ex: 'com.astx.ACME/scene1').
  *
  * @private
  */

@@ -394,8 +394,8 @@ export default class SmartPkg extends SmartModel {
    *
    * @param {string} entryId - the entry ID of the entry to return.
    *
-   * @returns {entry} the entry matching the supplied `entryId`,
-   * undefined for not-found.
+   * @returns {PkgEntry} the entry matching the supplied `entryId`,
+   * `undefined` for not-found.
    */
   getPkgEntry(entryId) {
     return this._entryCatalog[entryId];

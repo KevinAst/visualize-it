@@ -495,7 +495,7 @@ export default class SmartModel {
    * Return the pkg (SmartPkg) self belongs to (or self when it is a
    * SmartPkg).
    * 
-   * NOTE: This is the SmartPkg that self belongs to (e.g. 'com.astx.KONVA'),
+   * NOTE: This is the SmartPkg that self belongs to (e.g. 'com.astx.ACME'),
    *       NOT the package self was created from: (e.g. 'core').
    *
    * @returns {SmartPkg} the pkg (SmartPkg) self belongs to (or self
@@ -589,8 +589,8 @@ export default class SmartModel {
    * Return the EPkg ID (see notes in isaEPkg).
    *
    * Examples:
-   * - 'com.astx.KONVA' .......... for pkg (SmartPkg)
-   * - 'com.astx.KONVA/scene1' ... for pkgEntry
+   * - 'com.astx.ACME' .......... for pkg (SmartPkg)
+   * - 'com.astx.ACME/scene1' ... for pkgEntry
    *
    * EPkgAI: EPkg may be obsolete with Svelte usage (it is an anomaly
    *         of changeManager redux state management)
