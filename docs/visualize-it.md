@@ -29,6 +29,7 @@
   - [Dynamic Sizing]
   - [Animation Requirements]
   - [Collage Requirements]
+- [Glossary]
 - [Action Items]
 
 
@@ -1242,6 +1243,21 @@ isA  ├── Scene ......... a SmartPallet derivation that models a single Sce
 ```
 
 
+<!--- *** SECTION *************************************************************** --->
+# Glossary
+
+- **Pkg**: packages (SmartPkg) are rudimentary bundles (libraries) by which visualize-it operates
+  - holds PkgEntries (components, scenes, collages)
+  - visualized in LeftNav
+  - provides elementary dependency management
+
+- **PkgEntry**: top-level entries (components, scenes, collages) registered to a package (SmartPkg)
+  - visible both in the LeftNav and Tabs
+
+- **EPkg**: nomenclature to indicate either a pkg (SmartPkg), or a PkgEntry
+  ```
+  EPkgAI: EPkg may be obsolete with svelte usage - it is an anomaly of changeManager redux state management
+  ```
 
 
 <!--- *** SECTION *************************************************************** --->
@@ -1279,6 +1295,7 @@ isA  ├── Scene ......... a SmartPallet derivation that models a single Sce
   [Object Mapping to Konva]:  #object-mapping-to-konva
   [Class Detail]:             #class-detail
  [Dynamic Sizing]:            #dynamic-sizing
- [Animation Requirements]:   #animation-requirements
- [Collage Requirements]:     #collage-requirements
+ [Animation Requirements]:    #animation-requirements
+ [Collage Requirements]:      #collage-requirements
+[Glossary]:                   #glossary
 [Action Items]:               #action-items
