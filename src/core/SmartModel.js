@@ -354,60 +354,44 @@ export default class SmartModel {
    * @returns {number} self's crc hash that uniquely identifies self
    */
   getCrc() {
-
     // calculate/retain our crc as needed
     if (!this._crc) { // ... either first time, or cache is being regenerated
 
       // setup our traversal through a series of `getCrc()` specific type handlers
       const traverse = smartTraversalSetup({
-
         onBehalfOf: `${this.diagClassName()}.getCrc()`,
 
-        handleNoRef(accumCrc, resume, noRef) {
-          return crc(noRef, accumCrc); // ... crc of null/undefined (just for good measure)
-        },
+        // accum crc of null/undefined (just for good measure)
+        handleNoRef: (accumCrc, resume, noRef) => crc(noRef, accumCrc),
 
-        handleSmartObj(accumCrc, resume, smartObjRef) {
-          // fold in it's getCrc()
-          // ... should be OK to use a crc as the value of another crc calc
-          accumCrc = crc(smartObjRef.getCrc(), accumCrc);
-          return accumCrc;
-        },
+        // fold in SmartObj's getCrc()
+        // ... should be OK to use a crc as the value of another crc calc
+        handleSmartObj: (accumCrc, resume, smartObjRef) => crc(smartObjRef.getCrc(), accumCrc),
 
-        handlePlainObj(accumCrc, resume, plainObjRef) {
-          // fold in the crc of each property
-          accumCrc = Object.entries(plainObjRef).reduce( (accum, [subPropName, subPropValue]) => {
+        // fold in the crc of each object property
+        handlePlainObj: (accumCrc, resume, plainObjRef) => (
+          Object.entries(plainObjRef).reduce( (accum, [subPropName, subPropValue]) => {
             accum = crc(subPropName,     accum); // accum the prop name  (string) ... for good measure (shouldn't hurt)
             accum = resume(subPropValue, accum); // accum the prop value (any type)
             return accum;
-          }, accumCrc);
-          return accumCrc;
-        },
+          }, accumCrc)
+        ),
 
-        handleClass(accumCrc, resume, classRef) {
-          // fold in class name (unsure if this is needed)
-          accumCrc = crc(classRef.name, accumCrc);
-          return accumCrc;
-        },
+        // fold in class name (unsure if this is needed)
+        handleClass: (accumCrc, resume, classRef) => crc(classRef.name, accumCrc),
 
-        handlePrimitive(accumCrc, resume, primitiveRef) {
-          // fold in the primitive's crc
-          accumCrc = crc(primitiveRef, accumCrc);
-          return accumCrc;
-        },
-
+        // fold in primitive's crc
+        handlePrimitive: (accumCrc, resume, primitiveRef) => crc(primitiveRef, accumCrc),
       });
 
       // our crc is driven by self's instance properties
       this._crc = this.encodingPropsReduce( (accumCrc, propName, propValue, defaultValue) => {
-
         // recursively accumulate the crc of each instance props
         // ... interpreting arrays, primitives, and SmartModel
         accumCrc = crc(propName,       accumCrc); // accum the prop name  (string) ... for good measure (shouldn't hurt)
         accumCrc = traverse(propValue, accumCrc); // accum the prop value (any type)
 
         return accumCrc;
-
       }, false,/*forCloning*/ 0/*initialAccum*/);
 
       // console.log(`xx ${this.diagClassName()}.getCrc() CALCULATING CRC from props: ${encodingProps} ... CRC: ${this._crc}`);
@@ -470,30 +454,21 @@ export default class SmartModel {
    *       needs to be overwritten.
    */
   resetBaseCrc() {
-
     // setup our traversal through a series of `resetBaseCrc()` specific type handlers
     const traverse = smartTraversalSetup({
-
       onBehalfOf: `${this.diagClassName()}.resetBaseCrc()`,
 
-      handleSmartObj(accumCrc, resume, smartObjRef) {
-        // propagate into our subordinate smartObj
-        smartObjRef.resetBaseCrc();
-      },
+      // propagate into our subordinate smartObjs
+      handleSmartObj: (accumCrc, resume, smartObjRef) => smartObjRef.resetBaseCrc(),
 
-      handlePlainObj(accumCrc, resume, plainObjRef) {
-        // propagate into our subordinate plain objects
-        Object.values(plainObjRef).forEach( (item) => resume(item) );
-      },
+      // propagate into our subordinate plain objects
+      handlePlainObj: (accumCrc, resume, plainObjRef) => Object.values(plainObjRef).forEach( (item) => resume(item) ),
 
-      handleClass(accumCrc, resume, classRef) {
-        // no-op ... currently there is NO crc recorded in raw classes
-      },
+      // no-op classes ... currently there is NO crc recorded in raw classes
+      handleClass: (accumCrc, resume, classRef) => {},
 
-      handlePrimitive(accumCrc, resume, primitiveRef) {
-        // no-op ... resetBaseCrc does NOTHING for primitives
-      },
-
+      // no-op primitives ... resetBaseCrc does NOTHING for primitives
+      handlePrimitive: (accumCrc, resume, primitiveRef) => {},
     });
 
     // retain self's prior baseline crc
