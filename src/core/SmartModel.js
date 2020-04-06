@@ -876,7 +876,7 @@ export default class SmartModel {
    *       properties to encode (see getEncodingProps()) it rarely
    *       needs to be overwritten.
    *
-   * REMEMBER: `this` is an object instance of SmartModel (because this is an
+   * REMEMBER: `this` is an object instance of SmartModel (because we are an
    *           instance method).  In other words, this method only handles
    *           SmartModel types (NOT primitives, or other objects, etc.)
    *           As a result, the resulting JSON follows this pattern:
