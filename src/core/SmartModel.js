@@ -1,17 +1,18 @@
-import verify            from 'util/verify';
+import verify              from 'util/verify';
 import {isString,
         isObject,
         isPlainObject,
         isSmartObject,
         isFunction,
-        isClass}         from 'util/typeCheck';
-import checkUnknownArgs  from 'util/checkUnknownArgs';
-import pkgManager        from './pkgManager';
-import PseudoClass       from './PseudoClass';
-import DispMode          from './DispMode';
-import crc               from 'util/crc';
-import {toast}           from 'util/notify';
-import changeManager     from 'features/common/changeManager/changeManager'; // AI: pull from horses mouth (rather than 'features/xtra') to avoid circular import in core/Scene.js ... ReferenceError: Cannot access 'SmartPallet' before initialization
+        isClass}           from 'util/typeCheck';
+import checkUnknownArgs    from 'util/checkUnknownArgs';
+import pkgManager          from './pkgManager';
+import PseudoClass         from './PseudoClass';
+import DispMode            from './DispMode';
+import smartTraversalSetup from './smartTraversalSetup';
+import crc                 from 'util/crc';
+import {toast}             from 'util/notify';
+import changeManager       from 'features/common/changeManager/changeManager'; // AI: pull from horses mouth (rather than 'features/xtra') to avoid circular import in core/Scene.js ... ReferenceError: Cannot access 'SmartPallet' before initialization
 
 /**
  * SmartModel is the abstract top-level base class of the visualize-it
@@ -229,7 +230,6 @@ export default class SmartModel {
     return ['id', 'name'];
   }
 
-  // ??$$ NEW
   /**
    * Iterate over all self's encoding properties, executing the
    * supplied `cbFn` for each property.
@@ -278,7 +278,6 @@ export default class SmartModel {
     });
   }
 
-  // ??$$ NEW
   /**
    * Provide a reducer, by iterating over all self's encoding
    * properties, executing the supplied `cbFn` (a reducer) for each
@@ -358,23 +357,58 @@ export default class SmartModel {
 
     // calculate/retain our crc as needed
     if (!this._crc) { // ... either first time, or cache is being regenerated
-      // driven by self's instance properties
-      const encodingProps = this.getEncodingProps(false);
 
-      // regenerate our cached crc
-      this._crc = encodingProps.reduce( (accumCrc, prop) => {
+      // setup our traversal through a series of `getCrc()` specific type handlers
+      const traverse = smartTraversalSetup({
 
-        // decipher propName/propValue
-        // ... we are NOT interested in the defaultValue found in the optional ordered pair: [propName, defaultValue]
-        const [propName] = Array.isArray(prop) ? prop : [prop];
-        const propValue  = this[propName];
+        onBehalfOf: `${this.diagClassName()}.getCrc()`,
+
+        handleNoRef(accumCrc, resume, noRef) {
+          return crc(noRef, accumCrc); // ... crc of null/undefined (just for good measure)
+        },
+
+        handleSmartObj(accumCrc, resume, smartObjRef) {
+          // fold in it's getCrc()
+          // ... should be OK to use a crc as the value of another crc calc
+          accumCrc = crc(smartObjRef.getCrc(), accumCrc);
+          return accumCrc;
+        },
+
+        handlePlainObj(accumCrc, resume, plainObjRef) {
+          // fold in the crc of each property
+          accumCrc = Object.entries(plainObjRef).reduce( (accum, [subPropName, subPropValue]) => {
+            accum = crc(subPropName,     accum); // accum the prop name  (string) ... for good measure (shouldn't hurt)
+            accum = resume(subPropValue, accum); // accum the prop value (any type)
+            return accum;
+          }, accumCrc);
+          return accumCrc;
+        },
+
+        handleClass(accumCrc, resume, classRef) {
+          // fold in class name (unsure if this is needed)
+          accumCrc = crc(classRef.name, accumCrc);
+          return accumCrc;
+        },
+
+        handlePrimitive(accumCrc, resume, primitiveRef) {
+          // fold in the primitive's crc
+          accumCrc = crc(primitiveRef, accumCrc);
+          return accumCrc;
+        },
+
+      });
+
+      // our crc is driven by self's instance properties
+      this._crc = this.encodingPropsReduce( (accumCrc, propName, propValue, defaultValue) => {
 
         // recursively accumulate the crc of each instance props
         // ... interpreting arrays, primitives, and SmartModel
-        accumCrc = crc(propName,     accumCrc); // accum the prop name  (string) ... for good measure (shouldn't hurt)
-        accumCrc = genCrc(propValue, accumCrc); // accum the prop value (any type)
+        accumCrc = crc(propName,       accumCrc); // accum the prop name  (string) ... for good measure (shouldn't hurt)
+        accumCrc = traverse(propValue, accumCrc); // accum the prop value (any type)
+
         return accumCrc;
-      }, 0); // ... seed our crc with zero (0)
+
+      }, false,/*forCloning*/ 0/*initialAccum*/);
 
       // console.log(`xx ${this.diagClassName()}.getCrc() CALCULATING CRC from props: ${encodingProps} ... CRC: ${this._crc}`);
     }
@@ -384,88 +418,6 @@ export default class SmartModel {
 
     // that's all folks
     return this._crc;
-
-
-    // internal recursive function that generates a crc for the supplied `ref`.
-    // - this algorithm is needed to support additional types over and
-    //   above smartObjs
-    // - the algorithm is recursive, picking up all sub-references
-    //   (with depth)
-    // - ALL data types are handled (EXCEPT for class-based objects
-    //   that are NOT smartObjs):
-    //   * arrays
-    //   * plain objects (as in object literals)
-    //   * smartObjs (class-based object derivations of SmartModel)
-    //   * primitives (string, number, boolean, etc.)
-    //   * NOT SUPPORTED: class-based objects that are NOT smartObjs
-    // RETURNS: the generated crc value for the supplied `ref` (an accumulation)
-    function genCrc(ref, accumCrc=0) {
-
-      // handle NO ref
-      // ... simply pass through it's crc (null, undefined, etc. ... even false is OK :-)
-      if (!ref) {
-        accumCrc = crc(ref, accumCrc);
-        return accumCrc;
-      }
-
-      // handle arrays
-      // ... simply fold in the crc of each array item
-      else if (Array.isArray(ref)) {
-        const arr = ref;
-        accumCrc  = arr.reduce( (accum, item) => genCrc(item, accum), accumCrc );
-        return accumCrc;
-      }
-
-      // handle objects
-      // ... various object types (see below)
-      else if (isObject(ref)) {
-        
-        // handle smartObjs (class-based object derivations of SmartModel)
-        // ... fold in it's getCrc()
-        // ... should be OK to use a crc as the value of another crc calc
-        if (isSmartObject(ref)) {
-          const smartObj = ref;
-          accumCrc = crc(smartObj.getCrc(), accumCrc);
-          return accumCrc;
-        }
-
-        // handle plain objects
-        // ... simply fold in the crc of each property
-        else if (isPlainObject(ref)) {
-          const plainObj = ref;
-          accumCrc = Object.entries(plainObj).reduce( (accum, [subPropName, subPropValue]) => {
-            accum = crc(subPropName,     accum); // accum the prop name  (string) ... for good measure (shouldn't hurt)
-            accum = genCrc(subPropValue, accum); // accum the prop value (any type)
-            return accum;
-          }, accumCrc );
-          return accumCrc;
-        }
-
-        // handle classes
-        // ... simply fold in class name (unsure if this is needed)
-        else if (isClass(ref)) {
-          const clazz = ref;
-          accumCrc = crc(clazz.name, accumCrc);
-          return accumCrc;
-        }
-
-        // UNSUPPORTED: class-based objects that are NOT smartObjs
-        // ... CONSIDER (as needed) adding support for common objects like Date, etc
-        else {
-          throw new Error(`***ERROR*** SmartModel.getCrc() processing ref object of type ${ref.constructor.name} is NOT supported ... only SmartModel derivations are supported :-(`);
-        }
-
-      }
-
-      // handle primitives (string, number, boolean, etc.)
-      // ... simply accumulate it's crc
-      else {
-        accumCrc = crc(ref, accumCrc);
-        return accumCrc;
-      }
-
-    } // end of ... genCrc(ref)
-
   }
 
   /**
