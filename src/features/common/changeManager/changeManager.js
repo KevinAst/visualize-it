@@ -3,6 +3,8 @@ import verify             from 'util/verify';
 import checkUnknownArgs   from 'util/checkUnknownArgs';
 import {isString,
         isFunction,
+        isSmartObject,
+        isEPkg,
         isEqual}          from 'util/typeCheck';
 
 /**
@@ -67,8 +69,8 @@ class ChangeManager {
     // validate parameters
     const check = verify.prefix('changeManager.registerEPkg() parameter violation: ');
     // ... ePkg
-    check(ePkg,                           'ePkg is required');
-    check(ePkg.isaEPkg && ePkg.isaEPkg(), 'ePkg must be an EPkg smartObject');
+    check(ePkg,          'ePkg is required');
+    check(isEPkg(ePkg),  'ePkg must be an EPkg smartObject');
 
     // process request
     // ... dispatch action that will maintain this new state
@@ -84,8 +86,8 @@ class ChangeManager {
     // validate parameters
     const check = verify.prefix('changeManager.ePkgChanged() parameter violation: ');
     // ... ePkg
-    check(ePkg,                           'ePkg is required');
-    check(ePkg.isaEPkg && ePkg.isaEPkg(), 'ePkg must be an EPkg smartObject');
+    check(ePkg,          'ePkg is required');
+    check(isEPkg(ePkg),  'ePkg must be an EPkg smartObject');
 
     // process request
     // ... dispatch action that will maintain this changed state
@@ -141,8 +143,8 @@ class ChangeManager {
     //         1. All changeFn() invocations in UndoRedoMgr ... this is NOT currently true
     //         2. All redux state changes in ChangeManager .... this is currently true
     const targetObj = changeFn(false); // redo: false (this is the initial execution)
-    check(targetObj,             'changeFn() execution must return a targetObj');
-    check(targetObj.toSmartJSON, 'changeFn() execution must return a targetObj that is a SmartObject (type: SmartModel)');
+    check(targetObj,                'changeFn() execution must return a targetObj');
+    check(isSmartObject(targetObj), 'changeFn() execution must return a targetObj that is a SmartObject (type: SmartModel)');
 
     // trickle up this low-level change, syncing our parentage 
     targetObj.trickleUpChange();

@@ -2,6 +2,7 @@ import verify            from 'util/verify';
 import {isString,
         isObject,
         isPlainObject,
+        isSmartObject,
         isClass}         from 'util/typeCheck';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
 import pkgManager        from './pkgManager';
@@ -207,6 +208,26 @@ export default class SmartModel {
   }
 
   /**
+   * Return an indicator as to whether self is a SmartObject (a
+   * SmartModel derivation).
+   *
+   * NOTE: These isaXyz() methods provide a way to perform instanceof
+   *       checks without requiring core class imports, which is more
+   *       vulnerable to circular dependencies (especially when used
+   *       in core)!
+   *
+   *       As a convenience, this method is fronted by `isSmartObject(ref)`
+   *       (found in `util/typeCheck.js`) which accommodates all data
+   *       type conditions (undefined, primitives, any object, etc.).
+   *
+   * @returns {boolean} `true`: self is a SmartObject (a SmartModel
+   * derivation), `false` otherwise.
+   */
+  isaSmartObject() {
+    return true;
+  }
+
+  /**
    * Return the crc hash for this object, uniquely identifying self.
    * 
    * This hash is generated as needed, utilizing an optimized cache.
@@ -287,7 +308,7 @@ export default class SmartModel {
         // handle smartObjs (class-based object derivations of SmartModel)
         // ... fold in it's getCrc()
         // ... should be OK to use a crc as the value of another crc calc
-        if (ref instanceof SmartModel) {
+        if (isSmartObject(ref)) {
           const smartObj = ref;
           accumCrc = crc(smartObj.getCrc(), accumCrc);
           return accumCrc;
@@ -441,7 +462,7 @@ export default class SmartModel {
       else if (isObject(ref)) {
         
         // handle smartObjs (class-based object derivations of SmartModel)
-        if (ref instanceof SmartModel) {
+        if (isSmartObject(ref)) {
           const smartObj = ref;
           smartObj.resetBaseCrc();
         }
@@ -479,11 +500,12 @@ export default class SmartModel {
    *
    * NOTE: These isaXyz() methods provide a way to perform instanceof
    *       checks without requiring core class imports, which is more
-   *       vulnerable to circular dependencies (especially in core)!
+   *       vulnerable to circular dependencies (especially when used
+   *       in core)!
    *
-   *       As a convenience, these methods can be used on ANY JavaScript
-   *       object, because they have been overloaded on Object.prototype!
-   *       ... see: src/core/preregisterCoreClasses.js
+   *       As a convenience, this method is fronted by `isPkg(ref)`
+   *       (found in `util/typeCheck.js`) which accommodates all data
+   *       type conditions (undefined, primitives, any object, etc.).
    *
    * @returns {boolean} `true`: self is a package (SmartPkg), `false` otherwise.
    */
@@ -524,9 +546,9 @@ export default class SmartModel {
    * PkgEntries are managed by SmartPkg, simply marking them using the
    * `markAsPkgEntry()` method.
    *
-   * NOTE: As a convenience, this method can be used on ANY JavaScript
-   *       object, because it has been overloaded on Object.prototype!
-   *       ... see: src/core/preregisterCoreClasses.js
+   * NOTE: As a convenience, this method is fronted by `isPkgEntry(ref)`
+   *       (found in `util/typeCheck.js`) which accommodates all data
+   *       type conditions (undefined, primitives, any object, etc.).
    *
    * @returns {boolean} `true`: self is a PkgEntry, `false` otherwise.
    */
@@ -572,9 +594,9 @@ export default class SmartModel {
    * accommodate the `changeManager` feature state, where EPkgs are
    * tracked.
    *
-   * NOTE: As a convenience, this method can be used on ANY JavaScript
-   *       object, because it has been overloaded on Object.prototype!
-   *       ... see: src/core/preregisterCoreClasses.js
+   * NOTE: As a convenience, this method is fronted by `isEPkg(ref)`
+   *       (found in `util/typeCheck.js`) which accommodates all data
+   *       type conditions (undefined, primitives, any object, etc.).
    *
    * EPkgAI: EPkg may be obsolete with Svelte usage (it is an anomaly
    *         of changeManager redux state management)
@@ -637,11 +659,12 @@ export default class SmartModel {
    *
    * NOTE: These isaXyz() methods provide a way to perform instanceof
    *       checks without requiring core class imports, which is more
-   *       vulnerable to circular dependencies (especially in core)!
+   *       vulnerable to circular dependencies (especially when used
+   *       in core)!
    *
-   *       As a convenience, these methods can be used on ANY JavaScript
-   *       object, because they have been overloaded on Object.prototype!
-   *       ... see: src/core/preregisterCoreClasses.js
+   *       As a convenience, this method is fronted by `isView(ref)`
+   *       (found in `util/typeCheck.js`) which accommodates all data
+   *       type conditions (undefined, primitives, any object, etc.).
    *
    * @returns {boolean} `true`: self is a view (SmartView), `false` otherwise.
    */
@@ -970,7 +993,7 @@ export default class SmartModel {
       else if (isObject(ref)) {
         
         // handle smartObjs (class-based object derivations of SmartModel)
-        if (ref instanceof SmartModel) {
+        if (isSmartObject(ref)) {
           return ref.toSmartJSON();
         }
 
@@ -1251,7 +1274,7 @@ export default class SmartModel {
       else if (isObject(ref)) {
         
         // handle smartObjs (class-based object derivations of SmartModel)
-        if (ref instanceof SmartModel) {
+        if (isSmartObject(ref)) {
           return ref.smartClone();
         }
 

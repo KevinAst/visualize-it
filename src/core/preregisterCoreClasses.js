@@ -1,4 +1,3 @@
-/* eslint-disable no-extend-native */
 import Collage     from './Collage';
 import PseudoClass from './PseudoClass';
 import Scene       from './Scene';
@@ -30,18 +29,3 @@ pkgManager.registerPkg( new SmartPkg({
     ],
   },
 }) );
-
-
-// provide Object defaults for SmartModel.isaXyz() methods, allowing them to be used on ANY object
-function defineDefaultObjectIsA(fnName) {
-  Object.defineProperty(Object.prototype, fnName, {
-    value: function() {
-      return false;
-    },
-    enumerable: false, // prevent these methods from showing up in things like "for in"
-  });
-}
-defineDefaultObjectIsA('isaPkg');
-defineDefaultObjectIsA('isaPkgEntry');
-defineDefaultObjectIsA('isaEPkg');
-defineDefaultObjectIsA('isaView');

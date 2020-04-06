@@ -2,6 +2,7 @@ import SmartModel        from './SmartModel';
 import SmartClassRef     from './SmartClassRef';
 import PseudoClass       from './PseudoClass';
 import {isPlainObject,
+        isSmartObject,
         isClass}         from 'util/typeCheck';
 import verify            from 'util/verify';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
@@ -209,7 +210,7 @@ export default class SmartPkg extends SmartModel {
     return this.name;
   }
 
-  // change isaView() to indicate we are SmartPkg instances
+  // change isaPkg() to indicate we are SmartPkg instances
   isaPkg() {
     return true;
   }
@@ -288,7 +289,7 @@ export default class SmartPkg extends SmartModel {
       entry.forEach( (arrItem) => {
 
         // normally this is a smartObj
-        if (arrItem instanceof SmartModel) {
+        if (isSmartObject(arrItem)) {
           const smartObj = arrItem;
 
           // catalog any pseudoClasses in our _classRefCatalog

@@ -14,9 +14,9 @@ import {tabRegistry,
 import genDualClickHandler      from 'util/genDualClickHandler';
 import {createLogger}           from 'util/logger';
 import {isPlainObject,
+        isSmartObject,
         isClass}                from 'util/typeCheck';
 
-import SmartModel               from 'core/SmartModel';
 import Scene                    from 'core/Scene';
 import Collage                  from 'core/Collage';
 import CompRef                  from 'core/CompRef';
@@ -134,7 +134,7 @@ function genTreeItems(smartPkg, handleActivateTab) {
       const entryAccum = entry.map( (arrItem) => {
 
         // normally this is a smartObj ... generate entry to be displayed in our tabManager
-        if (arrItem instanceof SmartModel) {
+        if (isSmartObject(arrItem)) {
 
           const smartObj = arrItem;
           const nodeId   = `${accumulativeId}-${smartObj.id}`;

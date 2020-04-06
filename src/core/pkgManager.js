@@ -1,5 +1,6 @@
 import verify      from 'util/verify';
-import {isString}  from 'util/typeCheck';
+import {isString,
+        isPkg}     from 'util/typeCheck';
 
 /*-------------------------------------------------------------------------------
    
@@ -82,8 +83,8 @@ class PkgManager {
     const check = verify.prefix(`${this.constructor.unmangledName}.registerPkg() parameter violation: `);
 
     // ... smartPkg
-    check(smartPkg,                             'smartPkg is required');
-    check(smartPkg.isaPkg && smartPkg.isaPkg(), 'smartPkg must be a SmartPkg object');
+    check(smartPkg,         'smartPkg is required');
+    check(isPkg(smartPkg),  'smartPkg must be a SmartPkg object');
 
     // maintain our package catalog
     const pkgId = smartPkg.getPkgId();
