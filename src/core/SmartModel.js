@@ -471,21 +471,39 @@ export default class SmartModel {
    */
   resetBaseCrc() {
 
+    // setup our traversal through a series of `resetBaseCrc()` specific type handlers
+    const traverse = smartTraversalSetup({
+
+      onBehalfOf: `${this.diagClassName()}.resetBaseCrc()`,
+
+      handleSmartObj(accumCrc, resume, smartObjRef) {
+        // propagate into our subordinate smartObj
+        smartObjRef.resetBaseCrc();
+      },
+
+      handlePlainObj(accumCrc, resume, plainObjRef) {
+        // propagate into our subordinate plain objects
+        Object.values(plainObjRef).forEach( (item) => resume(item) );
+      },
+
+      handleClass(accumCrc, resume, classRef) {
+        // no-op ... currently there is NO crc recorded in raw classes
+      },
+
+      handlePrimitive(accumCrc, resume, primitiveRef) {
+        // no-op ... resetBaseCrc does NOTHING for primitives
+      },
+
+    });
+
     // retain self's prior baseline crc
     const old_baseCrc = this._baseCrc;
 
     // trickle this request down through our containment tree, driven by self's instance properties
-    const encodingProps = this.getEncodingProps(false);
-    encodingProps.forEach( (prop) => {
-
-      // decipher propName/propValue
-      // ... we are NOT interested in the defaultValue found in the optional ordered pair: [propName, defaultValue]
-      const [propName] = Array.isArray(prop) ? prop : [prop];
-      const propValue  = this[propName];
-
-      // trickle request down
-      resetBaseCrc(propValue);
-    });
+    this.encodingPropsForEach(
+      (propName, propValue, defaultValue) => traverse(propValue),
+      false/*forCloning*/
+    );
 
     // reset self's new baseline crc
     // ... this is done AFTER our lower-level subordinate objects
@@ -498,69 +516,8 @@ export default class SmartModel {
     if (this.isaEPkg() && baseCrcChanged) {
       changeManager.ePkgChanged(this);
     }
-
-    // internal recursive function that trickles the reset request down our containment tree
-    // - this algorithm is needed to pass through additional types over and
-    //   above smartObjs
-    // - the algorithm is recursive, picking up all sub-references
-    //   (with depth)
-    // - ALL data types are handled (EXCEPT for class-based objects
-    //   that are NOT smartObjs):
-    //   * arrays
-    //   * plain objects (as in object literals)
-    //   * smartObjs (class-based object derivations of SmartModel)
-    //   * primitives (string, number, boolean, etc.)
-    //   * NOT SUPPORTED: class-based objects that are NOT smartObjs
-    function resetBaseCrc(ref) {
-
-      // handle NO ref
-      if (!ref) {
-      }
-
-      // handle arrays
-      // ... simply fold in the crc of each array item
-      else if (Array.isArray(ref)) {
-        const arr = ref;
-        arr.forEach( (item) => resetBaseCrc(item) );
-      }
-
-      // handle objects
-      // ... various object types (see below)
-      else if (isObject(ref)) {
-        
-        // handle smartObjs (class-based object derivations of SmartModel)
-        if (isSmartObject(ref)) {
-          const smartObj = ref;
-          smartObj.resetBaseCrc();
-        }
-
-        // handle plain objects
-        else if (isPlainObject(ref)) {
-          const plainObj = ref;
-          Object.values(plainObj).forEach( (item) => resetBaseCrc(item) );
-        }
-
-        // handle classes
-        else if (isClass(ref)) {
-          // simply no-op ... currently there is NO crc recorded in raw classes
-        }
-
-        // UNSUPPORTED: class-based objects that are NOT smartObjs
-        // ... CONSIDER (as needed) adding support for common objects like Date, etc
-        else {
-          throw new Error(`***ERROR*** SmartModel.resetBaseCrc() processing ref object of type ${ref.constructor.name} is NOT supported ... only SmartModel derivations are supported :-(`);
-        }
-
-      }
-
-      // handle primitives (string, number, boolean, etc.)
-      else {
-        // ... resetBaseCrc does NOTHING for primitives
-      }
-
-    } // end of ... resetBaseCrc(ref)
-
   }
+
 
   /**
    * Return an indicator as to whether self is a pkg (SmartPkg).
