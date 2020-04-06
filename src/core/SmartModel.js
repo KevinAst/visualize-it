@@ -3,6 +3,7 @@ import {isString,
         isObject,
         isPlainObject,
         isSmartObject,
+        isFunction,
         isClass}         from 'util/typeCheck';
 import checkUnknownArgs  from 'util/checkUnknownArgs';
 import pkgManager        from './pkgManager';
@@ -70,6 +71,40 @@ export default class SmartModel {
     this.id       = id;
     this.name     = name || id;
     this.dispMode = DispMode.view; // ... our dispMode starts out "viewing" content
+  }
+
+  /**
+   * Return self's object id.
+   */
+  getId() {
+    return this.id;
+  }
+
+  /**
+   * Return self's object name.
+   */
+  getName() {
+    return this.name;
+  }
+
+  /**
+   * Return an indicator as to whether self is a SmartObject (a
+   * SmartModel derivation).
+   *
+   * NOTE: These isaXyz() methods provide a way to perform instanceof
+   *       checks without requiring core class imports, which is more
+   *       vulnerable to circular dependencies (especially when used
+   *       in core)!
+   *
+   *       As a convenience, this method is fronted by `isSmartObject(ref)`
+   *       (found in `util/typeCheck.js`) which accommodates all data
+   *       type conditions (undefined, primitives, any object, etc.).
+   *
+   * @returns {boolean} `true`: self is a SmartObject (a SmartModel
+   * derivation), `false` otherwise.
+   */
+  isaSmartObject() {
+    return true;
   }
 
   /**
@@ -180,9 +215,10 @@ export default class SmartModel {
    *
    * @param {boolean} forCloning - an indicator as to whether this
    * request is on behalf of the cloning operation (true:
-   * `smartClone()` is making the request).  Otherwise the request is
-   * being made by `toSmartJSON()`.  Please interpret this value using
-   * "truthy" semantics.
+   * `smartClone()` is making the request).  When cloning, additional
+   * properties may be supplied (over and above what would be
+   * re-constituted from a constructor invocation).  Please interpret
+   * this value using "truthy" semantics.
    *
    * @returns {[propName, [propName, defaultValue], ...]} self's
    * property names (string) to be encoded in our smartJSON
@@ -193,39 +229,118 @@ export default class SmartModel {
     return ['id', 'name'];
   }
 
+  // ??$$ NEW
   /**
-   * Return self's object id.
+   * Iterate over all self's encoding properties, executing the
+   * supplied `cbFn` for each property.
+   *
+   * As a convenience, the entire encoding structure is deciphered,
+   * including:
+   *  - propName
+   *  - propValue
+   *  - defaultValue (optional - when not defined, an obscure
+   *    `'DeFaUlT NoT dEfInEd'` value is used)
+   *
+   * @param {function} cbFn - the callback function to execute for each
+   * encoding property.  API:
+   *   ```js
+   *   + cbFn(propName, propValue, defaultValue): void
+   *   ```
+   *
+   * @param {boolean} forCloning - an indicator as to whether this
+   * request is on behalf of the cloning operation (true:
+   * `smartClone()` is making the request).  When cloning, additional
+   * properties may be supplied (over and above what would be
+   * re-constituted from a constructor invocation).  Please interpret
+   * this value using "truthy" semantics.
    */
-  getId() {
-    return this.id;
+  encodingPropsForEach(cbFn, forCloning=false) {
+
+    // validate parameters
+    const check = verify.prefix(`${this.diagClassName()}.encodingPropsForEach() parameter violation: `);
+    // ... cbFn
+    check(cbFn,             'cbFn is required');
+    check(isFunction(cbFn), 'cbFn must be a function');
+    // ... forCloning
+    check(forCloning===true ||
+          forCloning===false,   'forCloning must be a boolean (when supplied)');
+
+    // iteration loop
+    // ... driven by self's smartObj encoding properties
+    const encodingProps = this.getEncodingProps(forCloning);
+    encodingProps.forEach( (prop) => {
+      // decipher propName/propValue
+      const [propName, defaultValue] = Array.isArray(prop) ? prop : [prop, 'DeFaUlT NoT dEfInEd'];
+      const propValue = this[propName];
+      
+      // callback into invoker realm
+      cbFn(propName, propValue, defaultValue);
+    });
   }
 
+  // ??$$ NEW
   /**
-   * Return self's object name.
+   * Provide a reducer, by iterating over all self's encoding
+   * properties, executing the supplied `cbFn` (a reducer) for each
+   * property, resulting in a single output value.
+   *
+   * As a convenience, the entire encoding structure is deciphered,
+   * including:
+   *  - propName
+   *  - propValue
+   *  - defaultValue (optional - when not defined, an obscure
+   *    `'DeFaUlT NoT dEfInEd'` value is used)
+   *
+   * @param {function} cbFn - the callback reducer function to execute
+   * for each encoding property.  API:
+   *   ```js
+   *   + cbFn(accum, propName, propValue, defaultValue): accumAmalgamation
+   *   ```
+   * NOTE: That if NO 
+   *
+   * @param {boolean} forCloning - an indicator as to whether this
+   * request is on behalf of the cloning operation (true:
+   * `smartClone()` is making the request).  When cloning, additional
+   * properties may be supplied (over and above what would be
+   * re-constituted from a constructor invocation).  Please interpret
+   * this value using "truthy" semantics.
+   *
+   * @param {any} initialAccum - the initial accumulation value.  This
+   * seeds the `accum` parameter (of the `cbFn()`) for the first
+   * iteration.
+   *
+   * @returns {any} the single output value resulting from the
+   * reduction.
    */
-  getName() {
-    return this.name;
+  encodingPropsReduce(cbFn, forCloning=false, initialAccum) {
+
+    // validate parameters
+    const check = verify.prefix(`${this.diagClassName()}.encodingPropsReduce() parameter violation: `);
+    // ... cbFn
+    check(cbFn,             'cbFn is required');
+    check(isFunction(cbFn), 'cbFn must be a function');
+    // ... forCloning
+    check(forCloning===true ||
+          forCloning===false,   'forCloning must be a boolean (when supplied)');
+    // ... initialAccum
+    check(initialAccum!==undefined, 'initialAccum is required');
+
+    // iteration loop
+    // ... driven by self's smartObj encoding properties
+    const encodingProps = this.getEncodingProps(forCloning);
+    const accum = encodingProps.reduce( (accum, prop) => {
+      // decipher propName/propValue
+      const [propName, defaultValue] = Array.isArray(prop) ? prop : [prop, 'DeFaUlT NoT dEfInEd'];
+      const propValue = this[propName];
+      
+      // callback into invoker realm
+      return cbFn(accum, propName, propValue, defaultValue);
+    }, initialAccum);
+
+    // promote the overall accumulation
+    return accum;
   }
 
-  /**
-   * Return an indicator as to whether self is a SmartObject (a
-   * SmartModel derivation).
-   *
-   * NOTE: These isaXyz() methods provide a way to perform instanceof
-   *       checks without requiring core class imports, which is more
-   *       vulnerable to circular dependencies (especially when used
-   *       in core)!
-   *
-   *       As a convenience, this method is fronted by `isSmartObject(ref)`
-   *       (found in `util/typeCheck.js`) which accommodates all data
-   *       type conditions (undefined, primitives, any object, etc.).
-   *
-   * @returns {boolean} `true`: self is a SmartObject (a SmartModel
-   * derivation), `false` otherwise.
-   */
-  isaSmartObject() {
-    return true;
-  }
 
   /**
    * Return the crc hash for this object, uniquely identifying self.
