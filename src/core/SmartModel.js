@@ -364,7 +364,7 @@ export default class SmartModel {
         // accum crc of null/undefined (just for good measure)
         handleNoRef: (accumCrc, resume, noRef) => crc(noRef, accumCrc),
 
-        // fold in SmartObj's getCrc()
+        // fold in SmartObjs getCrc()
         // ... should be OK to use a crc as the value of another crc calc
         handleSmartObj: (accumCrc, resume, smartObjRef) => crc(smartObjRef.getCrc(), accumCrc),
 
@@ -932,6 +932,30 @@ export default class SmartModel {
    * @returns {smartJSON} the smartJSON representation of self.
    */
   toSmartJSON() {
+    // setup our traversal through a series of `toSmartJSON()` specific type handlers
+    const encodeRef = smartTraversalSetup({
+      onBehalfOf: `${this.diagClassName()}.toSmartJSON()`,
+
+      // pass through null/undefined references
+      handleNoRef: (accumJSON, resume, noRef) => noRef,
+
+      // encode all array items
+      handleArray: (accumJSON, resume, arrRef) => arrRef.map( item => resume(item) ),
+
+      // encode SmartObjs toSmartJSON()
+      handleSmartObj: (accumJSON, resume, smartObjRef) => smartObjRef.toSmartJSON(),
+
+      // encode plain object
+      handlePlainObj: (accumJSON, resume, plainObjRef) => (
+        Object.entries(plainObjRef).reduce( (accum, [subRefName, subRef]) => {
+          accum[subRefName] = resume(subRef);
+          return accum;
+        }, {} )
+      ),
+
+      // pass through primitives
+      handlePrimitive: (accumJSON, resume, primitiveRef) => primitiveRef,
+    });
 
     // prime our JSON by encoding our smart type information
     // ... using SmartClassRef, this structure considers BOTH real types/classes AND pseudoClasses
@@ -948,87 +972,15 @@ export default class SmartModel {
     }
 
     // encode self's instance properties
-    const encodingProps = this.getEncodingProps(false);
-    encodingProps.forEach( (prop) => {
-      const [propName, defaultValue] = Array.isArray(prop) ? prop : [prop, 'DeFaUlT NeVeR HaPpEn'];
-      const value = this[propName];
-      if (value !== defaultValue) { // conditionally accumulate the running JSON structure ONLY WHEN it is NOT the default
-        myJSON[propName] = encodeRef(value);
+    this.encodingPropsForEach( (propName, propValue, defaultValue) => {
+      // conditionally accumulate the running JSON structure ONLY WHEN it is NOT the default
+      if (propValue !== defaultValue) {
+        myJSON[propName] = encodeRef(propValue);
       }
-    });
+    }, false/*forCloning*/);
 
     // beam me up Scotty :-)
     return myJSON;
-
-
-    // internal function that encodes the supplied `ref` into JSON.
-    // - this algorithm is needed to support additional types over and
-    //   above smartObjs
-    // - the algorithm is recursive, picking up all sub-references
-    //   (with depth)
-    // - ALL data types are handled (EXCEPT for class-based objects
-    //   that are NOT smartObjs):
-    //   * arrays
-    //   * plain objects (as in object literals)
-    //   * smartObjs (class-based object derivations of SmartModel)
-    //   * primitives (string, number, boolean, etc.)
-    //   * NOT SUPPORTED: class-based objects that are NOT smartObjs
-    function encodeRef(ref) {
-
-      // handle NO ref
-      // ... simply pass it through (null, undefined, etc. ... even false is OK :-)
-      if (!ref) {
-        return ref;
-      }
-
-      // handle arrays ... simply encode all array items
-      else if (Array.isArray(ref)) {
-        const  arrayJSON = ref.map( item => encodeRef(item) );
-        return arrayJSON;
-      }
-
-      // handle objects
-      // ... various object types (see below)
-      else if (isObject(ref)) {
-        
-        // handle smartObjs (class-based object derivations of SmartModel)
-        if (isSmartObject(ref)) {
-          return ref.toSmartJSON();
-        }
-
-        // handle plain objects
-        // ... simply encode each item WITHOUT the smartObj connotation
-        else if (isPlainObject(ref)) {
-          const plainObjJSON = Object.entries(ref).reduce( (accum, [subRefName, subRef]) => {
-            accum[subRefName] = encodeRef(subRef);
-            return accum;
-          }, {} );
-          return plainObjJSON;
-        }
-
-        // handle classes
-        else if (isClass(ref)) {
-          // NOTE: should never see this with visualize-it's pre-check: SmartPkg.canPersist()
-          throw new Error(`***ERROR*** SmartModel.toSmartJSON() processing ref object of type ${ref.constructor.name} is NOT supported ... classes or functions CANNOT be persisted through the smartJSON format :-(`);
-        }
-
-        // UNSUPPORTED: class-based objects that are NOT smartObjs
-        // ... CONSIDER (as needed) adding support for common objects like Date, etc
-        //     OR more generically leverage any object that has the toJSON() method
-        else {
-          throw new Error(`***ERROR*** SmartModel.toSmartJSON() processing ref object of type ${ref.constructor.name} is NOT supported ... only SmartModel derivations support the smartJSON format :-(`);
-        }
-
-      }
-
-      // handle primitives (string, number, boolean, etc.)
-      // ... simply pas-through as-is
-      else {
-        return ref;
-      }
-
-    } // end of ... encodeRef(ref)
-
   }
 
 
