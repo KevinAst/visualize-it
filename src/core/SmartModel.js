@@ -1,10 +1,7 @@
 import verify              from 'util/verify';
 import {isString,
-        isObject,
         isPlainObject,
-        isSmartObject,
-        isFunction,
-        isClass}           from 'util/typeCheck';
+        isFunction}        from 'util/typeCheck';
 import checkUnknownArgs    from 'util/checkUnknownArgs';
 import pkgManager          from './pkgManager';
 import PseudoClass         from './PseudoClass';
@@ -1157,29 +1154,53 @@ export default class SmartModel {
    * @returns {smartObject} a deep copy of self.
    */
   smartClone(overridingNamedProps={}) {
+    // setup our traversal through a series of `smartClone()` specific type handlers
+    const cloneRef = smartTraversalSetup({
+      onBehalfOf: `${this.diagClassName()}.smartClone()`,
+
+      // pass through null/undefined references
+      handleNoRef: (accumClone, resume, noRef) => noRef,
+
+      // encode all array items
+      handleArray: (accumClone, resume, arrRef) => arrRef.map( item => resume(item) ),
+
+      // encode SmartObjs smartClone()
+      handleSmartObj: (accumClone, resume, smartObjRef) => smartObjRef.smartClone(),
+
+      // encode plain object
+      handlePlainObj: (accumClone, resume, plainObjRef) => (
+        Object.entries(plainObjRef).reduce( (accum, [subRefName, subRef]) => {
+          accum[subRefName] = resume(subRef);
+          return accum;
+        }, {} )
+      ),
+
+      // pass-through classes as-is (i.e. clone is N/A because they are immutable)
+      handleClass: (accumClone, resume, classRef) => classRef,
+
+      // class-based objects that are NOT SmartObjects are NOT supported
+      // ... this is the default:
+      // handleNonSmartObj(accumClone, resume, otherObjRef) {
+      //   throw new Error(`***ERROR*** ${this.onBehalfOf} traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
+      // }
+
+      // pass through primitives ... clone is N/A because they are immutable
+      handlePrimitive: (accumClone, resume, primitiveRef) => primitiveRef,
+    });
+
 
     // clone self's properties by recursively drilling through entire tree with depth
-    // ... recursion is handled via internal cloneRef() function
-    //     - it recurses on itself
-    //     - supporting ALL data types
-    //     - recurses back into this.smartClone() as needed
-    const encodingProps = this.getEncodingProps(true);
-    const clonedProps   = encodingProps.reduce( (accum, prop) => {
+    // ... recursion is handled by our internal cloneRef() function
+    const clonedProps = this.encodingPropsReduce( (accumProps, propName, propValue, defaultValue) => {
 
-      // NOTE: smartClone() does NOT use the defaultValue of getEncodingProps()!
-      //       It could, however it is a bit of a moot point, because this value is NOT persisted,
-      //       so it matters little where we get it from :-)
-      const [instanceName] = Array.isArray(prop) ? prop : [prop, 'DeFaUlT NoT Used'];
-
-      // clone our instanceValue ONLY if it is not specified in our overridingNamedProps param
-      if ( !overridingNamedProps.hasOwnProperty(instanceName) ) {
-        const instanceValue = this[instanceName];      // self's instance member value
-        const clonedValue   = cloneRef(instanceValue); // clone our instanceValue
-        accum[instanceName] = clonedValue;             // accumulate our running clonedProps
+      // clone each prop ONLY if it is not specified in our overridingNamedProps param
+      if ( !overridingNamedProps.hasOwnProperty(propName) ) {
+        const clonedValue    = cloneRef(propValue); // clone our propValue
+        accumProps[propName] = clonedValue;         // accumulate our running clonedProps
       }
+      return accumProps;
 
-      return accum;
-    }, {} );
+    }, true,/*forCloning*/ {}/*initialAccum*/);
 
     // accumulate all namedProps for our constructor
     // ... overridingNamedProps param take precedence
@@ -1193,76 +1214,6 @@ export default class SmartModel {
 
     // that's all folks :-)
     return clonedCopy;
-
-    // internal function that clones the supplied `ref`
-    // - this algorithm is needed to support additional types over and
-    //   above smartObjs
-    // - the algorithm is recursive, picking up all sub-references
-    //   (with depth)
-    // - ALL data types are handled (EXCEPT for class-based objects
-    //   that are NOT smartObjs):
-    //   * arrays
-    //   * plain objects (as in object literals)
-    //   * smartObjs (class-based object derivations of SmartModel)
-    //   * primitives (string, number, boolean, etc.)
-    //   * NOT SUPPORTED: class-based objects that are NOT smartObjs
-    function cloneRef(ref) {
-
-      // handle NO ref
-      // ... simply pass it through (null, undefined, etc. ... even false is OK :-)
-      if (!ref) {
-        return ref;
-      }
-
-      // handle arrays ... simply encode all array items
-      else if (Array.isArray(ref)) {
-        const  clonedArr = ref.map( item => cloneRef(item) );
-        return clonedArr;
-      }
-
-      // handle objects
-      // ... various object types (see below)
-      else if (isObject(ref)) {
-        
-        // handle smartObjs (class-based object derivations of SmartModel)
-        if (isSmartObject(ref)) {
-          return ref.smartClone();
-        }
-
-        // handle plain objects
-        // ... simply clone each subRef in a new plain object
-        else if (isPlainObject(ref)) {
-          const clonedPlainObj = Object.entries(ref).reduce( (accum, [subRefName, subRef]) => {
-            accum[subRefName] = cloneRef(subRef);
-            return accum;
-          }, {} );
-          return clonedPlainObj;
-        }
-
-        // handle classes
-        // ... simply pas-through as-is (i.e. clone is N/A because they are immutable)
-        else if (isClass(ref)) {
-          return ref;
-        }
-
-        // UNSUPPORTED: class-based objects that are NOT smartObjs
-        // ... CONSIDER (as needed) adding support for common objects like Date, etc.
-        else {
-          throw new Error(`***ERROR*** SmartModel.smartClone() processing self object of type ${this.diagClassName()}, ` +
-                          `whose member object of type ${ref.constructor.name} is NOT supported ` +
-                          '... only SmartModel derivations can be cloned :-(');
-        }
-
-      }
-
-      // handle primitives (string, number, boolean, etc.)
-      // ... simply pas-through as-is (i.e. clone is N/A because they are immutable)
-      else {
-        return ref;
-      }
-
-    } // end of ... cloneRef(ref)
-
   } // end of ... smartClone() method
 
 } // end of ... SmartModel class
