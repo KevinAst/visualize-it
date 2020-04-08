@@ -1,15 +1,17 @@
-import verify              from 'util/verify';
+import verify               from 'util/verify';
 import {isString,
         isPlainObject,
-        isFunction}        from 'util/typeCheck';
-import checkUnknownArgs    from 'util/checkUnknownArgs';
-import pkgManager          from './pkgManager';
-import PseudoClass         from './PseudoClass';
-import DispMode            from './DispMode';
-import smartTraversalSetup from './smartTraversalSetup';
-import crc                 from 'util/crc';
-import {toast}             from 'util/notify';
-import changeManager       from 'features/common/changeManager/changeManager'; // AI: pull from horses mouth (rather than 'features/xtra') to avoid circular import in core/Scene.js ... ReferenceError: Cannot access 'SmartPallet' before initialization
+        isFunction}         from 'util/typeCheck';
+import checkUnknownArgs     from 'util/checkUnknownArgs';
+import pkgManager           from './pkgManager';
+import PseudoClass          from './PseudoClass';
+import DispMode             from './DispMode';
+import smartTraversalSetup  from './smartTraversalSetup';  // ?? OLD TRASH
+import createTypeRefHandler from './createTypeRefHandler'; // ?? NEW
+
+import crc                  from 'util/crc';
+import {toast}              from 'util/notify';
+import changeManager        from 'features/common/changeManager/changeManager'; // AI: pull from horses mouth (rather than 'features/xtra') to avoid circular import in core/Scene.js ... ReferenceError: Cannot access 'SmartPallet' before initialization
 
 /**
  * SmartModel is the abstract top-level base class of the visualize-it
@@ -354,39 +356,12 @@ export default class SmartModel {
     // calculate/retain our crc as needed
     if (!this._crc) { // ... either first time, or cache is being regenerated
 
-      // setup our traversal through a series of `getCrc()` specific type handlers
-      const traverse = smartTraversalSetup({
-        onBehalfOf: `${this.diagClassName()}.getCrc()`,
-
-        // accum crc of null/undefined (just for good measure)
-        handleNoRef: (accumCrc, resume, noRef) => crc(noRef, accumCrc),
-
-        // fold in SmartObjs getCrc()
-        // ... should be OK to use a crc as the value of another crc calc
-        handleSmartObj: (accumCrc, resume, smartObjRef) => crc(smartObjRef.getCrc(), accumCrc),
-
-        // fold in the crc of each object property
-        handlePlainObj: (accumCrc, resume, plainObjRef) => (
-          Object.entries(plainObjRef).reduce( (accum, [subPropName, subPropValue]) => {
-            accum = crc(subPropName,     accum); // accum the prop name  (string) ... for good measure (shouldn't hurt)
-            accum = resume(subPropValue, accum); // accum the prop value (any type)
-            return accum;
-          }, accumCrc)
-        ),
-
-        // fold in class name (unsure if this is needed)
-        handleClass: (accumCrc, resume, classRef) => crc(classRef.name, accumCrc),
-
-        // fold in primitive's crc
-        handlePrimitive: (accumCrc, resume, primitiveRef) => crc(primitiveRef, accumCrc),
-      });
-
       // our crc is driven by self's instance properties
       this._crc = this.encodingPropsReduce( (accumCrc, propName, propValue, defaultValue) => {
         // recursively accumulate the crc of each instance props
         // ... interpreting arrays, primitives, and SmartModel
-        accumCrc = crc(propName,       accumCrc); // accum the prop name  (string) ... for good measure (shouldn't hurt)
-        accumCrc = traverse(propValue, accumCrc); // accum the prop value (any type)
+        accumCrc = crc(propName, accumCrc);               // accum the prop name  (string) ... for good measure (shouldn't hurt)
+        accumCrc = getCrcRefHandler(propValue, accumCrc); // accum the prop value (any type)
 
         return accumCrc;
       }, false,/*forCloning*/ 0/*initialAccum*/);
@@ -451,29 +426,12 @@ export default class SmartModel {
    *       needs to be overwritten.
    */
   resetBaseCrc() {
-    // setup our traversal through a series of `resetBaseCrc()` specific type handlers
-    const traverse = smartTraversalSetup({
-      onBehalfOf: `${this.diagClassName()}.resetBaseCrc()`,
-
-      // propagate into our subordinate smartObjs
-      handleSmartObj: (accumCrc, resume, smartObjRef) => smartObjRef.resetBaseCrc(),
-
-      // propagate into our subordinate plain objects
-      handlePlainObj: (accumCrc, resume, plainObjRef) => Object.values(plainObjRef).forEach( (item) => resume(item) ),
-
-      // no-op classes ... currently there is NO crc recorded in raw classes
-      handleClass: (accumCrc, resume, classRef) => {},
-
-      // no-op primitives ... resetBaseCrc does NOTHING for primitives
-      handlePrimitive: (accumCrc, resume, primitiveRef) => {},
-    });
-
     // retain self's prior baseline crc
     const old_baseCrc = this._baseCrc;
 
     // trickle this request down through our containment tree, driven by self's instance properties
     this.encodingPropsForEach(
-      (propName, propValue, defaultValue) => traverse(propValue),
+      (propName, propValue, defaultValue) => resetBaseCrcRefHandler(propValue),
       false/*forCloning*/
     );
 
@@ -1322,3 +1280,69 @@ function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
   }
   return classRef;
 }
+
+
+//***
+//*** Type reference handlers used in various SmartModel traversals
+//***
+
+// getCrc() type specific handler
+const getCrcRefHandler = createTypeRefHandler({
+
+  // fold in null/undefined (just for good measure)
+  handleNoRef: (noRef, accumCrc) => crc(noRef, accumCrc),
+
+  // fold in primitive's crc
+  handlePrimitive: (primitiveRef, accumCrc) => crc(primitiveRef, accumCrc),
+
+  // fold in array items
+  handleArray: (arrRef, accumCrc) => arrRef.reduce( (accum, item) => getCrcRefHandler(item, accum), accumCrc ),
+
+  // fold in the crc of each object property
+  handlePlainObj: (plainObjRef, accumCrc) => (
+    Object.entries(plainObjRef).reduce( (accum, [subPropName, subPropValue]) => {
+      accum = crc(subPropName,     accum); // accum the prop name  (string) ... for good measure (shouldn't hurt)
+      accum = getCrcRefHandler(subPropValue, accum); // accum the prop value (any type)
+      return accum;
+    }, accumCrc)
+  ),
+
+  // fold in SmartObj.getCrc()
+  // ... should be OK to use a crc as the value of another crc calc
+  handleSmartObj: (smartObjRef, accumCrc) => crc(smartObjRef.getCrc(), accumCrc),
+
+  // UNSUPPORTED: NON SmartObjects (not plain and not smart)
+  handleNonSmartObj(otherObjRef, accum) {
+    throw new Error(`***ERROR*** SmartObject.getCrc() traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
+  },
+
+  // fold in class name (unsure if this is needed)
+  handleClass: (classRef, accumCrc) => crc(classRef.name, accumCrc),
+});
+
+// resetBaseCrc() type specific handler
+const resetBaseCrcRefHandler = createTypeRefHandler({
+
+  // no-op null/undefined ... resetBaseCrc does NOTHING for NoRef
+  handleNoRef: (noRef) => {},
+
+  // no-op primitives ... resetBaseCrc does NOTHING for primitives
+  handlePrimitive: (primitiveRef) => {},
+
+  // propagate into our subordinate array items
+  handleArray: (arrRef) => arrRef.forEach( (item) => resetBaseCrcRefHandler(item) ),
+
+  // propagate into our subordinate plain objects
+  handlePlainObj: (plainObjRef) => Object.values(plainObjRef).forEach( (item) => resetBaseCrcRefHandler(item) ),
+
+  // propagate into our subordinate smartObjs
+  handleSmartObj: (smartObjRef) => smartObjRef.resetBaseCrc(),
+
+  // UNSUPPORTED: NON SmartObjects (not plain and not smart)
+  handleNonSmartObj(otherObjRef) {
+    throw new Error(`***ERROR*** SmartObject.resetBaseCrc() traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
+  },
+
+  // no-op classes ... currently there is NO crc recorded in raw classes
+  handleClass: (classRef) => {},
+});
