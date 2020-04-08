@@ -6,8 +6,7 @@ import checkUnknownArgs     from 'util/checkUnknownArgs';
 import pkgManager           from './pkgManager';
 import PseudoClass          from './PseudoClass';
 import DispMode             from './DispMode';
-import smartTraversalSetup  from './smartTraversalSetup';  // ?? OLD TRASH
-import createTypeRefHandler from './createTypeRefHandler'; // ?? NEW
+import createTypeRefHandler from './createTypeRefHandler';
 
 import crc                  from 'util/crc';
 import {toast}              from 'util/notify';
@@ -1087,49 +1086,15 @@ export default class SmartModel {
    * @returns {smartObject} a deep copy of self.
    */
   smartClone(overridingNamedProps={}) {
-    // setup our traversal through a series of `smartClone()` specific type handlers
-    const cloneRef = smartTraversalSetup({
-      onBehalfOf: `${this.diagClassName()}.smartClone()`,
-
-      // pass through null/undefined references
-      handleNoRef: (accumClone, resume, noRef) => noRef,
-
-      // encode all array items
-      handleArray: (accumClone, resume, arrRef) => arrRef.map( item => resume(item) ),
-
-      // encode SmartObjs smartClone()
-      handleSmartObj: (accumClone, resume, smartObjRef) => smartObjRef.smartClone(),
-
-      // encode plain object
-      handlePlainObj: (accumClone, resume, plainObjRef) => (
-        Object.entries(plainObjRef).reduce( (accum, [subRefName, subRef]) => {
-          accum[subRefName] = resume(subRef);
-          return accum;
-        }, {} )
-      ),
-
-      // pass-through classes as-is (i.e. clone is N/A because they are immutable)
-      handleClass: (accumClone, resume, classRef) => classRef,
-
-      // class-based objects that are NOT SmartObjects are NOT supported
-      // ... this is the default:
-      // handleNonSmartObj(accumClone, resume, otherObjRef) {
-      //   throw new Error(`***ERROR*** ${this.onBehalfOf} traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
-      // }
-
-      // pass through primitives ... clone is N/A because they are immutable
-      handlePrimitive: (accumClone, resume, primitiveRef) => primitiveRef,
-    });
-
 
     // clone self's properties by recursively drilling through entire tree with depth
-    // ... recursion is handled by our internal cloneRef() function
+    // ... recursion is handled by our internal smartCloneRefHandler() function
     const clonedProps = this.encodingPropsReduce( (accumProps, propName, propValue, defaultValue) => {
 
       // clone each prop ONLY if it is not specified in our overridingNamedProps param
       if ( !overridingNamedProps.hasOwnProperty(propName) ) {
-        const clonedValue    = cloneRef(propValue); // clone our propValue
-        accumProps[propName] = clonedValue;         // accumulate our running clonedProps
+        const clonedValue    = smartCloneRefHandler(propValue); // clone our propValue
+        accumProps[propName] = clonedValue;                     // accumulate our running clonedProps
       }
       return accumProps;
 
@@ -1355,4 +1320,36 @@ const toSmartJSONRefHandler = createTypeRefHandler({
     throw new Error(`***ERROR*** SmartObject.toSmartJSON() traversal encountered reference of unsupported type - class or function: ${classRef.name} :-(`);
   },
 
+});
+
+// smartClone() type specific handler
+const smartCloneRefHandler = createTypeRefHandler({
+
+  // pass through null/undefined references
+  handleNoRef: (noRef, accumClone) => noRef,
+
+  // pass through primitives ... clone is N/A because they are immutable
+  handlePrimitive: (primitiveRef, accumClone) => primitiveRef,
+
+  // encode all array items
+  handleArray: (arrRef, accumClone) => arrRef.map( item => smartCloneRefHandler(item) ),
+
+  // encode plain object
+  handlePlainObj: (plainObjRef, accumClone) => (
+    Object.entries(plainObjRef).reduce( (accum, [subRefName, subRef]) => {
+      accum[subRefName] = smartCloneRefHandler(subRef);
+      return accum;
+    }, {} )
+  ),
+
+  // encode SmartObjs smartClone()
+  handleSmartObj: (smartObjRef, accumClone) => smartObjRef.smartClone(),
+
+  // UNSUPPORTED: NON SmartObjects (not plain and not smart)
+  handleNonSmartObj(otherObjRef, accumClone) {
+    throw new Error(`***ERROR*** SmartObject.smartClone() traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
+  },
+
+  // pass-through classes as-is (i.e. clone is N/A because they are immutable)
+  handleClass: (classRef, accumClone) => classRef,
 });
