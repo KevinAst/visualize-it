@@ -887,31 +887,6 @@ export default class SmartModel {
    * @returns {smartJSON} the smartJSON representation of self.
    */
   toSmartJSON() {
-    // setup our traversal through a series of `toSmartJSON()` specific type handlers
-    const encodeRef = smartTraversalSetup({
-      onBehalfOf: `${this.diagClassName()}.toSmartJSON()`,
-
-      // pass through null/undefined references
-      handleNoRef: (accumJSON, resume, noRef) => noRef,
-
-      // encode all array items
-      handleArray: (accumJSON, resume, arrRef) => arrRef.map( item => resume(item) ),
-
-      // encode SmartObjs toSmartJSON()
-      handleSmartObj: (accumJSON, resume, smartObjRef) => smartObjRef.toSmartJSON(),
-
-      // encode plain object
-      handlePlainObj: (accumJSON, resume, plainObjRef) => (
-        Object.entries(plainObjRef).reduce( (accum, [subRefName, subRef]) => {
-          accum[subRefName] = resume(subRef);
-          return accum;
-        }, {} )
-      ),
-
-      // pass through primitives
-      handlePrimitive: (accumJSON, resume, primitiveRef) => primitiveRef,
-    });
-
     // prime our JSON by encoding our smart type information
     // ... using SmartClassRef, this structure considers BOTH real types/classes AND pseudoClasses
     const classRef = this.getClassRef();
@@ -930,7 +905,7 @@ export default class SmartModel {
     this.encodingPropsForEach( (propName, propValue, defaultValue) => {
       // conditionally accumulate the running JSON structure ONLY WHEN it is NOT the default
       if (propValue !== defaultValue) {
-        myJSON[propName] = encodeRef(propValue);
+        myJSON[propName] = toSmartJSONRefHandler(propValue);
       }
     }, false/*forCloning*/);
 
@@ -1345,4 +1320,39 @@ const resetBaseCrcRefHandler = createTypeRefHandler({
 
   // no-op classes ... currently there is NO crc recorded in raw classes
   handleClass: (classRef) => {},
+});
+
+// toSmartJSON() type specific handler
+const toSmartJSONRefHandler = createTypeRefHandler({
+
+  // pass through null/undefined references
+  handleNoRef: (noRef, accumJSON) => noRef,
+
+  // pass through primitives
+  handlePrimitive: (primitiveRef, accumJSON) => primitiveRef,
+
+  // encode all array items
+  handleArray: (arrRef, accumJSON) => arrRef.map( item => toSmartJSONRefHandler(item) ),
+
+  // encode plain object
+  handlePlainObj: (plainObjRef, accumJSON) => (
+    Object.entries(plainObjRef).reduce( (accum, [subRefName, subRef]) => {
+      accum[subRefName] = toSmartJSONRefHandler(subRef);
+      return accum;
+    }, {} )
+  ),
+
+  // encode SmartObjs toSmartJSON()
+  handleSmartObj: (smartObjRef, accumJSON) => smartObjRef.toSmartJSON(),
+
+  // UNSUPPORTED: NON SmartObjects (not plain and not smart)
+  handleNonSmartObj(otherObjRef, accumJSON) {
+    throw new Error(`***ERROR*** SmartObject.toSmartJSON() traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
+  },
+
+  // UNSUPPORTED: class reference
+  handleClass(classRef, accumJSON) {
+    throw new Error(`***ERROR*** SmartObject.toSmartJSON() traversal encountered reference of unsupported type - class or function: ${classRef.name} :-(`);
+  },
+
 });
