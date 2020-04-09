@@ -174,6 +174,11 @@ function genTreeItems(smartPkg, handleActivateTab) {
           const nodeId       = `${accumulativeId}-${compName}`;
           const compRef      = new CompRef({id:compName, name:compName, compClassRef});
           compRef.setParent(smartPkg);
+          // AI: bit of hackery follows:
+          compRef.markAsPkgEntry(); // HACK: fixes error when expanding LeftNav Comp (rendering <SmartTreeItem> BELOW) ... Error: An error occurred while selecting the store state: ***ERROR*** CompRef.getEPkgId() [id:Valve2]: self is NOT an EPkg!
+          compRef.getCompInstance().markAsPkgEntry(); // HACK: fixes error on initial display of Comp in Tab (rendering <UndoRedoTool> in <VitToolBar> ... Error: ***ERROR*** Valve1.getEPkgId() [id:comp-Valve1]: self is NOT an EPkg!
+          compRef.resetBaseCrc(); // HACK: fixes Comp starting out as out-of-sync (LeftNav and Tab)
+          compRef.getCompInstance().resetBaseCrc(); // HACK: fixes Comp starting out as out-of-sync (Tab)
 
           // register this entry to our tabManager (allowing it to be visualized)
           tabRegistry.registerTab( new TabControllerCompRef(nodeId, compName, compRef) );
