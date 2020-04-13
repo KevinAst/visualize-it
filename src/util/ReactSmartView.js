@@ -3,7 +3,7 @@ import {useRef, useEffect} from 'react';
 import {createLogger}      from 'util/logger';
 
 // our internal diagnostic logger (normally disabled)
-const log = createLogger('***DIAG*** <ReactSmartView> ... ').enable();
+const log = createLogger('***DIAG*** <ReactSmartView> ... ').disable();
 
 
 // ReactSmartView: a re-usable React Component that mounts (i.e. renders) a SmartView.
