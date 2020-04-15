@@ -1,3 +1,4 @@
+/* eslint-disable react/no-is-mounted */ // isMount() usage is NOT react-based
 import SmartPallet       from './SmartPallet';
 import Scene             from './Scene';
 import verify            from 'util/verify';
@@ -141,6 +142,52 @@ export default class Collage extends SmartPallet {
     this.scenes.forEach( (scene) => scene.mount(containingKonvaStage) );
   }
 
+  /**
+   * Return an indicator as to whether self is mounted (i.e. bound to the Konva graphics).
+   *
+   * @returns {boolean} `true`: self is mounted, `false` otherwise
+   */
+  isMounted() {
+    return this.containingKonvaStage ? true : false;
+  }
+
+  /**
+   * Unmount the visuals of this collage, unbinding the graphics to the
+   * underlying canvas.
+   *
+   * @param {boolean} [konvaPreDestroyed=false] - an internal
+   * parameter that indicates if konva nodes have already been
+   * destroyed (when a parent Konva.Node has already issued the
+   * konvaNode.destroy()).
+   */
+  unmount(konvaPreDestroyed=false) {
+    // clear our konva state (established in our mount())
+    this.containingKonvaStage = null;
+    
+    // propagate request into our children
+    this.scenes.forEach( (scene) => scene.unmount(konvaPreDestroyed) );
+  }
+
+  /**
+   * Replace self's child reference, defined by the specified params.
+   *
+   * @param {any} oldRef - the existing child to be replaced with
+   * `newRef`.
+   *
+   * @param {any} newRef - the new child to replace `oldRef`.
+   */
+  childRefChanged(oldRef, newRef) {
+    const indx = this.scenes.indexOf(oldRef);
+    if (indx !== -1) {
+      // console.log(`xx Collage.childRefChanged() ... replacing indx: ${indx}\n`, {oldRef, newRef});
+      this.scenes[indx] = newRef;
+    }
+    else {
+      const msg = `***ERROR*** ${this.diagClassName()}.childRefChanged() [id:${this.id}]: could NOT find oldRef to replace (see logs for details)`;
+      console.error(msg+'\n', {oldRef, newRef});
+      throw new Error(msg);
+    }
+  }
 
   /**
    * Get self's current size (dynamically calculated).
@@ -158,7 +205,7 @@ export default class Collage extends SmartPallet {
     }
 
     // compute size
-    if (this.containingKonvaStage) { // ... when mounted
+    if (this.isMounted()) { // ... when mounted
       // dynamically accumulate the size from our scenes
       this.sizeCache = this.scenes.reduce( (accum, scene) => {
 

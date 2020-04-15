@@ -106,6 +106,32 @@ export default class CompRef extends SmartPallet {
     this.scene.mount(containingKonvaStage);
   }
 
+  /**
+   * Return an indicator as to whether self is mounted (i.e. bound to the Konva graphics).
+   *
+   * @returns {boolean} `true`: self is mounted, `false` otherwise
+   */
+  isMounted() {
+    return this.containingKonvaStage ? true : false;
+  }
+
+  /**
+   * Unmount the visuals of this compRef, unbinding the graphics to the
+   * underlying canvas.
+   *
+   * @param {boolean} [konvaPreDestroyed=false] - an internal
+   * parameter that indicates if konva nodes have already been
+   * destroyed (when a parent Konva.Node has already issued the
+   * konvaNode.destroy()).
+   */
+  unmount(konvaPreDestroyed=false) {
+    // clear our konva state (established in our mount())
+    this.containingKonvaStage = null;
+    
+    // propagate request into our children
+    this.scene.unmount(konvaPreDestroyed);
+  }
+
 
   /**
    * Get self's current size (dynamically calculated).

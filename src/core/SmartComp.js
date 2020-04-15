@@ -135,5 +135,38 @@ export default class SmartComp extends SmartModel {
     containingKonvaLayer.add(this.compGroup);
   }
 
+  /**
+   * Return an indicator as to whether self is mounted (i.e. bound to the Konva graphics).
+   *
+   * @returns {boolean} `true`: self is mounted, `false` otherwise
+   */
+  isMounted() {
+    return this.compGroup ? true : false;
+  }
+
+  /**
+   * Unmount the visuals of this component, unbinding the graphics to the
+   * underlying canvas.
+   *
+   * @param {boolean} [konvaPreDestroyed=false] - an internal
+   * parameter that indicates if konva nodes have already been
+   * destroyed (when a parent Konva.Node has already issued the
+   * konvaNode.destroy()).
+   */
+  unmount(konvaPreDestroyed=false) {
+    // destroy our Konva representation
+    // ... the Konva.destroy() is deep (clearing all containment)
+    // ... therefore, we do it conditionally, when not already accomplished by our parent
+    if (!konvaPreDestroyed) {
+      this.compGroup.destroy();
+    }
+
+    // clear our konva state (established in our mount())
+    this.compGroup = null;
+    
+    // N/A: this is the lowest level :-)
+    // propagate request into our children
+  }
+
 }
 SmartComp.unmangledName = 'SmartComp';

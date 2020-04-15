@@ -1,3 +1,4 @@
+/* eslint-disable react/no-is-mounted */ // isMount() usage is NOT react-based
 import SmartModel        from './SmartModel';
 import SmartPallet       from './SmartPallet';
 import Konva             from 'konva';
@@ -77,7 +78,7 @@ export default class SmartView extends SmartModel {
    * @param {string} [method] - the method name on which behalf we are checking.
    */
   checkMounted(method) {
-    verify(this.konvaStage, `${this.diagClassName()}.${method}() can only be invoked after mounting.`);
+    verify(this.isMounted(), `${this.diagClassName()}.${method}() can only be invoked after mounting.`);
   }
 
   /**
@@ -141,6 +142,42 @@ export default class SmartView extends SmartModel {
     // regenerate actual size, once mounting is complete
     // ... propagate this request into our pallet
     this.pallet.trickleUpChange();
+  }
+
+  /**
+   * Return an indicator as to whether self is mounted (i.e. bound to the Konva graphics).
+   *
+   * @returns {boolean} `true`: self is mounted, `false` otherwise
+   */
+  isMounted() {
+    return this.konvaStage ? true : false;
+  }
+
+  /**
+   * Unmount the visuals of this view, unbinding the graphics to the
+   * underlying canvas.
+   *
+   * @param {boolean} [konvaPreDestroyed=false] - an internal
+   * parameter that indicates if konva nodes have already been
+   * destroyed (when a parent Konva.Node has already issued the
+   * konvaNode.destroy()).
+   */
+  unmount(konvaPreDestroyed=false) {
+    log(`unmounting SmartView id: ${this.id}`);
+
+    // destroy our Konva representation
+    // ... the Konva.destroy() is deep (clearing all containment)
+    // ... therefore, we do it conditionally, when not already accomplished by our parent
+    if (!konvaPreDestroyed) {
+      this.konvaStage.destroy();
+    }
+
+    // clear our konva state (established in our mount())
+    this.containingHtmlElm = null;
+    this.konvaStage        = null;
+    
+    // propagate request into our children
+    this.pallet.unmount(true/*konvaPreDestroyed*/);
   }
 }
 SmartView.unmangledName = 'SmartView';

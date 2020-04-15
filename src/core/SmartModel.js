@@ -1,3 +1,4 @@
+/* eslint-disable react/no-is-mounted */ // isMount() usage is NOT react-based
 import verify               from 'util/verify';
 import {isString,
         isPlainObject,
@@ -111,11 +112,17 @@ export default class SmartModel {
    * reconstitute an equivalent object.
    * 
    * The polymorphic knowledge provided by this method allows the
-   * following two methods to be fully implemented in the SmartModel
-   * base class:
+   * many  methods to be fully implemented in the SmartModel
+   * base class, including:
    * 
-   *  - toSmartJSON() ... driving persistance
-   *  - smartClone() .... in duplicating objects
+   *  - toSmartJSON()
+   *  - smartClone()
+   *  - getCrc()
+   *  - resetBaseCrc()
+   *  - areClassesOutOfSync()
+   *  - syncClassInstances()
+   *  - smartClone()
+   *  - etc.
    *
    * In the simplest form, this method merely returns a `string[]` of
    * the property names to encode.
@@ -182,35 +189,32 @@ export default class SmartModel {
    * pseudoClass implementations have additional considerations in
    * their `getEncodingProps()` implementation.
    * 
-   * - General Rule: pseudoClass INSTANCEs should omit the props that
-   *   will be reconstituted by the pseudoClass constructor (i.e. the
-   *   pseudoClass MASTER).  This is similar to how a real class
-   *   instantiation reconstitutes its internal state.
+   * - General Rule: 
    * 
-   * - HOWEVER, this rule is not in affect when the encoding props are
-   *   being gathered for the purpose of cloning.  In this case, all
-   *   non-temporal properties should be included, because it is more
-   *   of a "raw" copy operation, where the additional props are NOT
-   *   supplied through the pseudo constructor params.
+   *   * pseudoClass INSTANCEs should omit the props that will be
+   *     reconstituted by the pseudoClass constructor (i.e. the
+   *     pseudoClass MASTER).  This is similar to how a real class
+   *     instantiation reconstitutes its internal state.
    * 
-   * - This is where the `forCloning` param comes in to play.
+   *   * pseudoClass MASTERs should include ALL props.
+   *
    *   Here is a pseudoClass example taken from `Scene`:
    *   
-   *   ```js
-   *   getEncodingProps(forCloning) {
-   *     // define our "baseline"
-   *     const encodingProps = [['x',0], ['y',0]];
-   *   
-   *     // conditionally include non-temporal props:
-   *     // - for pseudoClass MASTERs
-   *     // - for cloning operations
-   *     if (this.pseudoClass.isType() || forCloning) {
-   *       encodingProps.push('comps');
-   *     }
-   *   
-   *     return [...super.getEncodingProps(forCloning), ...encodingProps];
-   *   }      
-   *   ```
+   *     ```js
+   *     getEncodingProps() {
+   *     
+   *       // define our "baseline"
+   *       const encodingProps = [['x',0], ['y',0]];
+   *     
+   *       // for pseudoClass MASTERs, include non-temporal props
+   *       // ... see JavaDoc for: SmartModel.getEncodingProps()
+   *       if (this.pseudoClass.isType()) {
+   *         encodingProps.push('comps');
+   *       }
+   *     
+   *       return [...super.getEncodingProps(), ...encodingProps];
+   *     }      
+   *     ```
    *
    * @param {boolean} forCloning - an indicator as to whether this
    * request is on behalf of the cloning operation (true:
@@ -445,6 +449,236 @@ export default class SmartModel {
     if (this.isaEPkg() && baseCrcChanged) {
       changeManager.ePkgChanged(this);
     }
+  }
+
+  /**
+   * Mount the visuals of this node, binding the Konva graphics.
+   *
+   * Prior to `mount()` execution, the visualize-it object
+   * representation is very lightweight.
+   *
+   * @param {Konva.any} containingKonvaContext - The container of
+   * this node (varies - typically a Konva reference).
+   */
+  mount(containingKonvaContext) {
+    throw new Error(`***ERROR*** SmartModel pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.mount() is an abstract method that MUST BE implemented!`);
+  }
+
+  /**
+   * Return an indicator as to whether self is mounted (i.e. bound to the Konva graphics).
+   *
+   * @returns {boolean} `true`: self is mounted, `false` otherwise
+   */
+  isMounted() {
+    throw new Error(`***ERROR*** SmartModel pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.isMounted() is an abstract method that MUST BE implemented!`);
+  }
+
+  /**
+   * Unmount the visuals of this node, unbinding the Konva graphics.
+   *
+   * @param {boolean} [konvaPreDestroyed=false] - an internal
+   * parameter that indicates if konva nodes have already been
+   * destroyed (when a parent Konva.Node has already issued the
+   * konvaNode.destroy()).
+   */
+  unmount(konvaPreDestroyed=false) {
+    throw new Error(`***ERROR*** SmartModel pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.unmount() is an abstract method that MUST BE implemented!`);
+  }
+
+  /**
+   * Replace self's child reference, defined by the specified params.
+   *
+   * @param {any} oldRef - the existing child to be replaced with
+   * `newRef`.
+   *
+   * @param {any} newRef - the new child to replace `oldRef`.
+   */
+  childRefChanged(oldRef, newRef) {
+    throw new Error(`***ERROR*** SmartModel pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.childRefChanged() is an abstract method that MUST BE implemented!`);
+  }
+
+  /**
+   * Return an indicator as to whether the class self was created from
+   * is out-of-sync with the latest class definition.
+   *
+   * Class versioning can become out-of-sync when interactive edits
+   * occur to the class master.
+   *
+   * Currently, this is only operational for pseudo classes.  Real
+   * code-based class versioning is not currently tracked, and will
+   * always indicate they are in-sync.
+   *
+   * @returns {boolean} `true`: self's class is out-of-sync with the
+   * latest class version, `false` otherwise.
+   */
+  isClassOutOfSync() {
+    // obtain the classRef self was created from
+    // ... NOTE: This is the same instance as if we pulled it directly from pkgManager!
+    //           e.g. pkgManager.getClassRef(selfsClassRef.getClassPkgId(), selfsClassRef.getClassName());
+    const selfsClassRef  = this.getClassRef();
+
+    // handle pseudo classes
+    if (selfsClassRef.isPseudoClass()) {
+      // compare the class version self was created from
+      // ... NOTE: versionCrcUsedInCreation is maintained by SmartClassRef.createSmartObject()
+      // console.log(`xx ${this.diagClassName()}.isClassOutOfSync() ... a pseudoClassInstance from version: : ${this.pseudoClass.versionCrcUsedInCreation} ... selfsClassRef:\n`, selfsClassRef);
+      return selfsClassRef.getClassVersionCrc() !== this.pseudoClass.versionCrcUsedInCreation;
+    }
+
+    // handle real classes
+    // ... currently not tracked - consider them in-sync
+    return false;
+  }
+
+
+  /**
+   * Return an indicator as to whether any of the classes that make up
+   * self (and it's containment tree) is out-of-sync with the latest
+   * class definitions.
+   *
+   * Class versioning can become out-of-sync when interactive edits
+   * occur to the class master.
+   *
+   * Currently, this is only operational for pseudo classes.  Real
+   * code-based class versioning is not currently tracked, and will
+   * always indicate they are in-sync.
+   *
+   * NOTE: This algorithm will short-circuit on the first out-of-sync
+   *       class it finds.  This is accomplished using OR logic.
+   *
+   * @returns {boolean} `true`: some of self's containment classes is
+   * out-of-sync with the latest class versions, `false` otherwise.
+   */
+  areClassesOutOfSync() {
+
+    // define our type specific handler
+    // ... place our definition close by, but cache for optimization
+    //     (can be re-used by ANY instance)
+    const outOfSyncHandler = handlerCache.outOfSyncHandler = handlerCache.outOfSyncHandler || createTypeRefHandler({
+
+      // null/undefined can't be out-of-sync
+      handleNoRef: (noRef, accumOutOfSync) => accumOutOfSync || false,
+
+      // primitive's can't be out-of-sync
+      handlePrimitive: (primitiveRef, accumOutOfSync) => accumOutOfSync || false,
+
+      // analyze array items
+      handleArray: (arrRef, accumOutOfSync) => arrRef.reduce( (accum, item) => accum || outOfSyncHandler(item, accum), accumOutOfSync ),
+
+      // analyze plain object
+      handlePlainObj: (plainObjRef, accumOutOfSync) => Object.values(plainObjRef).reduce( (accum, item) => accum || outOfSyncHandler(item, accum), accumOutOfSync ),
+
+      // analyze SmartObj by recursing on our `areClassesOutOfSync()` method
+      handleSmartObj: (smartObjRef, accumOutOfSync) => accumOutOfSync || smartObjRef.areClassesOutOfSync(),
+
+      // UNSUPPORTED: NON SmartObjects (not plain and not smart)
+      handleNonSmartObj(otherObjRef, accumOutOfSync) {
+        throw new Error(`***ERROR*** SmartObject.areClassesOutOfSync() traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
+      },
+
+      // classes can't be out-of-sync
+      handleClass: (classRef, accumOutOfSync) => accumOutOfSync || false,
+    });
+
+    // short-circuit process when we find our first out-of-date
+    if (this.isClassOutOfSync()) {
+      return true;
+    }
+
+    // trickle this request down through our containment tree, driven by self's instance properties
+    return this.encodingPropsReduce( (accumOutOfSync, propName, propValue, defaultValue) => {
+      return accumOutOfSync || outOfSyncHandler(propValue, accumOutOfSync); // short-circuit via OR (||)
+    }, false,/*forCloning*/ false/*initialAccum*/);
+  }
+
+  /**
+   * Synchronize any out-of-date objects (within self and it's
+   * containment tree), bringing them up-to-date with the latest class
+   * definitions.
+   *
+   * Class versioning can become out-of-sync when interactive edits
+   * occur to the class master.
+   *
+   * Currently, this is only operational for pseudo classes.  Real
+   * code-based class versioning is not currently tracked, and will
+   * always indicate they are in-sync.
+   *
+   * PREREQUISITE: When invoking this method, the management of the
+   * Konva visuals must be addressed by surrounding the invocation
+   * with:
+   *   1. "unmounting" prior to invocation, and
+   *   2. "remounting" after the invocation
+   * Currently this is accomplished by our single invoking agent:
+   * `syncOutOfDateClasses()`
+   * ... the tabManager logic module that is activated whenever a tab is changed
+   *     (src/features/common/tabManager/logic.js).
+   */
+  syncClassInstances() {
+
+    // define our type specific handler
+    // ... API: syncClassHandler(ref, accum): accum
+    // ... place our definition close by, but cache for optimization (can be re-used by ANY instance)
+    const syncClassHandler = handlerCache.syncClassHandler = handlerCache.syncClassHandler || createTypeRefHandler({
+      // null/undefined can't be out-of-sync
+      handleNoRef: (noRef, accum) => {},
+      // primitive's can't be out-of-sync
+      handlePrimitive: (primitiveRef, accum) => {},
+      // drill into array items
+      handleArray: (arrRef, accum) => arrRef.forEach( (item) => syncClassHandler(item) ),
+      // drill into plain object
+      handlePlainObj: (plainObjRef, accum) => Object.values(plainObjRef).forEach( (item) => syncClassHandler(item) ),
+      // analyze SmartObj by recursing on our `syncClassInstances()` method
+      handleSmartObj: (smartObjRef, accum) => smartObjRef.syncClassInstances(),
+      // UNSUPPORTED: NON SmartObjects (not plain and not smart)
+      handleNonSmartObj(otherObjRef, accum) {
+        throw new Error(`***ERROR*** SmartObject.syncClassInstances() traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
+      },
+      // classes can't be out-of-sync
+      handleClass: (classRef, accum) => {},
+    });
+
+    // when self is out-of-date, resync it!
+    if (this.isClassOutOfSync()) {
+
+      // verify that our Konva visuals have been unmounted
+      // ... see PREREQUISITE note (above)
+      verify(!this.isMounted(), `${this.diagClassName()}.syncClassInstances() ... invoker must first issue unmount() on self.`);
+
+      // re-create self by cloning it
+      // ... because smartClone() re-instantiates class instances from
+      //     the most current class definition, our new instance will be
+      //     in-sync!
+      // ... NOTE: We must directly issue smartClone() to get the
+      //           correct result (picking up the correct instance
+      //           state and class state)
+      //           NOT: this.getClassRef().createSmartObject()
+      //                ... see: "two-phase" NOTE in smartClone()
+//    const newSelf = this.getClassRef().createSmartObject(); // NO
+      const newSelf = this.smartClone();                      // YES
+      // console.log(`xx ${this.diagClassName()}.syncClassInstances() self is out-of-date:\n`, {oldRef: this, newRef: newSelf});
+
+      // patch in our re-synced newSelf within our containment tree (replacing self)
+      // ... both to the "primary" containment tree
+      const parent = this.parent;
+      if (parent) {
+        newSelf.parent = parent;               // ... back-reference
+        parent.childRefChanged(this, newSelf); // ... forward-reference
+      }
+      // ... and the "view" containment tree
+      const viewParent = this.viewParent;
+      if (viewParent) {
+        newSelf.viewParent = viewParent;           // ... back-reference
+        viewParent.childRefChanged(this, newSelf); // ... forward-reference
+      }
+
+      // short-circuit our process
+      // ... there is no need to go any further IN THIS path
+      //     BECAUSE this entire containment tree path is now in-sync!
+      return;
+    }
+
+    // trickle this request down through our containment tree, driven by self's instance properties
+    this.encodingPropsForEach( (propName, propValue, defaultValue) => syncClassHandler(propValue), false/*forCloning*/ );
   }
 
 
@@ -1064,26 +1298,78 @@ export default class SmartModel {
 
 
   /**
-   * An instance method that creates a deep copy of self.
+   * Create a deep copy of self that is up-to-date with the latest
+   * class versioning.
    * 
-   * Within the cloning process, object creation is still based on
-   * class instantiation ... dynamically performing a `new
-   * Class(namedProps)`.  As such the supported object types are
-   * limited to smartObjects (SmartModel derivations), native types,
-   * arrays, and plain objects.  This heuristic applies not only to
-   * the top-level object, but also it's subordinate objects within
-   * the containment tree.
+   * Within this cloning process, object creation is still based on
+   * class instantiation.
+   * 
+   * The hallmark of smartClone() is it is designed to generate deep
+   * copies of self that are up-to-date with the latest class
+   * versioning.
+   *
+   * - Class versioning can become out-of-sync when interactive edits
+   *   occur to the class master.
+   *   
+   * - Currently, this is only operational for pseudo classes.  Real
+   *   code-based class versioning is not currently tracked, and will
+   *   always indicate they are in-sync.
+   *
+   * INTERNAL NOTE: "two-phase" process
+   *
+   *   There is a very subtle (and powerful) characteristic of
+   *   smartClone() that can be confusing.  When cloning pseudoClass
+   *   INSTANCES, we need to pull in characteristics from BOTH
+   *   instance state and pseudo-class state.  This is accomplished
+   *   through a "two-phase" process, where smartClone() is invoked
+   *   twice.
+   *
+   *   To make sense of this, let's look a Scene object (a
+   *   pseudoClass).  A scene INSTANCE can reside in a collage, and if
+   *   the scene MASTER is updated, the collage reference to that
+   *   scene INSTANCE must be updated.
+   *
+   *   PHASE 1:
+   *    - scene.smartClone() is invoked
+   *    - the "instance" properties are accumulated [x,y]
+   *      ... these are the translation characteristics of where the
+   *          scene instance is placed in the collage
+   *      ... this is accomplished based on the dynamics of
+   *          this.getEncodingProps()
+   *    - the clonedCopy is requested via:
+   *      classRef.createSmartObject(namedProps) ... passing {x,y} as namedProps
+   *
+   *   PHASE 2:
+   *    - scene.smartClone({x,y}) is invoked a second time
+   *      * because createSmartObject() is processing a pseudoClass, 
+   *        it issues another smartClone() request
+   *      * IMPORTANT: however, this time self is the pseudoClass MASTER
+   *                   NOT the pseudoClass INSTANCE (from Phase 1).
+   *      * IMPORTANT: and the overridingNamedProps param includes the
+   *                   {x,y} from Phase 1.
+   *    - the "class" properties are now accumulated [comps]
+   *      ... these are what makes the pseudoClass a class: 
+   *          i.e. the components are part of the "Scene" pseudoClass!
+   *      ... this is accomplished based on the dynamics of
+   *          this.getEncodingProps()
+   *    - the clonedCopy is requested via:
+   *      classRef.createSmartObject(namedProps) ... passing {x,y,comps} as namedProps
+   *      * because the classRef is the "real" Scene class it is instantiate
+   *        using `new Scene(...)` semantics
+   *      * KOOL: we have accumulated BOTH the appropriate "instance" and "class" properties!!!
+   *
    *
    * NOTE: This algorithm is fully implemented within the SmartModel
    *       base class.  With the polymorphic knowledge of which
    *       properties to encode (see getEncodingProps()) it rarely
    *       needs to be overwritten.
    *
-   * @param {ObjectLiteral} [namedProps] - The optional named
-   * properties that when supplied will override the members of self
-   * that are to be deeply cloned).
+   * @param {ObjectLiteral} [overridingNamedProps] - The optional
+   * named properties that when supplied will override the members of
+   * self that are to be deeply cloned.
    *
-   * @returns {smartObject} a deep copy of self.
+   * @returns {smartObject} a deep copy of self that is up-to-date
+   * with the latest class versioning.
    */
   smartClone(overridingNamedProps={}) {
 
@@ -1104,11 +1390,18 @@ export default class SmartModel {
     // ... overridingNamedProps param take precedence
     //     -and- supports overrides that are NOT part of our instance members
     const namedProps = {...clonedProps, ...overridingNamedProps};
+    // console.log(`xx ${this.diagClassName()}.smartClone() instantiating new object with following params:\n`, {clonedProps, overridingNamedProps, namedProps});
 
     // instantiate a new copy of self (our cloned copy)
-    // ... NOTE: our entire cloning and persistance architecture is based on
-    //           SmartModel constructors using named parameters!
-    const clonedCopy = new this.constructor(namedProps);
+    // NOTE: Our entire cloning and persistance architecture is based on
+    //       SmartModel constructors using named parameters!
+    // NOTE: We must use classRef.createSmartObject() to get the
+    //       correct result (picking up the correct instance
+    //       state and class state)
+    //       NOT: new this.constructor(namedProps)
+    //            ... see: "two-phase" NOTE (in self's JavaDoc)
+//  const clonedCopy = new this.constructor(namedProps);                 // NO
+    const clonedCopy = this.getClassRef().createSmartObject(namedProps); // YES
 
     // that's all folks :-)
     return clonedCopy;
@@ -1222,9 +1515,26 @@ function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
 }
 
 
+
+/**
+ * A static cache of all `createTypeRefHandler()` functions.  These
+ * functions can be re-used for ANY SmartObject instance.  This cache
+ * is used to support the preference of creating the functions in-line
+ * (so as to live close to the usage code).
+ */
+const handlerCache = {
+  // [functName]: function,
+  // ...
+};
+
+
+
+// TODO: migrate all these in-line using handlerCache
+
 //***
 //*** Type reference handlers used in various SmartModel traversals
 //***
+
 
 // getCrc() type specific handler
 const getCrcRefHandler = createTypeRefHandler({

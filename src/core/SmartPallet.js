@@ -28,21 +28,6 @@ export default class SmartPallet extends SmartModel {
   }
 
   /**
-   * Mount the visuals of this SmartPallet, binding the graphics to the
-   * underlying canvas.
-   *
-   * Prior to `mount()` execution, the visualize-it object
-   * representation is very lightweight.
-   *
-   * @param {Konva.Stage} containingKonvaStage - The container of
-   * this pallet (a Konva.Stage).
-   */
-  mount(containingKonvaStage) {
-    throw new Error(`***ERROR*** SmartPallet pseudo-interface-violation: ${this.diagClassName()}(id:${this.id}).mount() is an abstract method that MUST BE implemented!`);
-  }
-
-
-  /**
    * Get self's current size (dynamically calculated).
    *
    * @returns {Size} self's current size ... {width, height}.

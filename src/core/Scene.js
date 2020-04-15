@@ -1,3 +1,4 @@
+/* eslint-disable react/no-is-mounted */ // isMount() usage is NOT react-based
 import Konva                from 'konva';
 import PseudoClass          from './PseudoClass';
 import SmartPallet          from './SmartPallet';
@@ -112,11 +113,9 @@ export default class Scene extends SmartPallet {
     // define our "baseline"
     const encodingProps = [['x',0], ['y',0]];
 
-    // conditionally include non-temporal props:
-    // - for pseudoClass MASTERs
-    // - for cloning operations
+    // for pseudoClass MASTERs, include non-temporal props
     // ... see JavaDoc for: SmartModel.getEncodingProps()
-    if (this.pseudoClass.isType() || forCloning) {
+    if (this.pseudoClass.isType() /* ?? NO LONGER USED: || forCloning */) {
       encodingProps.push('comps');
     }
 
@@ -322,7 +321,7 @@ export default class Scene extends SmartPallet {
    * @param {string} [method] - the method name on which behalf we are checking.
    */
   checkMounted(method) {
-    verify(this.konvaSceneLayer, `${this.diagClassName()}.${method}() can only be invoked after mounting.`);
+    verify(this.isMounted(), `${this.diagClassName()}.${method}() can only be invoked after mounting.`);
   }
 
   /**
@@ -354,6 +353,40 @@ export default class Scene extends SmartPallet {
     // ... NOTE: This must be added AFTER the layer is populated :-(
     //           UNSURE WHY: seems like a Konva limitation :-(
     containingKonvaStage.add(this.konvaSceneLayer)
+  }
+
+  /**
+   * Return an indicator as to whether self is mounted (i.e. bound to the Konva graphics).
+   *
+   * @returns {boolean} `true`: self is mounted, `false` otherwise
+   */
+  isMounted() {
+    return this.konvaSceneLayer ? true : false;
+  }
+
+  /**
+   * Unmount the visuals of this scene, unbinding the graphics to the
+   * underlying canvas.
+   *
+   * @param {boolean} [konvaPreDestroyed=false] - an internal
+   * parameter that indicates if konva nodes have already been
+   * destroyed (when a parent Konva.Node has already issued the
+   * konvaNode.destroy()).
+   */
+  unmount(konvaPreDestroyed=false) {
+    // destroy our Konva representation
+    // ... the Konva.destroy() is deep (clearing all containment)
+    // ... therefore, we do it conditionally, when not already accomplished by our parent
+    if (!konvaPreDestroyed) {
+      this.konvaSceneLayer.destroy();
+    }
+
+    // clear our konva state (established in our mount())
+    this.containingKonvaStage = null;
+    this.konvaSceneLayer      = null;
+    
+    // propagate request into our children
+    this.comps.forEach( (comp) => comp.unmount(true/*konvaPreDestroyed*/) );
   }
 
 

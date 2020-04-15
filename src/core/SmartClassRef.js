@@ -81,25 +81,29 @@ export default class SmartClassRef {
   }
 
 
-  // NOT NEEDED: The whole idea of this class is to remove conditional logic!
-  // /**
-  //  * Return an indicator as to whether self is a real class
-  //  *
-  //  * @returns {boolean} true: a realClass, false: a pseudoClass
-  //  */
-  // isClass() {
-  //   return this.realClass ? true : false;
-  // }
+  /**
+   * Return an indicator as to whether self is a real class
+   *
+   * NOTE: This method should have minimal use (the whole idea of self's
+   * class is to remove conditional logic)!
+   *
+   * @returns {boolean} true: a realClass, false: a pseudoClass
+   */
+  isClass() {
+    return this.realClass ? true : false;
+  }
 
-  // NOT NEEDED: The whole idea of this class is to remove conditional logic!
-  // /**
-  //  * Return an indicator as to whether self is a pseudo class
-  //  *
-  //  * @returns {boolean} true: a pseudoClass, false: a realClass
-  //  */
-  // isPseudoClass() {
-  //   return this.pseudoClassContainer ? true : false;
-  // }
+  /**
+   * Return an indicator as to whether self is a pseudo class
+   *
+   * NOTE: This method should have minimal use (the whole idea of self's
+   * class is to remove conditional logic)!
+   *
+   * @returns {boolean} true: a pseudoClass, false: a realClass
+   */
+  isPseudoClass() {
+    return this.pseudoClassContainer ? true : false;
+  }
 
 
   /**
@@ -146,6 +150,28 @@ export default class SmartClassRef {
     return `${this.getClassPkgId()}/${this.getClassName()}`;
   }
 
+  /**
+   * Return the current crc hash for self's class, considered a class
+   * version, used in detecting out-of-sync classes (see
+   * SmartModel.isClassOutOfSync()).
+   *
+   * Currently, this is only operational for pseudo classes.  Real
+   * code-based class versioning is not currently tracked, and will
+   * always return a zero (0), indicating they are in-sync.
+   *
+   * @returns {number} self's class versioning crc hash.
+   */
+  getClassVersionCrc() {
+    // interpret a pseudoClass type
+    // ... self is a pseudoClass MASTER (i.e. a logical type)
+    if (this.pseudoClassContainer) {
+      return this.pseudoClassContainer.getCrc();
+    }
+
+    // interpret our real class name
+    // ... we don't currently track versioning of real classes (every class version is zero)
+    return 0;
+  }
 
   /**
    * A value-added constructor that creates smartObjects of this type.
@@ -195,6 +221,11 @@ export default class SmartClassRef {
       // ... used to locate the pseudoClass from which an object was created :-)
       // ... see: SmartModel.getClassRef()
       newObj.pseudoClass.pseudoClassMaster = pseudoClassContainer;
+
+      // retain the version crc hash of the pseudoClassMaster used in our construction
+      // ... used to detect out-of-sync class when dynamic classes change during interactive edit session
+      // ... see: SM.isClassOutOfSync()
+      newObj.pseudoClass.versionCrcUsedInCreation = pseudoClassContainer.getCrc();
     }
 
     log(`createSmartObject() created new object from ${msgQualifier} class: '${this.getFullClassName()}' ... using namedParams: `, {namedParams, newObj});

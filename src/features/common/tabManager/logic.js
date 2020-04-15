@@ -170,8 +170,7 @@ export const supplementCloseTab = createLogic({
 
 
 /**
- * Synchronize the target tab's DispMode when a tab is initially
- * displayed.  
+ * Synchronize the target tab's DispMode each time a tab is activated.
  *
  * This will insure the internal Konva state matches the object
  * model's initial state!
@@ -207,6 +206,87 @@ export const syncTargetDispMode = createLogic({
 });
 
 
+/**
+ * Synchronize any out-of-date class references each time a tab is
+ * activated.
+ *
+ * Class versioning can become out-of-sync when interactive edits
+ * occur to the class master (visualized in a separate tab).
+ *
+ * Currently, this is only operational for pseudo classes.  Real
+ * code-based class versioning is not currently tracked, and will
+ * therefore always be in-sync.
+ */
+export const syncOutOfDateClasses = createLogic({
+
+  name: `${_tabManager}.syncOutOfDateClasses`,
+  type: String(_tabManagerAct.activateTab),
+
+  // NOTE: we perform this in the "process" phase because Konva must be mounted to work :-(
+  process({getState, action, fassets}, dispatch, done) {
+
+    // locate the tab's top-level PkgEntry
+    const tabController = tabRegistry.getTabController(action.tabId); // ... AI: may error - returns undefined if NOT registered?
+    const pkgEntry      = tabController.getTarget();
+
+    // whe package is out-of-sync ...
+    if (pkgEntry.areClassesOutOfSync()) {
+      // console.log(`xx activateTab for ${pkgEntry.getName()} ... something is out-of-sync!`);
+
+      // locate the top-level SmartView
+      const view = pkgEntry.getView();
+      const containingHtmlElm = view.containingHtmlElm;
+
+      // unmount the Konva visuals
+      view.unmount();
+
+      // sync our object model
+      pkgEntry.syncClassInstances();
+
+      // re-mount the Konva visuals
+      view.mount(containingHtmlElm);
+
+      // re-establish our pkgEntry DispMode
+      // ... this resets all our event handlers given the re-mount :-)
+      pkgEntry.setDispMode( pkgEntry.getDispMode() );
+    }
+    else {
+      // console.log(`xx activateTab for ${pkgEntry.getName()} ... everything is in-sync!`);
+    }
+
+    done();
+  },
+});
+
+
+/**
+ * Unmount the Konva visuals, whenever a tab is closed.
+ */
+export const unmountKonva = createLogic({
+
+  name: `${_tabManager}.unmountKonva`,
+  type: String(_tabManagerAct.closeTab),
+
+  // NOTE: we perform this in the "process" phase because Konva must be mounted to work :-(
+  process({getState, action, fassets}, dispatch, done) {
+
+    // locate the tab's top-level PkgEntry
+    const tabController = tabRegistry.getTabController(action.tabId); // ... AI: may error - returns undefined if NOT registered?
+    const pkgEntry      = tabController.getTarget();
+
+    // locate the top-level SmartView
+    const view = pkgEntry.getView();
+
+    // unmount the Konva visuals
+    view.unmount();
+
+    // that's all folks
+    done();
+  },
+
+});
+
+
 // promote all logic modules for this feature
 // ... NOTE: individual logic modules are unit tested using the named exports.
 export default [
@@ -214,4 +294,8 @@ export default [
   supplementCloseTab,
 
   syncTargetDispMode,
+
+  syncOutOfDateClasses,
+
+  unmountKonva,
 ];
