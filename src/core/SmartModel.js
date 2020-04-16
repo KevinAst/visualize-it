@@ -33,7 +33,7 @@ import changeManager        from 'features/common/changeManager/changeManager'; 
  *    + toSmartJSON():smartJSON ................. transforms self (with depth) into smartJSON
  *<S> + fromSmartJSON(smartJSON): smartObject ... reconstitutes class-based objects (with depth) from smartJSON
  *    + smartClone(): smartObject ............... creates a deep copy of self (used in pseudo constructor - SmartClassRef.createSmartObject(namedParams)))
- *    + getEncodingProps(forCloning): string[] .. polymorphically expose properties required to encode self
+ *    + getEncodingProps(): string[] ............ polymorphically expose properties required to encode self
  *
  *  - meta info (more found in PseudoClass and SmartClassRef):
  *    + getClassRef(): SmartClassRef ... promotes the classRef from which self was created (unifying both real classes and pseudo classes)
@@ -121,7 +121,6 @@ export default class SmartModel {
    *  - resetBaseCrc()
    *  - areClassesOutOfSync()
    *  - syncClassInstances()
-   *  - smartClone()
    *  - etc.
    *
    * In the simplest form, this method merely returns a `string[]` of
@@ -129,7 +128,7 @@ export default class SmartModel {
    *
    *   ```js
    *   class MyClass extends SmartModel {
-   *     getEncodingProps(forCloning): {
+   *     getEncodingProps(): {
    *       return ['prop1', 'prop2'];
    *     }
    *     ...
@@ -141,8 +140,8 @@ export default class SmartModel {
    *
    *   ```js
    *   class MyClass extends SmartModel {
-   *     getEncodingProps(forCloning): {
-   *       return [...super.getEncodingProps(forCloning), ...['my', 'props', 'too']];
+   *     getEncodingProps(): {
+   *       return [...super.getEncodingProps(), ...['my', 'props', 'too']];
    *     }
    *     ...
    *   }
@@ -151,7 +150,7 @@ export default class SmartModel {
    * Each element in the returned array may either be:
    *  - a propName: string
    *  - or an ordered pair: `[propName, defaultValue]`
-   *    ... defaultValues are an optimization.  The usage algorithms
+   *    ... defaultValues are an optimization.  Persistence related tasks
    *        will omit values matching defaultValues, because they are
    *        expected to be reconstituted (by default) at
    *        instantiation.  As a result, these defaultValues should
@@ -166,8 +165,8 @@ export default class SmartModel {
    *     constructor({my, props, too=1}): {
    *       ...
    *     }
-   *     getEncodingProps(forCloning): {
-   *       return [...super.getEncodingProps(forCloning), ...['my', 'props', ['too',1]]];
+   *     getEncodingProps(): {
+   *       return [...super.getEncodingProps(), ...['my', 'props', ['too',1]]];
    *     }
    *     ...
    *   }
@@ -216,19 +215,12 @@ export default class SmartModel {
    *     }      
    *     ```
    *
-   * @param {boolean} forCloning - an indicator as to whether this
-   * request is on behalf of the cloning operation (true:
-   * `smartClone()` is making the request).  When cloning, additional
-   * properties may be supplied (over and above what would be
-   * re-constituted from a constructor invocation).  Please interpret
-   * this value using "truthy" semantics.
-   *
    * @returns {[propName, [propName, defaultValue], ...]} self's
    * property names (string) to be encoded in our smartJSON
    * representation (omitting values that match the optional
    * defaultValue).
    */
-  getEncodingProps(forCloning) {
+  getEncodingProps() {
     return ['id', 'name'];
   }
 
@@ -248,28 +240,18 @@ export default class SmartModel {
    *   ```js
    *   + cbFn(propName, propValue, defaultValue): void
    *   ```
-   *
-   * @param {boolean} forCloning - an indicator as to whether this
-   * request is on behalf of the cloning operation (true:
-   * `smartClone()` is making the request).  When cloning, additional
-   * properties may be supplied (over and above what would be
-   * re-constituted from a constructor invocation).  Please interpret
-   * this value using "truthy" semantics.
    */
-  encodingPropsForEach(cbFn, forCloning=false) {
+  encodingPropsForEach(cbFn) {
 
     // validate parameters
     const check = verify.prefix(`${this.diagClassName()}.encodingPropsForEach() parameter violation: `);
     // ... cbFn
     check(cbFn,             'cbFn is required');
     check(isFunction(cbFn), 'cbFn must be a function');
-    // ... forCloning
-    check(forCloning===true ||
-          forCloning===false,   'forCloning must be a boolean (when supplied)');
 
     // iteration loop
     // ... driven by self's smartObj encoding properties
-    const encodingProps = this.getEncodingProps(forCloning);
+    const encodingProps = this.getEncodingProps();
     encodingProps.forEach( (prop) => {
       // decipher propName/propValue
       const [propName, defaultValue] = Array.isArray(prop) ? prop : [prop, 'DeFaUlT NoT dEfInEd'];
@@ -297,14 +279,6 @@ export default class SmartModel {
    *   ```js
    *   + cbFn(accum, propName, propValue, defaultValue): accumAmalgamation
    *   ```
-   * NOTE: That if NO 
-   *
-   * @param {boolean} forCloning - an indicator as to whether this
-   * request is on behalf of the cloning operation (true:
-   * `smartClone()` is making the request).  When cloning, additional
-   * properties may be supplied (over and above what would be
-   * re-constituted from a constructor invocation).  Please interpret
-   * this value using "truthy" semantics.
    *
    * @param {any} initialAccum - the initial accumulation value.  This
    * seeds the `accum` parameter (of the `cbFn()`) for the first
@@ -313,22 +287,19 @@ export default class SmartModel {
    * @returns {any} the single output value resulting from the
    * reduction.
    */
-  encodingPropsReduce(cbFn, forCloning=false, initialAccum) {
+  encodingPropsReduce(cbFn, initialAccum) {
 
     // validate parameters
     const check = verify.prefix(`${this.diagClassName()}.encodingPropsReduce() parameter violation: `);
     // ... cbFn
     check(cbFn,             'cbFn is required');
     check(isFunction(cbFn), 'cbFn must be a function');
-    // ... forCloning
-    check(forCloning===true ||
-          forCloning===false,   'forCloning must be a boolean (when supplied)');
     // ... initialAccum
     check(initialAccum!==undefined, 'initialAccum is required');
 
     // iteration loop
     // ... driven by self's smartObj encoding properties
-    const encodingProps = this.getEncodingProps(forCloning);
+    const encodingProps = this.getEncodingProps();
     const accum = encodingProps.reduce( (accum, prop) => {
       // decipher propName/propValue
       const [propName, defaultValue] = Array.isArray(prop) ? prop : [prop, 'DeFaUlT NoT dEfInEd'];
@@ -367,7 +338,7 @@ export default class SmartModel {
         accumCrc = getCrcRefHandler(propValue, accumCrc); // accum the prop value (any type)
 
         return accumCrc;
-      }, false,/*forCloning*/ 0/*initialAccum*/);
+      }, 0/*initialAccum*/);
 
       // console.log(`xx ${this.diagClassName()}.getCrc() CALCULATING CRC from props: ${encodingProps} ... CRC: ${this._crc}`);
     }
@@ -433,10 +404,7 @@ export default class SmartModel {
     const old_baseCrc = this._baseCrc;
 
     // trickle this request down through our containment tree, driven by self's instance properties
-    this.encodingPropsForEach(
-      (propName, propValue, defaultValue) => resetBaseCrcRefHandler(propValue),
-      false/*forCloning*/
-    );
+    this.encodingPropsForEach( (propName, propValue, defaultValue) => resetBaseCrcRefHandler(propValue) );
 
     // reset self's new baseline crc
     // ... this is done AFTER our lower-level subordinate objects
@@ -588,7 +556,7 @@ export default class SmartModel {
     // trickle this request down through our containment tree, driven by self's instance properties
     return this.encodingPropsReduce( (accumOutOfSync, propName, propValue, defaultValue) => {
       return accumOutOfSync || outOfSyncHandler(propValue, accumOutOfSync); // short-circuit via OR (||)
-    }, false,/*forCloning*/ false/*initialAccum*/);
+    }, false/*initialAccum*/);
   }
 
   /**
@@ -678,7 +646,7 @@ export default class SmartModel {
     }
 
     // trickle this request down through our containment tree, driven by self's instance properties
-    this.encodingPropsForEach( (propName, propValue, defaultValue) => syncClassHandler(propValue), false/*forCloning*/ );
+    this.encodingPropsForEach( (propName, propValue, defaultValue) => syncClassHandler(propValue) );
   }
 
 
@@ -1140,7 +1108,7 @@ export default class SmartModel {
       if (propValue !== defaultValue) {
         myJSON[propName] = toSmartJSONRefHandler(propValue);
       }
-    }, false/*forCloning*/);
+    });
 
     // beam me up Scotty :-)
     return myJSON;
@@ -1384,7 +1352,7 @@ export default class SmartModel {
       }
       return accumProps;
 
-    }, true,/*forCloning*/ {}/*initialAccum*/);
+    }, {}/*initialAccum*/);
 
     // accumulate all namedProps for our constructor
     // ... overridingNamedProps param take precedence

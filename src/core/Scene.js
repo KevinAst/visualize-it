@@ -108,18 +108,18 @@ export default class Scene extends SmartPallet {
   }
 
   // support persistance by encoding needed props of self
-  getEncodingProps(forCloning) {
+  getEncodingProps() {
 
     // define our "baseline"
     const encodingProps = [['x',0], ['y',0]];
 
     // for pseudoClass MASTERs, include non-temporal props
     // ... see JavaDoc for: SmartModel.getEncodingProps()
-    if (this.pseudoClass.isType() /* ?? NO LONGER USED: || forCloning */) {
+    if (this.pseudoClass.isType()) {
       encodingProps.push('comps');
     }
 
-    return [...super.getEncodingProps(forCloning), ...encodingProps];
+    return [...super.getEncodingProps(), ...encodingProps];
   }      
   
   /**

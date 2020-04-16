@@ -80,11 +80,11 @@ export default class CompRef extends SmartPallet {
   }
 
   // support persistance by encoding needed props of self
-  getEncodingProps(forCloning) { 
+  getEncodingProps() { 
     // AI: currently class-based CompRef are NOT persisted
     //     ... hard-coded assumption (as of now) found in SmartComp.canHandleDispMode(dispMode)
     //     ... we will have to deal with persistence once we introduce resource-based DynamicComp pseudoClass
-    return [...super.getEncodingProps(forCloning), ...['compClassRef']];
+    return [...super.getEncodingProps(), ...['compClassRef']];
   }
 
   

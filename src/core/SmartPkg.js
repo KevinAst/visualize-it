@@ -192,8 +192,8 @@ export default class SmartPkg extends SmartModel {
   }
 
   // support persistance by encoding needed props of self
-  getEncodingProps(forCloning) {
-    return [...super.getEncodingProps(forCloning), ...['entries']];
+  getEncodingProps() {
+    return [...super.getEncodingProps(), ...['entries']];
   }
 
   /**

@@ -64,8 +64,8 @@ export default class SmartView extends SmartModel {
   //     - the persistance entry point is SmartPkg -to- SmartPallet (skipping SmartView)
   //     - however we support `getEncodingProps()` should it be needed
   //       ... either a smartClone() operation or future needs of persistence
-  getEncodingProps(forCloning) {
-    return [...super.getEncodingProps(forCloning), ...['pallet']];
+  getEncodingProps() {
+    return [...super.getEncodingProps(), ...['pallet']];
   }
 
   // change isaView() to indicate we are SmartView instances

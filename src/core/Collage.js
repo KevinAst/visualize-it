@@ -45,8 +45,8 @@ export default class Collage extends SmartPallet {
   }
 
   // support persistance by encoding needed props of self
-  getEncodingProps(forCloning) {
-    return [...super.getEncodingProps(forCloning), ...['scenes']];
+  getEncodingProps() {
+    return [...super.getEncodingProps(), ...['scenes']];
   }
 
   
