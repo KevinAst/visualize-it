@@ -153,30 +153,35 @@ export default class Scene extends SmartPallet {
     // monitor events at the Konva Scene Layer level (using Event Delegation and Propagation)
     // ... dragend: monitor x/y changes - syncing KonvaLayer INTO our Scene SmartObject
     this.konvaSceneLayer.on('dragend', (e) => {
-      // console.log(`xx Konva Scene Layer dragend: index: ${e.target.index}, id: ${e.target.id()}, name: ${e.target.name()} x: ${e.target.x()}, y: ${e.target.y()} ... e:\n`, e);
 
       // locate our component matching the target Konva.Group
       // ... we correlate the id's between Konva/SmartObject
-      const eventTargetId = e.target.id();
-      const comp = this.comps.find( (comp) => comp.id === eventTargetId );
-      // console.log(`xx Konva Scene Layer dragend: matching comp: `, comp);
+      const konvaObj = e.target;
+      const id       = konvaObj.id();
+      const comp     = this.comps.find( (comp) => comp.id === id );
+      // console.log(`xx Konva Scene Layer dragend: index: ${konvaObj.index}, id: ${konvaObj.id()}, name: ${konvaObj.name()} x: ${konvaObj.x()}, y: ${konvaObj.y()} ... e:\n`, {e, comp});
 
       // helpers to service undo/redo
-      // ... NOTE: we use this.konvaSceneLayer (a lower-level obj) NOT this.containingKonvaStage
+      // NOTE: we use this.konvaSceneLayer (a lower-level obj) NOT this.containingKonvaStage
+      // IMPORTANT: all updates must be written in such a way that DOES NOT reference stale objects
+      //            - when using undo/redo (over the course of time) objects may be "swapped out" via the synchronization process
+      //            - SOLUTION: resolve all objects from the "id" string AT RUN-TIME!!
       const oldLoc = {
         x: comp.x,
         y: comp.y
       };
       const newLoc = {
-        x: e.target.x(),
-        y: e.target.y()
+        x: konvaObj.x(),
+        y: konvaObj.y()
       };
       const syncSmartObject = (loc) => {
+        const comp = this.comps.find( (comp) => comp.id === id );
         comp.x = loc.x;
         comp.y = loc.y;
+        return comp;
       }
       const syncKonva = (loc) => {
-        const konvaObj = this.konvaSceneLayer.findOne(`#${eventTargetId}`);
+        const konvaObj = this.konvaSceneLayer.findOne(`#${id}`);
         konvaObj.x(loc.x);
         konvaObj.y(loc.y);
         this.konvaSceneLayer.draw();
@@ -185,12 +190,12 @@ export default class Scene extends SmartPallet {
       // apply our change
       changeManager.applyChange({
         changeFn(redo) {
-          syncSmartObject(newLoc);
+          const comp = syncSmartObject(newLoc);
           redo && syncKonva(newLoc);
           return comp;
         },
         undoFn() {
-          syncSmartObject(oldLoc);
+          const comp = syncSmartObject(oldLoc);
           syncKonva(oldLoc);
           return comp;
         }
@@ -244,12 +249,16 @@ export default class Scene extends SmartPallet {
 
         // locate our component matching the target Konva.Group
         // ... we correlate the id's between Konva/SmartObject
-        const eventTargetId = e.target.id();
-        const comp = this.comps.find( (comp) => comp.id === eventTargetId );
-        // console.log(`xx Konva Scene Layer transformend: x: ${e.target.x()}, y: ${e.target.y()}, rotation: ${e.target.rotation()}, scaleX: ${e.target.scaleX()}, scaleY: ${e.target.scaleY()},  ... matching comp: `, comp);
+        const konvaObj = e.target;
+        const id       = konvaObj.id();
+        const comp     = this.comps.find( (comp) => comp.id === id );
+        // console.log(`xx Konva Scene Layer transformend: x: ${konvaObj.x()}, y: ${konvaObj.y()}, rotation: ${konvaObj.rotation()}, scaleX: ${konvaObj.scaleX()}, scaleY: ${konvaObj.scaleY()},  ... matching comp: `, comp);
 
         // helpers to service undo/redo
-        // ... NOTE: we use this.konvaSceneLayer (a lower-level obj) NOT this.containingKonvaStage
+        // NOTE: we use this.konvaSceneLayer (a lower-level obj) NOT this.containingKonvaStage
+        // IMPORTANT: all updates must be written in such a way that DOES NOT reference stale objects
+        //            - when using undo/redo (over the course of time) objects may be "swapped out" via the synchronization process
+        //            - SOLUTION: resolve all objects from the "id" string AT RUN-TIME!!
         const oldTrans = {
           x:        comp.x,
           y:        comp.y,
@@ -258,11 +267,11 @@ export default class Scene extends SmartPallet {
           scaleY:   comp.scaleY,
         };
         const newTrans = {
-          x:        e.target.x(),
-          y:        e.target.y(),
-          rotation: e.target.rotation(),
-          scaleX:   e.target.scaleX(),
-          scaleY:   e.target.scaleY(),
+          x:        konvaObj.x(),
+          y:        konvaObj.y(),
+          rotation: konvaObj.rotation(),
+          scaleX:   konvaObj.scaleX(),
+          scaleY:   konvaObj.scaleY(),
         };
 
         // no-op when Konva/SmartObject have the same transformation
@@ -273,14 +282,16 @@ export default class Scene extends SmartPallet {
         }
 
         const syncSmartObject = (trans) => {
+          const comp    = this.comps.find( (comp) => comp.id === id );
           comp.x        = trans.x;
           comp.y        = trans.y;
           comp.rotation = trans.rotation;
           comp.scaleX   = trans.scaleX;
           comp.scaleY   = trans.scaleY;
+          return comp;
         }
         const syncKonva = (trans) => {
-          const konvaObj = this.konvaSceneLayer.findOne(`#${eventTargetId}`);
+          const konvaObj = this.konvaSceneLayer.findOne(`#${id}`);
           konvaObj.x(trans.x);
           konvaObj.y(trans.y);
           konvaObj.rotation(trans.rotation);
@@ -292,12 +303,12 @@ export default class Scene extends SmartPallet {
         // apply our change
         changeManager.applyChange({
           changeFn(redo) {
-            syncSmartObject(newTrans);
+            const comp = syncSmartObject(newTrans);
             redo && syncKonva(newTrans);
             return comp;
           },
           undoFn() {
-            syncSmartObject(oldTrans);
+            const comp = syncSmartObject(oldTrans);
             syncKonva(oldTrans);
             return comp;
           }

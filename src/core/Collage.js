@@ -72,29 +72,34 @@ export default class Collage extends SmartPallet {
     // monitor events at the Konva Stage level (using Event Delegation and Propagation)
     // ... dragend: monitor x/y changes - syncing KonvaLayer INTO our Scene SmartObject
     this.containingKonvaStage.on('dragend', (e) => {
-      // console.log(`xx Konva Stage dragend: index: ${e.target.index}, id: ${e.target.id()}, name: ${e.target.name()} x: ${e.target.x()}, y: ${e.target.y()} ... e:\n`, e);
 
       // locate our scene matching the event target Konva.Layer
       // ... we correlate the id's between Konva/SmartObject
-      const eventTargetId = e.target.id();
-      const scene = this.scenes.find( (scene) => scene.id === eventTargetId );
-      // console.log(`xx Konva Stage dragend: matching scene: `, scene);
+      const konvaObj = e.target;
+      const id       = konvaObj.id();
+      const scene    = this.scenes.find( (scene) => scene.id === id );
+      // console.log(`xx Konva Stage dragend: index: ${konvaObj.index}, id: ${konvaObj.id()}, name: ${konvaObj.name()} x: ${konvaObj.x()}, y: ${konvaObj.y()} ... e:\n`, {e, scene});
 
       // helpers to service undo/redo
+      // IMPORTANT: all updates must be written in such a way that DOES NOT reference stale objects
+      //            - when using undo/redo (over the course of time) objects may be "swapped out" via the synchronization process
+      //            - SOLUTION: resolve all objects from the "id" string AT RUN-TIME!!
       const oldLoc = {
         x: scene.x,
         y: scene.y
       };
       const newLoc = {
-        x: e.target.x(),
-        y: e.target.y()
+        x: konvaObj.x(),
+        y: konvaObj.y()
       };
       const syncSmartObject = (loc) => {
+        const scene = this.scenes.find( (scene) => scene.id === id );
         scene.x = loc.x;
         scene.y = loc.y;
+        return scene;
       }
       const syncKonva = (loc) => {
-        const konvaObj = this.containingKonvaStage.findOne(`#${eventTargetId}`);
+        const konvaObj = this.containingKonvaStage.findOne(`#${id}`);
         konvaObj.x(loc.x);
         konvaObj.y(loc.y);
         this.containingKonvaStage.draw();
@@ -103,12 +108,12 @@ export default class Collage extends SmartPallet {
       // apply our change
       changeManager.applyChange({
         changeFn(redo) {
-          syncSmartObject(newLoc);
+          const scene = syncSmartObject(newLoc);
           redo && syncKonva(newLoc);
           return scene;
         },
         undoFn() {
-          syncSmartObject(oldLoc);
+          const scene = syncSmartObject(oldLoc);
           syncKonva(oldLoc);
           return scene;
         }
