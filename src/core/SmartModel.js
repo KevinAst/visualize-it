@@ -327,6 +327,35 @@ export default class SmartModel {
    * @returns {number} self's crc hash that uniquely identifies self
    */
   getCrc() {
+
+    // our type specific handler
+    // ... definition is close to usage, but cached for optimization (can be re-used by ANY instance)
+    const getCrcRefHandler = handlerCache.getCrcRefHandler = handlerCache.getCrcRefHandler || createTypeRefHandler({
+      // fold in null/undefined (just for good measure)
+      handleNoRef: (noRef, accumCrc) => crc(noRef, accumCrc),
+      // fold in primitive's crc
+      handlePrimitive: (primitiveRef, accumCrc) => crc(primitiveRef, accumCrc),
+      // fold in array items
+      handleArray: (arrRef, accumCrc) => arrRef.reduce( (accum, item) => getCrcRefHandler(item, accum), accumCrc ),
+      // fold in the crc of each object property
+      handlePlainObj: (plainObjRef, accumCrc) => (
+        Object.entries(plainObjRef).reduce( (accum, [subPropName, subPropValue]) => {
+          accum = crc(subPropName, accum); // accum the prop name  (string) ... for good measure (shouldn't hurt)
+          accum = getCrcRefHandler(subPropValue, accum); // accum the prop value (any type)
+          return accum;
+        }, accumCrc)
+      ),
+      // fold in SmartObj.getCrc()
+      // ... should be OK to use a crc as the value of another crc calc
+      handleSmartObj: (smartObjRef, accumCrc) => crc(smartObjRef.getCrc(), accumCrc),
+      // UNSUPPORTED: NON SmartObjects (not plain and not smart)
+      handleNonSmartObj(otherObjRef, accum) {
+        throw new Error(`***ERROR*** SmartObject.getCrc() traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
+      },
+      // fold in class name (unsure if this is needed)
+      handleClass: (classRef, accumCrc) => crc(classRef.name, accumCrc),
+    });
+
     // calculate/retain our crc as needed
     if (!this._crc) { // ... either first time, or cache is being regenerated
 
@@ -400,6 +429,28 @@ export default class SmartModel {
    *       needs to be overwritten.
    */
   resetBaseCrc() {
+
+    // our type specific handler
+    // ... definition is close to usage, but cached for optimization (can be re-used by ANY instance)
+    const resetBaseCrcRefHandler = handlerCache.resetBaseCrcRefHandler = handlerCache.resetBaseCrcRefHandler || createTypeRefHandler({
+      // no-op null/undefined ... resetBaseCrc does NOTHING for NoRef
+      handleNoRef: (noRef) => {},
+      // no-op primitives ... resetBaseCrc does NOTHING for primitives
+      handlePrimitive: (primitiveRef) => {},
+      // propagate into our subordinate array items
+      handleArray: (arrRef) => arrRef.forEach( (item) => resetBaseCrcRefHandler(item) ),
+      // propagate into our subordinate plain objects
+      handlePlainObj: (plainObjRef) => Object.values(plainObjRef).forEach( (item) => resetBaseCrcRefHandler(item) ),
+      // propagate into our subordinate smartObjs
+      handleSmartObj: (smartObjRef) => smartObjRef.resetBaseCrc(),
+      // UNSUPPORTED: NON SmartObjects (not plain and not smart)
+      handleNonSmartObj(otherObjRef) {
+        throw new Error(`***ERROR*** SmartObject.resetBaseCrc() traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
+      },
+      // no-op classes ... currently there is NO crc recorded in raw classes
+      handleClass: (classRef) => {},
+    });
+
     // retain self's prior baseline crc
     const old_baseCrc = this._baseCrc;
 
@@ -519,31 +570,23 @@ export default class SmartModel {
    */
   areClassesOutOfSync() {
 
-    // define our type specific handler
-    // ... place our definition close by, but cache for optimization
-    //     (can be re-used by ANY instance)
+    // our type specific handler
+    // ... definition is close to usage, but cached for optimization (can be re-used by ANY instance)
     const outOfSyncHandler = handlerCache.outOfSyncHandler = handlerCache.outOfSyncHandler || createTypeRefHandler({
-
       // null/undefined can't be out-of-sync
       handleNoRef: (noRef, accumOutOfSync) => accumOutOfSync || false,
-
       // primitive's can't be out-of-sync
       handlePrimitive: (primitiveRef, accumOutOfSync) => accumOutOfSync || false,
-
       // analyze array items
       handleArray: (arrRef, accumOutOfSync) => arrRef.reduce( (accum, item) => accum || outOfSyncHandler(item, accum), accumOutOfSync ),
-
       // analyze plain object
       handlePlainObj: (plainObjRef, accumOutOfSync) => Object.values(plainObjRef).reduce( (accum, item) => accum || outOfSyncHandler(item, accum), accumOutOfSync ),
-
       // analyze SmartObj by recursing on our `areClassesOutOfSync()` method
       handleSmartObj: (smartObjRef, accumOutOfSync) => accumOutOfSync || smartObjRef.areClassesOutOfSync(),
-
       // UNSUPPORTED: NON SmartObjects (not plain and not smart)
       handleNonSmartObj(otherObjRef, accumOutOfSync) {
         throw new Error(`***ERROR*** SmartObject.areClassesOutOfSync() traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
       },
-
       // classes can't be out-of-sync
       handleClass: (classRef, accumOutOfSync) => accumOutOfSync || false,
     });
@@ -583,9 +626,8 @@ export default class SmartModel {
    */
   syncClassInstances() {
 
-    // define our type specific handler
-    // ... API: syncClassHandler(ref, accum): accum
-    // ... place our definition close by, but cache for optimization (can be re-used by ANY instance)
+    // our type specific handler
+    // ... definition is close to usage, but cached for optimization (can be re-used by ANY instance)
     const syncClassHandler = handlerCache.syncClassHandler = handlerCache.syncClassHandler || createTypeRefHandler({
       // null/undefined can't be out-of-sync
       handleNoRef: (noRef, accum) => {},
@@ -1088,6 +1130,35 @@ export default class SmartModel {
    * @returns {smartJSON} the smartJSON representation of self.
    */
   toSmartJSON() {
+
+    // our type specific handler
+    // ... definition is close to usage, but cached for optimization (can be re-used by ANY instance)
+    const toSmartJSONRefHandler = handlerCache.toSmartJSONRefHandler = handlerCache.toSmartJSONRefHandler || createTypeRefHandler({
+      // pass through null/undefined references
+      handleNoRef: (noRef, accumJSON) => noRef,
+      // pass through primitives
+      handlePrimitive: (primitiveRef, accumJSON) => primitiveRef,
+      // encode all array items
+      handleArray: (arrRef, accumJSON) => arrRef.map( item => toSmartJSONRefHandler(item) ),
+      // encode plain object
+      handlePlainObj: (plainObjRef, accumJSON) => (
+        Object.entries(plainObjRef).reduce( (accum, [subRefName, subRef]) => {
+          accum[subRefName] = toSmartJSONRefHandler(subRef);
+          return accum;
+        }, {} )
+      ),
+      // encode SmartObjs toSmartJSON()
+      handleSmartObj: (smartObjRef, accumJSON) => smartObjRef.toSmartJSON(),
+      // UNSUPPORTED: NON SmartObjects (not plain and not smart)
+      handleNonSmartObj(otherObjRef, accumJSON) {
+        throw new Error(`***ERROR*** SmartObject.toSmartJSON() traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
+      },
+      // UNSUPPORTED: class reference
+      handleClass(classRef, accumJSON) {
+        throw new Error(`***ERROR*** SmartObject.toSmartJSON() traversal encountered reference of unsupported type - class or function: ${classRef.name} :-(`);
+      },
+    });
+
     // prime our JSON by encoding our smart type information
     // ... using SmartClassRef, this structure considers BOTH real types/classes AND pseudoClasses
     const classRef = this.getClassRef();
@@ -1341,6 +1412,32 @@ export default class SmartModel {
    */
   smartClone(overridingNamedProps={}) {
 
+    // our type specific handler
+    // ... definition is close to usage, but cached for optimization (can be re-used by ANY instance)
+    const smartCloneRefHandler = handlerCache.smartCloneRefHandler = handlerCache.smartCloneRefHandler || createTypeRefHandler({
+      // pass through null/undefined references
+      handleNoRef: (noRef, accumClone) => noRef,
+      // pass through primitives ... clone is N/A because they are immutable
+      handlePrimitive: (primitiveRef, accumClone) => primitiveRef,
+      // encode all array items
+      handleArray: (arrRef, accumClone) => arrRef.map( item => smartCloneRefHandler(item) ),
+      // encode plain object
+      handlePlainObj: (plainObjRef, accumClone) => (
+        Object.entries(plainObjRef).reduce( (accum, [subRefName, subRef]) => {
+          accum[subRefName] = smartCloneRefHandler(subRef);
+          return accum;
+        }, {} )
+      ),
+      // encode SmartObjs smartClone()
+      handleSmartObj: (smartObjRef, accumClone) => smartObjRef.smartClone(),
+      // UNSUPPORTED: NON SmartObjects (not plain and not smart)
+      handleNonSmartObj(otherObjRef, accumClone) {
+        throw new Error(`***ERROR*** SmartObject.smartClone() traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
+      },
+      // pass-through classes as-is (i.e. clone is N/A because they are immutable)
+      handleClass: (classRef, accumClone) => classRef,
+    });
+
     // clone self's properties by recursively drilling through entire tree with depth
     // ... recursion is handled by our internal smartCloneRefHandler() function
     const clonedProps = this.encodingPropsReduce( (accumProps, propName, propValue, defaultValue) => {
@@ -1482,8 +1579,6 @@ function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
   return classRef;
 }
 
-
-
 /**
  * A static cache of all `createTypeRefHandler()` functions.  These
  * functions can be re-used for ANY SmartObject instance.  This cache
@@ -1494,140 +1589,3 @@ const handlerCache = {
   // [functName]: function,
   // ...
 };
-
-
-
-// TODO: migrate all these in-line using handlerCache
-
-//***
-//*** Type reference handlers used in various SmartModel traversals
-//***
-
-
-// getCrc() type specific handler
-const getCrcRefHandler = createTypeRefHandler({
-
-  // fold in null/undefined (just for good measure)
-  handleNoRef: (noRef, accumCrc) => crc(noRef, accumCrc),
-
-  // fold in primitive's crc
-  handlePrimitive: (primitiveRef, accumCrc) => crc(primitiveRef, accumCrc),
-
-  // fold in array items
-  handleArray: (arrRef, accumCrc) => arrRef.reduce( (accum, item) => getCrcRefHandler(item, accum), accumCrc ),
-
-  // fold in the crc of each object property
-  handlePlainObj: (plainObjRef, accumCrc) => (
-    Object.entries(plainObjRef).reduce( (accum, [subPropName, subPropValue]) => {
-      accum = crc(subPropName,     accum); // accum the prop name  (string) ... for good measure (shouldn't hurt)
-      accum = getCrcRefHandler(subPropValue, accum); // accum the prop value (any type)
-      return accum;
-    }, accumCrc)
-  ),
-
-  // fold in SmartObj.getCrc()
-  // ... should be OK to use a crc as the value of another crc calc
-  handleSmartObj: (smartObjRef, accumCrc) => crc(smartObjRef.getCrc(), accumCrc),
-
-  // UNSUPPORTED: NON SmartObjects (not plain and not smart)
-  handleNonSmartObj(otherObjRef, accum) {
-    throw new Error(`***ERROR*** SmartObject.getCrc() traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
-  },
-
-  // fold in class name (unsure if this is needed)
-  handleClass: (classRef, accumCrc) => crc(classRef.name, accumCrc),
-});
-
-// resetBaseCrc() type specific handler
-const resetBaseCrcRefHandler = createTypeRefHandler({
-
-  // no-op null/undefined ... resetBaseCrc does NOTHING for NoRef
-  handleNoRef: (noRef) => {},
-
-  // no-op primitives ... resetBaseCrc does NOTHING for primitives
-  handlePrimitive: (primitiveRef) => {},
-
-  // propagate into our subordinate array items
-  handleArray: (arrRef) => arrRef.forEach( (item) => resetBaseCrcRefHandler(item) ),
-
-  // propagate into our subordinate plain objects
-  handlePlainObj: (plainObjRef) => Object.values(plainObjRef).forEach( (item) => resetBaseCrcRefHandler(item) ),
-
-  // propagate into our subordinate smartObjs
-  handleSmartObj: (smartObjRef) => smartObjRef.resetBaseCrc(),
-
-  // UNSUPPORTED: NON SmartObjects (not plain and not smart)
-  handleNonSmartObj(otherObjRef) {
-    throw new Error(`***ERROR*** SmartObject.resetBaseCrc() traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
-  },
-
-  // no-op classes ... currently there is NO crc recorded in raw classes
-  handleClass: (classRef) => {},
-});
-
-// toSmartJSON() type specific handler
-const toSmartJSONRefHandler = createTypeRefHandler({
-
-  // pass through null/undefined references
-  handleNoRef: (noRef, accumJSON) => noRef,
-
-  // pass through primitives
-  handlePrimitive: (primitiveRef, accumJSON) => primitiveRef,
-
-  // encode all array items
-  handleArray: (arrRef, accumJSON) => arrRef.map( item => toSmartJSONRefHandler(item) ),
-
-  // encode plain object
-  handlePlainObj: (plainObjRef, accumJSON) => (
-    Object.entries(plainObjRef).reduce( (accum, [subRefName, subRef]) => {
-      accum[subRefName] = toSmartJSONRefHandler(subRef);
-      return accum;
-    }, {} )
-  ),
-
-  // encode SmartObjs toSmartJSON()
-  handleSmartObj: (smartObjRef, accumJSON) => smartObjRef.toSmartJSON(),
-
-  // UNSUPPORTED: NON SmartObjects (not plain and not smart)
-  handleNonSmartObj(otherObjRef, accumJSON) {
-    throw new Error(`***ERROR*** SmartObject.toSmartJSON() traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
-  },
-
-  // UNSUPPORTED: class reference
-  handleClass(classRef, accumJSON) {
-    throw new Error(`***ERROR*** SmartObject.toSmartJSON() traversal encountered reference of unsupported type - class or function: ${classRef.name} :-(`);
-  },
-
-});
-
-// smartClone() type specific handler
-const smartCloneRefHandler = createTypeRefHandler({
-
-  // pass through null/undefined references
-  handleNoRef: (noRef, accumClone) => noRef,
-
-  // pass through primitives ... clone is N/A because they are immutable
-  handlePrimitive: (primitiveRef, accumClone) => primitiveRef,
-
-  // encode all array items
-  handleArray: (arrRef, accumClone) => arrRef.map( item => smartCloneRefHandler(item) ),
-
-  // encode plain object
-  handlePlainObj: (plainObjRef, accumClone) => (
-    Object.entries(plainObjRef).reduce( (accum, [subRefName, subRef]) => {
-      accum[subRefName] = smartCloneRefHandler(subRef);
-      return accum;
-    }, {} )
-  ),
-
-  // encode SmartObjs smartClone()
-  handleSmartObj: (smartObjRef, accumClone) => smartObjRef.smartClone(),
-
-  // UNSUPPORTED: NON SmartObjects (not plain and not smart)
-  handleNonSmartObj(otherObjRef, accumClone) {
-    throw new Error(`***ERROR*** SmartObject.smartClone() traversal encountered an object reference of unsupported type: ${otherObjRef.constructor.name} :-(`);
-  },
-
-  // pass-through classes as-is (i.e. clone is N/A because they are immutable)
-  handleClass: (classRef, accumClone) => classRef,
-});
