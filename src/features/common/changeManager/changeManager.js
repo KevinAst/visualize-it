@@ -95,11 +95,11 @@ class ChangeManager {
   }
 
   /**
-   * Apply the supplied change within our system.  The change is
-   * modeled as functions to be executed, providing the opportunity to
-   * register them for future undo/redo operations.
-   *
-   * The API of `changeFn()` / `undoFn()` is as follows:
+   * Apply the supplied change to our system -AND- register the change
+   * to our undo/redo operation stack (associated to a given PkgEntry).
+   * 
+   * Changes are modeled as functions to be executed.  The API of
+   * `changeFn()` / `undoFn()` is as follows:
    * 
    * ```js
    * + changeFn(redo: <boolean>): targetObj
@@ -113,7 +113,15 @@ class ChangeManager {
    * 
    * - Both functions return the targetObj of the operation.  This is
    *   used to seed the synchronization of other parts of the model
-   *   ... via the `trickleUpChange()` method.
+   *   ... via the `SmartModel.trickleUpChange()` method.
+   * 
+   * - These functions should be implemented in a way that DOES NOT
+   *   reference stale objects!
+   *   - when using undo/redo (over the course of time) objects may be
+   *     "swapped out" via the synchronization process
+   *   - the solution to this dilemma is to resolve all object references
+   *     from their "id" AT RUN-TIME ... insuring you have the most current
+   *     active object.
    *
    * **Please Note** this service uses named parameters.
    * 
@@ -137,17 +145,7 @@ class ChangeManager {
     checkUnknownArgs(check, unknownArgs, arguments);
 
     // apply the initial change
-    // console.log('xx changeManager ... applying initial change');
-    // AI: ?? CONSIDER: perform the initial change IN the registration process ... calling it registerOp()
-    //     ... kinda like to have
-    //         1. All changeFn() invocations in UndoRedoMgr ... this is NOT currently true
-    //         2. All redux state changes in ChangeManager .... this is currently true
-    const targetObj = changeFn(false); // redo: false (this is the initial execution)
-    check(targetObj,                'changeFn() execution must return a targetObj');
-    check(isSmartObject(targetObj), 'changeFn() execution must return a targetObj that is a SmartObject (type: SmartModel)');
-
-    // trickle up this low-level change, syncing our parentage 
-    targetObj.trickleUpChange();
+    const targetObj = applyChange(check, changeFn, false/*NOT redo (rather our initial change)*/);
 
     // register our undo operation - associated to the target's PkgEntry
     const pkgEntryId = targetObj.getPkgEntry().getEPkgId(); // ex: 'com.astx.ACME/scene1'
@@ -321,13 +319,8 @@ class UndoRedoMgr {
     const [undoFn/*, redoFn*/] = this.stack[this.cur];
     this.cur--;
 
-    // execute undoFn
-    const targetObj = undoFn();
-    check(targetObj,             'undoFn() execution must return a targetObj');
-    check(targetObj.toSmartJSON, 'undoFn() execution must return a targetObj that is a SmartObject (type: SmartModel)');
-
-    // trickle up this low-level change, syncing our parentage 
-    targetObj.trickleUpChange();
+    // apply the undoFn
+    applyChange(check, undoFn, undefined/*redo: N/A for undo*/);
   }
 
   /**
@@ -354,13 +347,38 @@ class UndoRedoMgr {
     this.cur++;
     const [/*undoFn*/, redoFn] = this.stack[this.cur];
 
-    // execute redoFn
-    const targetObj = redoFn(true); // redo: true 
-    check(targetObj,             'redoFn() execution must return a targetObj');
-    check(targetObj.toSmartJSON, 'redoFn() execution must return a targetObj that is a SmartObject (type: SmartModel)');
-
-    // trickle up this low-level change, syncing our parentage 
-    targetObj.trickleUpChange();
+    // apply the redoFn
+    applyChange(check, redoFn, true/*redo: this is truly a redo!!*/);
   }
 
 }
+
+
+/**
+ * Utility function that manages the details of any change (initial,
+ * undo, or redo).
+ *
+ * @param {function} check the check function on who's behalf we are
+ * operating.
+ * 
+ * @param {function} changeFn - the function that will apply the
+ * change (this can be the initial/redo or undo function).
+ * 
+ * @param {boolean} redo - an indicator as to whether this is a redo
+ * operation.
+ */
+function applyChange(check, changeFn, redo=false) {
+  // apply the change by invoking the app-level change function
+  // ... the redo param is only applicable for redoFn()
+  //     however it doesn't hurt to pass an additional param on undoFn() :-)
+  const targetObj = changeFn(redo);
+  check(isSmartObject(targetObj), 'the execution of app-level change functions (registered to changeManager) MUST return a targetObj that is a SmartObject (type: SmartModel)');
+
+  // trickle up this low-level change, syncing our parentage 
+  targetObj.trickleUpChange();
+
+  // that's all folks
+  return targetObj;
+}
+
+
