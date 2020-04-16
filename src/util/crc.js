@@ -1,5 +1,13 @@
-// ?? import crc32 from 'crc/crc32'; // ?? would like to do this ... however: get a SyntaxError: Unexpected token {
-import crcUtil from 'crc'; // ?? this works, HOWEVER it imports everything and bloats our bundle size :-(
+import crcUtil from 'crc';       // usage: crcUtil.crc32(valStr, accumCrc) ... below
+//import crc32 from 'crc/crc32'; // usage: crc32(valStr, accumCrc)         ... below
+
+// NOTE: Would prefer 2nd import option (above)
+//       BECAUSE: It only imports the crc32 code (NOT bloating our bundle size)
+//       HOWEVER: It generates a "SyntaxError: Unexpected token {" in our jest test usage
+//       SUSPECT: This may be related to how my project config uses 'src/' as our import root
+//       FIX:     I punted for now.
+//                ONE "last resort" option would be to locally include code from crc pkg
+//                ... see journal.txt for details
 
 /**
  * Generate a crc value from the supplied parameters.
@@ -22,6 +30,6 @@ export default function crc(val, accumCrc=0) {
   const valStr = '' + val;
   // console.log(`xx val: ${val}, valStr: ${valStr}`);
 
-//return crc32(valStr, accumCrc);
   return crcUtil.crc32(valStr, accumCrc);
+//return crc32(valStr, accumCrc);
 }
