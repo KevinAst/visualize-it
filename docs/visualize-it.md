@@ -27,6 +27,8 @@
     - [Object Mapping to Konva]
     - [Class Detail]
   - [Dynamic Sizing]
+  - [CRC Versioning]
+  - [Change Management with Undo/Redo]
   - [Animation Requirements]
   - [Collage Requirements]
 - [Glossary]
@@ -1207,6 +1209,131 @@ is a detail that is automatically handled by **visualize-it**.
 
 
 
+
+<!--- *** SUB-SECTION *************************************************************** --->
+## CRC Versioning
+
+**visualize-it** uses a CRC hashing algorithm to uniquely identify
+each node within the containment tree.
+
+The CRC is derived from the data content of each object, along with
+it's children content (accumulatively).
+
+As a result, this CRC can be used to uniquely identify any "version"
+of a given object.  When an object changes, it represents a different
+CRC.  If the change is reverted, the CRC will also revert to it's
+prior value.
+
+As a result, these CRCs can be used to:
+
+- Detect Unsaved Changes:
+
+  The system can distinguish modified resources through a visual
+  distinction in the UI, and determine when a save operation is
+  necessary.
+
+- Provide Staleness Detection:
+
+  When one PkgEntry references dependent PkgEntries (for example: a
+  Collage contains Scenes), the CRC is used to determine when the
+  dependencies need to be refreshed.
+
+All SmartObjects maintain their own CRC values automatically.  In
+other words there is nothing a derived class has to do to maintain the
+CRC!  SideBar: This is made possible through the polymorphic knowledge
+of which properties to process (via: `getEncodingProps()`).  The
+entire implementation is provided through the **SmartModel** base class,
+using the following API:
+
+```js
++ getCrc():     crc      return self's computed CRC (utilizing a highly optimized cache)
+
++ getBaseCrc(): crc      return self's baseline CRC (the initial version from a saved resource)
+
++ isInSync():   boolean  is self "in sync" with it's baseline version (i.e. it's saved resource)
+```
+
+**NOTES**:
+
+- Even though the CRC is cached, it is automatically refreshed
+  whenever a change happens on each object node.  This is accomplished
+  through "Change Management" (see below).
+
+- There is no need to persist the CRC because it is consistently
+  re-generated dynamically (from persistent content)!
+
+
+<!--- *** SUB-SECTION *************************************************************** --->
+## Change Management with Undo/Redo
+
+All **visualize-it** changes are managed through a changeManager
+service.  This provides a clearing house that insures the details are
+consistently adhered to, and provides Undo/Redo capabilities.
+
+The primary API for **changeManager** is:
+
+```js
++ applyChange({changeFn, undoFn}): void   invoked by app-specific code to apply a change
+```
+
+This service applies the supplied change -AND- registers it to the
+undo/redo stack (associated to a given PkgEntry).
+
+- Changes are registered to a given PkgEntry (identified through the
+  return of changeFn/ undoFn).
+
+- Changes are modeled as functions to be executed.  The API of
+  `changeFn()` / `undoFn()` is as follows:
+
+  ```js
+  + changeFn(redo: <boolean>): targetObj
+  + undoFn(): targetObj
+  ```
+
+- The `redo` param is an indicator as to whether the invocation
+  is a **redo** operation, verses the initial execution.
+  Typically a redo requires more work (for example syncing
+  **both** the SmartObject and Konva realms).
+
+- Both functions return the targetObj of the operation.  This is
+  used to seed the synchronization of other parts of the model
+  ... via the `SmartModel.trickleUpChange()` method.
+
+- These change functions should be implemented in a way that DOES NOT
+  reference stale objects!
+  - when using undo/redo (over the course of time) objects may be
+    "swapped out" via the synchronization process
+  - the solution to this dilemma is to resolve all object references
+    from their "id" AT RUN-TIME ... insuring you have the most current
+    active object.
+
+- Also, these change functions should only be concerned with the
+  modification of a given low-level object.  The `changeManager`
+  service will orchestrate additional detail to insure conformity.
+  For example, the service will issue the
+  `targetObj.trickleUpChange()` which syncs the change to it parentage
+  (synchronizing size and CRC, etc.).
+
+
+The Undo/Redo functionality is available through the following API:
+
+- fasset selectors are available to determine when Undo/Redo is
+  available:
+
+  ```js
+  + fassets.sel.isUndoAvail(appState, pkgEntryId):  boolean
+  + fassets.sel.isRedoAvail'(appState, pkgEntryId): boolean
+  ```
+
+- Undo/Redo invocations are available through the following
+  **changeManager** API:
+
+  ```js
+  + applyUndo(pkgEntryId): void   apply an "undo" operation to the supplied PkgEntry
+  + applyRedo(pkgEntryId): void   apply a "redo" operation to the supplied PkgEntry
+  ```
+
+
 <!--- *** SUB-SECTION *************************************************************** --->
 ## Animation Requirements
 
@@ -1295,6 +1422,8 @@ isA  ├── Scene ......... a SmartPallet derivation that models a single Sce
   [Object Mapping to Konva]:  #object-mapping-to-konva
   [Class Detail]:             #class-detail
  [Dynamic Sizing]:            #dynamic-sizing
+ [CRC Versioning]:                   #crc-versioning
+ [Change Management with Undo/Redo]: #change-management-with-undoredo
  [Animation Requirements]:    #animation-requirements
  [Collage Requirements]:      #collage-requirements
 [Glossary]:                   #glossary

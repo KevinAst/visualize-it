@@ -98,13 +98,16 @@ class ChangeManager {
    * Apply the supplied change to our system -AND- register the change
    * to our undo/redo operation stack (associated to a given PkgEntry).
    * 
-   * Changes are modeled as functions to be executed.  The API of
-   * `changeFn()` / `undoFn()` is as follows:
-   * 
-   * ```js
-   * + changeFn(redo: <boolean>): targetObj
-   * + undoFn(): targetObj
-   * ```
+   * - Changes are registered to a given PkgEntry (identified through the
+   *   return of changeFn/ undoFn).
+   *
+   * - Changes are modeled as functions to be executed.  The API of
+   *   `changeFn()` / `undoFn()` is as follows:
+   *   
+   *   ```js
+   *   + changeFn(redo: <boolean>): targetObj
+   *   + undoFn(): targetObj
+   *   ```
    * 
    * - The `redo` param is an indicator as to whether the invocation
    *   is a **redo** operation, verses the initial execution.
@@ -115,13 +118,20 @@ class ChangeManager {
    *   used to seed the synchronization of other parts of the model
    *   ... via the `SmartModel.trickleUpChange()` method.
    * 
-   * - These functions should be implemented in a way that DOES NOT
+   * - These change functions should be implemented in a way that DOES NOT
    *   reference stale objects!
    *   - when using undo/redo (over the course of time) objects may be
    *     "swapped out" via the synchronization process
    *   - the solution to this dilemma is to resolve all object references
    *     from their "id" AT RUN-TIME ... insuring you have the most current
    *     active object.
+   *
+   * - Also, these change functions should only be concerned with the
+   *   modification of a given low-level object.  The `changeManager`
+   *   service will orchestrate additional detail to insure conformity.
+   *   For example, the service will issue the
+   *   `targetObj.trickleUpChange()` which syncs the change to it parentage
+   *   (synchronizing size and crc, etc.).
    *
    * **Please Note** this service uses named parameters.
    * 
