@@ -1,4 +1,4 @@
-# visualize-it
+# visualize-it (initial react version)
 
 <ul>
   <img src="public/visualize-it-logo.png" width="200" alt="Logo"/>
