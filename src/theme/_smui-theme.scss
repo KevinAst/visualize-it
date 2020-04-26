@@ -1,0 +1,44 @@
+//
+// MDC Theme ... KJB: used by Svelte Material UI (SMUI)
+//
+
+@import "@material/theme/color-palette";
+
+// KJB: got from somewhere
+//? // Svelte Colors!
+//? $mdc-theme-primary: #ff3e00;
+//? $mdc-theme-secondary: #676778;
+//? // Other Svelte color: #40b3ff
+//? 
+//? $mdc-theme-background: #fff;
+//? $mdc-theme-surface:  #fff;
+//? 
+//? $mdc-theme-error: $material-color-red-900;
+
+// KJB: try changing (from color tool: https://material.io/resources/color/#!/?view.left=0&view.right=0&primary.color=26A69A&secondary.color=37474F&primary.text.color=000000 )
+// <resources>
+//   <color name="primaryColor">#26a69a</color>
+//   <color name="primaryLightColor">#64d8cb</color>
+//   <color name="primaryDarkColor">#00766c</color>
+//   <color name="secondaryColor">#37474f</color>
+//   <color name="secondaryLightColor">#62727b</color>
+//   <color name="secondaryDarkColor">#102027</color>
+//   <color name="primaryTextColor">#000000</color>
+//   <color name="secondaryTextColor">#ffffff</color>
+// </resources>
+
+$mdc-theme-primary:       #26a69a;
+$mdc-theme-primary-light: #64d8cb;
+$mdc-theme-primary-dark:  #00766c;
+
+$mdc-theme-secondary:       #37474f;
+$mdc-theme-secondary-light: #62727b;
+$mdc-theme-secondary-dark:  #102027;
+
+$mdc-theme-primary-text:    #000000;
+$mdc-theme-secondary-text:  #ffffff;
+
+$mdc-theme-background: #fff;
+$mdc-theme-surface:    #fff;
+
+$mdc-theme-error: $material-color-red-900;
