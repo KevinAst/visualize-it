@@ -1401,7 +1401,6 @@ isA  ├── Scene ......... a SmartPallet derivation that models a single Sce
 
 <!--- *** LINKS ***************************************************************** --->
 
-<!--- feature-u ---> 
 [Overview]:                   #overview
 [Tool Manifestation]:         #tool-manifestation
   [Visualizations]:           #visualizations
