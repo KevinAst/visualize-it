@@ -1,16 +1,21 @@
 # Tooling
 
-This document contains resources to help you in both the development
-and tooling of the **visualize-it** project.
+This document contains resources to help you in both the tooling and
+development of the **visualize-it** project.
 
 
 # At a Glance
 
 - [NPM Scripts]
 - [Dependencies]
-
-
-
+- [Project Resources]
+- [Project Setup]
+  - [Setup GitHub Project]
+  - [Setup Svelte Tooling]
+  - [Setup UI Kit (SMUI)]
+  - [Setup Jest Unit Testing]
+  - [Setup Documentation Tooling]
+  - [Setup Deployment]
 
 <!--- *** SECTION *************************************************************** --->
 # NPM Scripts
@@ -103,30 +108,129 @@ This last bullet is especially poignant because all Svelte project
 dependencies are `devDependencies`, due to the fact that all run-time
 resources are bundled together by the Svelte compiler.
 
+?? finish this (pulling in ALL devDependencies), once we have all the "Refer To" sections
+
 Dependency                | Type        | Usage                  | Refer To
 ------------------------- | ----------- | ---------------------  | ----------------
 `@babel/core`             | **TOOLING** | Jest Testing           | [xyz]
 `@rollup/plugin-commonjs` | **TOOLING** | Svelte Setup/Template  | [xyz]
 `rollup`                  | **TOOLING** | Svelte Bundler         | [xyz]
 `crc`                     | **APP**     | CRC Hashing Utility    | _application code_ (`src/util/crc.js`)
-`svelte-material-ui`      | **APP**<br>**TOOLING** | UI Kit used by App     | _application code (various)_<br>[Configure UI Kit]
-
-?? pull in ALL devDependencies
-
-
+`svelte-material-ui`      | **APP**<br>**TOOLING** | UI Kit used by App     | _application code (various)_<br>[Setup UI Kit (SMUI)]
 
 
 
 <!--- *** SECTION *************************************************************** --->
-# Configure UI Kit
+# Project Resources
 
-?? TEST TEST TEST
+Wondering what some of the top-level file resources are?  Here is a
+summary:
+
+?? FINISH THIS once we have all the "Refer To" sections
+
+```
+visualize-it/
+  .git/ ................ our local git version control repo (duh)
+  .gitignore ........... files/dirs to exclude from version control (ex: machine generated)
+  _docs/ ............... machine generated doc resources (see: ??)
+  babel.config.js ...... xx
+  docs/ ................ master source of our on-line docs (see: ??)
+  jest.config.js ....... xx
+  LICENSE.md ........... xx
+  node_modules/ ........ xx
+  package.json ......... xx
+  package-lock.json .... xx
+  public/ .............. xx
+  README.md ............ xx
+  rollup.config.js ..... xx
+  src/ ................. the app source code ... duh
+  TOOLING.md ........... this document :-)
+```
+
+
+<!--- *** SECTION *************************************************************** --->
+# Project Setup
+
+This section chronicles the original setup of the **visualize-it**
+project.
+
+If you are forking this project, this detail is _unnecessary_, because
+you simply `npm install` and then commence your development.
+
+With that said, this section provides valuable insight on how the
+project was originally setup and configured, and can be used in other
+projects _(where you are starting from scratch)_!
+
+**NOTE**: These sections roughly represent the chronology of when they
+were carried out, however in some cases the order can be changed.
+
+
+<!--- *** SUB-SECTION *************************************************************** --->
+# Setup GitHub Project
+
+There are many ways of initiating a new GitHub project ... I'll leave
+the details to you :-)
+
+
+
+<!--- *** SUB-SECTION *************************************************************** --->
+# Setup Svelte Tooling
+
+This task assumes you are "starting from scratch", setting up the
+Svelte tooling _(the compiler, etc.)_, with the basic application code
+template.
+
+?? pull in notes from visualize-it-svelte.txt
+
+
+
+<!--- *** SUB-SECTION *************************************************************** --->
+# Setup UI Kit (SMUI)
+
+?? pull in notes from visualize-it-svelte.txt
+- ? install sass package
+- ? install rollup-plugin-postcss
+- ? update rollup.config.js
+
+
+
+<!--- *** SUB-SECTION *************************************************************** --->
+# Setup Jest Unit Testing
+
+Svelte V3 does not ship with any Unit Test capability.  I am using Jest.
+   
+?? pull in details from journal.txt
+
+
+
+<!--- *** SUB-SECTION *************************************************************** --->
+# Setup Documentation Tooling
+
+AI: details to follow
+
+
+
+<!--- *** SUB-SECTION *************************************************************** --->
+# Setup Deployment
+
+**visualize-it** is deployed on github pages (both the web-app and our documentation).
+
+AI: details to follow
+
+
+
 
 
 
 <!--- *** LINKS ***************************************************************** --->
 
-[NPM Scripts]:           #npm-scripts
-[Dependencies]:          #dependencies
-
-  [Configure UI Kit]:      #configure-ui-kit
+[NPM Scripts]:                    #npm-scripts
+[Dependencies]:                   #dependencies
+[Project Resources]:              #project-resources
+[Project Setup]:                  #project-setup
+  [Setup GitHub Project]:         #setup-github-project
+  [Setup Svelte Tooling]:         #setup-svelte-tooling
+  [Setup UI Kit (SMUI)]:          #setup-ui-kit-smui
+  [Setup Jest Unit Testing]:      #setup-jest-unit-testing
+  [Setup Documentation Tooling]:  #setup-documentation-tooling
+  [Setup Deployment]:             #setup-deployment
