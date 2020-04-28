@@ -24,7 +24,61 @@
  import Tab, {Label} from '@smui/tab';
  import TabBar from '@smui/tab-bar';
 
- import './theme/_smui-theme.scss'; // THEME:?? shot in the dark
+// import './theme/_smui-theme.scss'; // THEME:?? shot in the dark
+
+ // AI: ?? TreeView ... merge together
+ import TreeView from './util/comp/TreeView.svelte';
+ const treeNEW = {          // treeNode1: WITH children
+	 label: "Sandbox I",
+	 children: [
+		 { label: "Scenes", // treeNode2: WITH children
+			 children: [
+				 { label: "Scene 1", myData: "MY DATA 1" }, // treeNode3: NO children
+				 { label: "More Depth",
+           children: [
+				     { label: "Scene 2", myData: "MY DATA 2" },
+           ]
+         },
+				 { label: "Scene 3", myData: "MY DATA 3" },
+			 ],
+		 },
+		 {
+			 label: "Collages",
+			 children: [
+				 { label: "Collage 1", myData: "MY DATA A" },
+				 { label: "Collage 2", myData: "MY DATA A" },
+			 ]
+		 }
+	 ]
+ }; 
+ // ?? TRASH
+ const tree = {     // treeNode1: WITH children
+	 label: "USA",
+	 children: [
+		 {                   // treeNode2: WITH children
+			 label: "Florida",
+			 children: [
+				 { label: "Jacksonville", href: "https://spinspire.com/" }, // treeNode3: NO children
+         { label: "Orlando",
+           children: [
+             { label: "Disney World" },
+             { label: "Universal Studio" },
+             { label: "Sea World" },
+           ],
+         },
+				 { label: "Miami" },
+			 ]
+		 },
+		 {
+			 label: "California",
+			 children: [
+				 { label: "San Francisco" },
+				 { label: "Los Angeles" },
+				 { label: "Sacramento" },
+			 ]
+		 }
+	 ]
+ }; 
 
 </script>
 
@@ -212,6 +266,11 @@
       </Header>
       <Content>
         <List>
+          <!-- Crude Test of TreeView  -->
+          <Item on:click={() => setActiveTxt('Tree View')} activated={activeTxt === 'Tree View'}>
+            <Text>Tree View</Text>
+          </Item>
+          <TreeView {tree}/>
           {#each ['WowZee', 'WooWoo', 'Poo', 'Pee', 'WomBee', 'WooLoo', 'I', 'Hope', 'This', 'Works', 'Here', 'We', 'GO!!'] as item}
           <Item on:click={() => setActiveTxt(item)} activated={activeTxt === item}>
             <Text>{item}</Text>
