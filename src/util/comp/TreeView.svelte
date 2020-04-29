@@ -1,111 +1,66 @@
 <script>
+ // component params
  export let tree;
  export let depth = 0;
- 
- const {label, children} = tree; // ?? parameterize tree structure interpretation (via callback param), allowing this to operate on ANY structure
 
- let expanded = false;
- $: collapsed = !expanded;
+ $: top = depth === 0;
 
- function toggleExpansion() {
-   expanded = !expanded;
- }
+ // decompose tree node
+ // TODO: parameterize tree structure interpretation (via callback param)
+ //       ... allowing the operation on ANY structure :-)
+ //       ... wait for SmartPkg production usage
+ //           I suspect may need to be a proprietary component for this task (with all the DnD and double-click, etc.)
+ const {label, children} = tree;
 
+ // maintain expansion state
+ let   expanded        = false;
+ $:    collapsed       = !expanded;
+ $:    arrowDown       = expanded;
+ const toggleExpansion = () => expanded = !expanded;
 </script>
 
+<ul class:top>
+  <li>
+    {#if children}
+      <span on:click={toggleExpansion}>
+		    <span class="arrow" class:arrowDown>&#x25b6</span>
+		  	{label}
+		  </span>
+      <div class:expanded class:collapsed>
+        {#each children as child}
+          <svelte:self tree={child} depth={depth + 1} />
+        {/each}
+      </div>
+    {:else}
+      {label}
+    {/if}
+  </li>
+</ul>
+
 <style>
-
  ul {
-   padding-left:    1.5em; /* lesser list indendation */
-   list-style-type: none;  /* nix traditional list bullets */
-   user-select:     none;  /* disable selectable text */
+   list-style-type: none;   /* nix traditional list bullets */
+   padding-left:    1.2rem; /* lesser list indendation */
+   user-select:     none;   /* disable selectable text */
  }
-
- /* ?? no like ... DISABLE for now ... if we use this, must style in parent */
- ul.topDISABLE { /* NO indentation FOR top-level node only */
+ ul.top { /* NO indentation FOR top-level node only */
    margin:  0;
    padding: 0;
  }
-
- .caret {
-   cursor: pointer;
+ .arrow {
+/* color:               red; */
+   cursor:              pointer;
+	 display:             inline-block;
+	 transition-duration: 0.5s;
+	 transition-property: transform;
  }
-
- .caret::before { /* caret: RIGHT  */
-   content:      "\25B6"; /* right-pointing triangle (unicode) */
-   color:        red;
-   display:      inline-block;
-   margin-right: 6px;
+ .arrowDown {
+   transform: rotate(90deg);
  }
-
- .caret-down::before { /* caret: DOWN  */
-   transform: rotate(90deg);  /* simply rotate the entire content (of caret) */
- }
-
  .expanded {
    display: block;
  }
  .collapsed {
    display: none;
  }
-
 </style>
-
-<!-- ?? Cannot have an unclosed HTML element inside an #if block
-     ... Svelte is analyzing the DOM
-     ... CURRENTLY I am duplicating the inner code
-     ... TODO: what is the Svlete way to eliminate this?
-{#if depth===0}
-  <ul class="top">
-{/if}
--->
-
-
-{#if depth===0}
-  <ul class="top">
-
-    <!-- TODO: DUPLICATE DOM SNIPPIT :-(  -->
-    {#if children}
-      <li>
-        <span on:click|stopPropagation={toggleExpansion} class="caret {expanded ? 'caret-down' : ''}">{label}</span>
-        <ul class:expanded class:collapsed>
-          {#each children as child}
-            <svelte:self tree={child} depth={depth+1}/>
-          {/each}
-        </ul>
-      </li>
-    {:else}
-      <li>
-        {label}
-      </li>
-    {/if}
-
-  </ul>
-
-{:else}
-
-    <!-- TODO: DUPLICATE DOM SNIPPIT :-(  -->
-    {#if children}
-      <li>
-        <span on:click|stopPropagation={toggleExpansion} class="caret {expanded ? 'caret-down' : ''}">{label}</span>
-        <ul class:expanded class:collapsed>
-          {#each children as child}
-            <svelte:self tree={child} depth={depth+1}/>
-          {/each}
-        </ul>
-      </li>
-    {:else}
-      <li>
-        {label}
-      </li>
-    {/if}
-
-{/if}
-
-
-
-<!-- ??
-{#if depth===0}
-  </ul>
-{/if}
--->
