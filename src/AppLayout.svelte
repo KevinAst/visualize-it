@@ -28,7 +28,7 @@
 
  // AI: ?? TreeView ... merge together
  import TreeView from './util/comp/TreeView.svelte';
- const treeNEW = {          // treeNode1: WITH children
+ const tree = {          // treeNode1: WITH children
 	 label: "Sandbox I",
 	 children: [
 		 { label: "Scenes", // treeNode2: WITH children
@@ -52,7 +52,7 @@
 	 ]
  }; 
  // ?? TRASH
- const tree = {     // treeNode1: WITH children
+ const treeOLD = {     // treeNode1: WITH children
 	 label: "USA",
 	 children: [
 		 {                   // treeNode2: WITH children
@@ -270,7 +270,7 @@
           <Item on:click={() => setActiveTxt('Tree View')} activated={activeTxt === 'Tree View'}>
             <Text>Tree View</Text>
           </Item>
-          <TreeView {tree}/>
+          <TreeView {tree} omitRoot/>
           {#each ['WowZee', 'WooWoo', 'Poo', 'Pee', 'WomBee', 'WooLoo', 'I', 'Hope', 'This', 'Works', 'Here', 'We', 'GO!!'] as item}
           <Item on:click={() => setActiveTxt(item)} activated={activeTxt === item}>
             <Text>{item}</Text>

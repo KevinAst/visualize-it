@@ -1,7 +1,8 @@
 <script>
  // component params
  export let tree;
- export let depth = 0;
+ export let depth    = 0;
+ export let omitRoot = false;
 
  $: top = depth === 0;
 
@@ -19,23 +20,29 @@
  const toggleExpansion = () => expanded = !expanded;
 </script>
 
-<ul class:top>
-  <li>
-    {#if children}
-      <span on:click={toggleExpansion}>
-		    <span class="arrow" class:arrowDown>&#x25b6</span>
-		  	{label}
-		  </span>
-      <div class:expanded class:collapsed>
-        {#each children as child}
-          <svelte:self tree={child} depth={depth + 1} />
-        {/each}
-      </div>
-    {:else}
-      {label}
-    {/if}
-  </li>
-</ul>
+{#if omitRoot && depth === 0 && children}
+  {#each children as child}
+    <svelte:self tree={child} depth={depth + 1} />
+  {/each}
+{:else}
+  <ul class:top>
+    <li>
+      {#if children}
+        <span on:click={toggleExpansion}>
+  		    <span class="arrow" class:arrowDown>&#x25b6</span>
+  		  	{label}
+  		  </span>
+        <div class:expanded class:collapsed>
+          {#each children as child}
+            <svelte:self tree={child} depth={depth + 1} />
+          {/each}
+        </div>
+      {:else}
+        {label}
+      {/if}
+    </li>
+  </ul>
+{/if}
 
 <style>
  ul {
