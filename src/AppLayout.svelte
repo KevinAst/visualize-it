@@ -186,7 +186,10 @@
 /* color:            red;  /* diagnostic */
  }
 
-
+ /* vit-drawer-item: attempt to space out <TreeView> content a bit better */
+ * :global(.vit-drawer-item) {
+   margin: 8px 8px 0px 8px !important;
+ }
 
  /* vit-tabs-container: manages 1. vit-tabs-bar 2: vit-tabs-content */
  :global(.vit-tabs-container) {
@@ -267,12 +270,12 @@
       <Content>
         <List>
           <!-- Crude Test of TreeView  -->
-          <Item on:click={() => setActiveTxt('Tree View')} activated={activeTxt === 'Tree View'}>
+          <Item class="vit-drawer-item" on:click={() => setActiveTxt('Tree View')} activated={activeTxt === 'Tree View'}>
             <Text>Tree View</Text>
           </Item>
           <TreeView {tree} omitRoot/>
           {#each ['WowZee', 'WooWoo', 'Poo', 'Pee', 'WomBee', 'WooLoo', 'I', 'Hope', 'This', 'Works', 'Here', 'We', 'GO!!'] as item}
-          <Item on:click={() => setActiveTxt(item)} activated={activeTxt === item}>
+          <Item class="vit-drawer-item" on:click={() => setActiveTxt(item)} activated={activeTxt === item}>
             <Text>{item}</Text>
           </Item>
           {/each}

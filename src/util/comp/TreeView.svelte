@@ -38,7 +38,10 @@
           {/each}
         </div>
       {:else}
-        {label}
+        <span>
+          <span class="no-arrow-spacer"/>
+          {label}
+        </span>
       {/if}
     </li>
   </ul>
@@ -46,6 +49,7 @@
 
 <style>
  ul {
+   margin:          0;      /* nix default <ul> spacing: 1em, 0 */
    list-style-type: none;   /* nix traditional list bullets */
    padding-left:    1.2rem; /* lesser list indendation */
    user-select:     none;   /* disable selectable text */
@@ -53,6 +57,9 @@
  ul.top { /* NO indentation FOR top-level node only */
    margin:  0;
    padding: 0;
+ }
+ .no-arrow-spacer {
+   padding-left:    1.0rem;
  }
  .arrow {
 /* color:               red; */
