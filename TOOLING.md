@@ -107,13 +107,18 @@ found in **visualize-it**.
 The dependency list can become quite large for a mature project.  In
 looking at `package.json`, the inevitable questions are:
 
-- what is this dependency
-- why is it needed
-- is it a dependency for project tooling or application code?
+- What is this dependency
 
-This last bullet is especially poignant because all Svelte project
-dependencies are `devDependencies`, due to the fact that all run-time
-resources are bundled together by the Svelte compiler.
+- Why is it needed
+
+- Is it a dependency for project tooling or application code?
+
+  This last bullet is especially poignant because all Svelte project
+  dependencies are `devDependencies`, due to the fact that all run-time
+  resources are bundled together by the Svelte compiler.
+
+The following table itemizes the **visualize-it** dependencies,
+referencing when/where they were introduced/configured.
 
 Dependency                     | Type        | Usage                  | Refer To
 ------------------------------ | ----------- | ---------------------  | ----------------
