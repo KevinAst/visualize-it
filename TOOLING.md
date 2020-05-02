@@ -323,6 +323,10 @@ using [degit](https://github.com/Rich-Harris/degit) _(a Rich Harris tool that co
   $ cd visualize-it
   $ npm install
   $ npm run dev
+
+  * Update package.json with any additional fields you may desire
+    (description, homepage, repository, keywords, license, etc.)
+
   * Move sirv-cli FROM: dependencies TO: devDependencies (in package.json)
     ... unsure why template registers this as dependencies
 

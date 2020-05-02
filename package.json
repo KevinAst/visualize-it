@@ -1,9 +1,33 @@
 {
-  "name": "visualize-it-svelte",
+  "name": "visualize-it",
   "version": "0.1.0",
+  "description": "Your View into External Systems",
+  "homepage": "https://visualize-it.js.org/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KevinAst/visualize-it.git"
+  },
+  "keywords": [
+    "visualize-it",
+    "svelte",
+    "web-app",
+    "web",
+    "geeku",
+    "astx"
+  ],
+  "license": "MIT",
   "scripts": {
     "app:prodBuild": "rollup -c",
     "app:devServe": "rollup -c -w",
+    "l8tr:preapp:deploy": "npm run app:prodBuild",
+    "l8tr:app:deploy": "gh-pages --dist public --dest app",
+    "l8tr:app:lint": "eslint src",
+    "l8tr:docs:serve": "gitbook serve",
+    "l8tr:docs:build": "gitbook build",
+    "l8tr:docs:build:COMMENT": "NOTE: for gitbook build/serve, following diagnostics are useful: --log=debug --debug",
+    "l8tr:docs:prepare:do:once": "gitbook install",
+    "docs:publish": "gh-pages --dist _docs --dest docs",
+    "l8tr:predocs:publish": "npm run docs:build",
     "start": "sirv public",
     "test": "jest src",
     "test:watch": "npm run test -- --watch"
