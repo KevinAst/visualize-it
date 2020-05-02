@@ -13,6 +13,7 @@ development of the **visualize-it** project.
   - [Setup GitHub Project]
   - [Setup Svelte Tooling]
   - [Setup UI Kit (SMUI)]
+  - [Setup Absolute Imports]
   - [Setup Jest Unit Testing]
   - [Setup Documentation Tooling]
   - [Setup Deployment]
@@ -124,6 +125,7 @@ Dependency                     | Type        | Usage                  | Refer To
 ------------------------------ | ----------- | ---------------------  | ----------------
 `@babel/core`                  | **TOOLING** | Jest Testing related   | [Setup Jest Unit Testing]
 `@babel/preset-env`            | **TOOLING** | Jest Testing related   | [Setup Jest Unit Testing]
+`@rollup/plugin-alias`         | **TOOLING** | Absolute Imports       | [Setup Absolute Imports]
 `@rollup/plugin-commonjs`      | **TOOLING** | Svelte Bundler related | [Setup Svelte Tooling]
 `@rollup/plugin-node-resolve`  | **TOOLING** | Svelte Bundler related | [Setup Svelte Tooling]
 `babel-jest`                   | **TOOLING** | Jest Testing related   | [Setup Jest Unit Testing]
@@ -187,6 +189,7 @@ were carried out, however in some cases the order can be changed.
   - [Setup GitHub Project]
   - [Setup Svelte Tooling]
   - [Setup UI Kit (SMUI)]
+  - [Setup Absolute Imports]
   - [Setup Jest Unit Testing]
   - [Setup Documentation Tooling]
   - [Setup Deployment]
@@ -368,7 +371,6 @@ _My personal Detailed Notes are "hidden" (in comment form) in this doc ..._
     "version": "0.1.0",
   $ npm install
     added 74 packages from 130 contributors and audited 104 packages in 4.591s
-    found 0 vulnerabilities
 
     KJB NOTE: Svelte is the latest V3 (specified in template pkg: "svelte": "^3.0.0")
               Installed Svelte IS: 3.20.1
@@ -476,7 +478,6 @@ At the end of this process you should have:
   $ npm install --save-dev svelte-material-ui
     + svelte-material-ui@1.0.0-beta.21
       added 76 packages from 6 contributors and audited 2879 packages in 16.067s
-      found 0 vulnerabilities
 
     - NOTE: installed in same location as individual installs: 
             node_modules/@smui
@@ -499,7 +500,6 @@ At the end of this process you should have:
     $ npm install --save-dev sass
       + sass@1.26.3
         added 1 package from 1 contributor and audited 1134 packages in 2.463s
-        found 0 vulnerabilities
     ```
 
   * install the rollup postcss plugin
@@ -508,7 +508,6 @@ At the end of this process you should have:
     $ npm install --save-dev rollup-plugin-postcss
       + rollup-plugin-postcss@2.8.2
         added 220 packages from 139 contributors and audited 1073 packages in 15.053s
-        found 0 vulnerabilities
     ```
 
 - Define the SMUI Theme resource: `src/theme/_smui-theme.scss`
@@ -529,7 +528,75 @@ At the end of this process you should have:
   ```
 
 
+<!--- *** SUB-SECTION *************************************************************** --->
+# Setup Absolute Imports
 
+To alleviate the pain of relative path imports (for example):
+
+```js
+import TreeView  from "../../../../util/comp/TreeView.svelte";
+```
+
+We enable absolute imports:
+
+```js
+import TreeView  from "util/comp/TreeView.svelte";
+```
+
+**Links**:
+- [Absolute Paths in Svelte](https://dev.to/sjafferi/absolute-paths-in-svelte-488c)
+- [npm: @rollup/plugin-alias](https://www.npmjs.com/package/@rollup/plugin-alias)
+
+At the end of this process you should have:
+
+- The ability to utilize absolute imports.
+
+- Impacted Dependencies:
+  ```
+  @rollup/plugin-alias
+  ```
+
+- Impacted Files:
+  ```
+  visualize-it/
+    rollup.config.js ... modified to include alias configuration (Absolute Imports)
+  ```
+
+**Installation Details**:
+
+- Install required dependencies (@rollup/plugin-alias):
+  ```
+  $ npm install --save-dev @rollup/plugin-alias
+    + @rollup/plugin-alias@3.1.0
+      added 1 package from 1 contributor and audited 266253 packages in 7.754s
+  ```
+
+- Configure `rollup.config.js` _(in support of **Absolute Imports**)_
+
+  * For details, see embedded comments: `Absolute Imports`
+
+  * **rollup.config.js**
+    ```js
+    import alias from '@rollup/plugin-alias';  // KJB: in support of: Absolute Imports
+
+    export default {
+      ...
+
+      plugins: [
+        ...
+      
+        // KJB: Absolute Imports
+        alias({
+          resolve: ['.svelte', '.js'], // optional, by default this will just look for .js files or folders
+          entries: [
+            { find: 'util', replacement: 'src/util' },
+            // ... maintain additional desired aliases here
+          ]
+        }),
+      
+      ]
+    };
+    ```
 
 
 <!--- *** SUB-SECTION *************************************************************** --->
@@ -580,7 +647,6 @@ At the end of this process you should have:
   $ npm install --save-dev @babel/core @babel/preset-env jest babel-jest
     + jest@25.4.0
       added 620 packages from 281 contributors and audited 260964 packages in 36.954s
-      found 0 vulnerabilities
     + babel-jest@25.4.0
     + @babel/core@7.9.0
     + @babel/preset-env@7.9.5
@@ -973,6 +1039,7 @@ KJB Notes --->
   [Setup GitHub Project]:         #setup-github-project
   [Setup Svelte Tooling]:         #setup-svelte-tooling
   [Setup UI Kit (SMUI)]:          #setup-ui-kit-smui
+  [Setup Absolute Imports]:       #setup-absolute-imports
   [Setup Jest Unit Testing]:      #setup-jest-unit-testing
   [Setup Documentation Tooling]:  #setup-documentation-tooling
   [Setup Deployment]:             #setup-deployment

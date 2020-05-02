@@ -3,8 +3,9 @@ import resolve    from '@rollup/plugin-node-resolve';
 import commonjs   from '@rollup/plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
 import {terser}   from 'rollup-plugin-terser';
-import postcss    from 'rollup-plugin-postcss'; // KJB: in suport of: Sass Processor (used by Svelte Material UI (SMUI))
-import path       from 'path';                  // KJB: in suport of: Sass Processor (used by Svelte Material UI (SMUI))
+import postcss    from 'rollup-plugin-postcss'; // KJB: in support of: Sass Processor (used by Svelte Material UI (SMUI))
+import path       from 'path';                  // KJB: in support of: Sass Processor (used by Svelte Material UI (SMUI))
+import alias      from '@rollup/plugin-alias';  // KJB: in support of: Absolute Imports
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -37,6 +38,15 @@ export default {
 			dedupe: ['svelte']
 		}),
 		commonjs(),
+
+    // KJB: Absolute Imports
+    alias({
+      resolve: ['.svelte', '.js'], // optional, by default this will just look for .js files or folders
+      entries: [
+        { find: 'util', replacement: 'src/util' },
+        // ... maintain additional desired aliases here
+      ]
+    }),
 
     // KJB: Sass Processor (used by Svelte Material UI (SMUI))
     postcss({
