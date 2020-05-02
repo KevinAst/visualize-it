@@ -2,8 +2,8 @@
   "name": "visualize-it-svelte",
   "version": "0.1.0",
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w",
+    "app:prodBuild": "rollup -c",
+    "app:devServe": "rollup -c -w",
     "start": "sirv public",
     "test": "jest src",
     "test:watch": "npm run test -- --watch"
