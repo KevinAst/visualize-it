@@ -22,10 +22,8 @@
     "rollup-plugin-svelte": "^5.0.3",
     "rollup-plugin-terser": "^5.1.2",
     "sass": "^1.26.3",
+    "sirv-cli": "^0.4.4",
     "svelte": "^3.0.0",
     "svelte-material-ui": "^1.0.0-beta.21"
-  },
-  "dependencies": {
-    "sirv-cli": "^0.4.4"
   }
 }

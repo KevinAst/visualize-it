@@ -288,8 +288,8 @@ At the end of this process you should have:
   rollup-plugin-livereload
   rollup-plugin-svelte
   rollup-plugin-terser
-  svelte
   sirv-cli
+  svelte
   ```
 
 - Impacted Files:
@@ -323,6 +323,8 @@ using [degit](https://github.com/Rich-Harris/degit) _(a Rich Harris tool that co
   $ cd visualize-it
   $ npm install
   $ npm run dev
+  * Move sirv-cli FROM: dependencies TO: devDependencies (in package.json)
+    ... unsure why template registers this as dependencies
 
 - Summary of npm scripts:
 
