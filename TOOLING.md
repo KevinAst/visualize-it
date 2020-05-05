@@ -429,9 +429,10 @@ KJB Notes --->
 - [repo](https://github.com/hperrin/svelte-material-ui)
 - [Component Docs](https://github.com/hperrin/svelte-material-ui#components)
   are in the form in individual READMEs _(mostly just a short desc)_
-
-  Talks about just implementing components that need to be _"Svelte-ified"_,
-  while other things should use the MDC package directly _(also installed)_.
+  - here is the [component sample code](https://github.com/hperrin/svelte-material-ui/tree/master/site/src/routes/demo)
+    _for the demos link (above)_
+  - implementations for components that need to be _"Svelte-ified"_
+  - otherwise, simply use the MDC package directly _(pre-installed with SMUI)_
 
 At the end of this process you should have:
 
@@ -515,6 +516,12 @@ At the end of this process you should have:
   * If it's empty, it will use the default theme values from MDC. 
   * See the [theme file in the demo site](https://github.com/hperrin/svelte-material-ui/blob/master/site/src/theme/_smui-theme.scss)
     for an example that uses Svelte colors.
+  * Add `@import '@material/typography/mdc-typography';` to pull in the MDC Typography CSS classes
+
+    **usage:**
+    ```html
+    <p class="mdc-typography--subtitle2">Hello</p>
+    ```
 
 - Define the MDC fonts (Material Icon, Roboto, and Roboto Mono fonts):
 

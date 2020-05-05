@@ -4,18 +4,12 @@
 
 @import "@material/theme/color-palette";
 
-// KJB: got from somewhere
-//? // Svelte Colors!
-//? $mdc-theme-primary: #ff3e00;
-//? $mdc-theme-secondary: #676778;
-//? // Other Svelte color: #40b3ff
-//? 
-//? $mdc-theme-background: #fff;
-//? $mdc-theme-surface:  #fff;
-//? 
-//? $mdc-theme-error: $material-color-red-900;
+// pull in the MDC Typography CSS classes
+// ex usage: <p class="mdc-typography--subtitle2">Hello</p>
+@import '@material/typography/mdc-typography';
 
-// KJB: try changing (from color tool: https://material.io/resources/color/#!/?view.left=0&view.right=0&primary.color=26A69A&secondary.color=37474F&primary.text.color=000000 )
+// visualize-it's custom color theme
+// ... via color tool: https://material.io/resources/color/#!/?view.left=0&view.right=0&primary.color=26A69A&secondary.color=37474F&primary.text.color=000000
 // <resources>
 //   <color name="primaryColor">#26a69a</color>
 //   <color name="primaryLightColor">#64d8cb</color>

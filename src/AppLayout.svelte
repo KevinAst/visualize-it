@@ -301,38 +301,54 @@
       <main class="vit-tabs-content main-content">
         <pre>Active: {activeTxt}</pre>
 
+        <p class="mdc-typography--subtitle2">Here are some Typography fonts:</p>
+        <ul>
+          <p class="mdc-typography--caption">Caption</p>
+          <p class="mdc-typography--button">Button</p>
+          <p class="mdc-typography--body1">
+            <small>small</small>
+            <big>big</big>
+            <sup>sup</sup>
+            <sub>sub</sub>
+            <strong>strong</strong>
+            <em>em</em>
+          </p>
+        </ul>
+
+        <p class="mdc-typography--subtitle2">
+          This is our tab content ... I hope it works ... here we go!!
+        </p>
         <pre>
-          This is our tab content ... I hope it works ... here we go ... don't be late!!
-          Test 1
-          Test 2
-          Test 3
-          Test 4
-          Test 5
-          Test 6
-          Test 7
-          Test 8
-          Test 9
-          Test 10
-          Test 11
-          Test 12
-          Test 13
-          Test 14
-          Test 15
-          Test 16
-          Test 17
-          Test 18
-          Test 19
-          Test 20
-          Test 21
-          Test 22
-          Test 23
-          Test 24
-          Test 25
-          Test 26
-          Test 27
-          Test 28
-          Test 29
-          Test 30
+Test 1
+Test 2
+Test 3
+Test 4
+Test 5
+Test 6
+Test 7
+Test 8
+Test 9
+Test 10
+Test 11
+Test 12
+Test 13
+Test 14
+Test 15
+Test 16
+Test 17
+Test 18
+Test 19
+Test 20
+Test 21
+Test 22
+Test 23
+Test 24
+Test 25
+Test 26
+Test 27
+Test 28
+Test 29
+Test 30
         </pre>
 
       </main>
