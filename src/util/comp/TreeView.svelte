@@ -43,7 +43,7 @@
   <ul class:top transition:myTrans="{{duration:500}}">
     <li>
       {#if children}
-        <span on:click={toggleExpansion}>
+        <span class="mdc-typography--subtitle2" on:click={toggleExpansion}>
   		    <span class="arrow" class:arrowDown>&#x25b6</span>
   		  	{label}
   		  </span>
@@ -53,7 +53,7 @@
           {/each}
         {/if}
       {:else}
-        <span>
+        <span class="mdc-typography--subtitle2">
           <span class="no-arrow-spacer"/>
           {label}
         </span>
