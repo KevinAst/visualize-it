@@ -319,36 +319,32 @@
           This is our tab content ... I hope it works ... here we go!!
         </p>
         <pre>
-Test 1
-Test 2
-Test 3
-Test 4
-Test 5
-Test 6
-Test 7
-Test 8
-Test 9
-Test 10
-Test 11
-Test 12
-Test 13
-Test 14
-Test 15
-Test 16
-Test 17
-Test 18
-Test 19
-Test 20
-Test 21
-Test 22
-Test 23
-Test 24
-Test 25
-Test 26
-Test 27
-Test 28
-Test 29
-Test 30
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor incididunt ut labore et dolore magna aliqua. Eu nisl
+nunc mi ipsum faucibus vitae aliquet. Magna ac placerat vestibulum
+lectus mauris ultrices eros in cursus. Quam elementum pulvinar etiam
+non. Donec massa sapien faucibus et. Lorem ipsum dolor sit
+amet. Convallis posuere morbi leo urna molestie at elementum eu
+facilisis. Donec pretium vulputate sapien nec sagittis aliquam
+malesuada bibendum arcu. Libero justo laoreet sit amet cursus sit amet
+dictum sit. Urna molestie at elementum eu facilisis sed odio
+morbi. Commodo ullamcorper a lacus vestibulum sed arcu non
+odio. Aliquet sagittis id consectetur purus ut faucibus pulvinar
+elementum integer.
+
+Massa ultricies mi quis hendrerit dolor magna eget est. Sit amet
+cursus sit amet dictum sit amet. Lacus sed viverra tellus in hac
+habitasse platea dictumst vestibulum. Donec pretium vulputate sapien
+nec sagittis aliquam. Tristique senectus et netus et malesuada
+fames. Nulla facilisi cras fermentum odio eu feugiat. Eu mi bibendum
+neque egestas congue quisque egestas. Iaculis at erat pellentesque
+adipiscing commodo elit at imperdiet. Odio ut sem nulla pharetra diam
+sit amet nisl. Sed turpis tincidunt id aliquet risus feugiat in
+ante. Diam vulputate ut pharetra sit amet aliquam id. Quisque non
+tellus orci ac auctor augue. Purus sit amet volutpat consequat mauris
+nunc congue nisi. Nisl purus in mollis nunc sed id. Velit scelerisque
+in dictum non consectetur a erat. Lacus luctus accumsan tortor posuere
+ac.
         </pre>
 
       </main>
