@@ -1,6 +1,6 @@
 <script context="module">
  // retain ModuleScoped expansion state for each tree node
- // ... so as to retain grandchildren state when grandparents are collapsed :-)
+ // ... so collapsing a parent doesn't loose expansion state of children :-)
  const _expansionState = {
    // accumTreeId: expanded <boolean>
  };
