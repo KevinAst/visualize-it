@@ -15,6 +15,8 @@
 
  // provide a visually animated transition for tree node expansion/contraction
  import {slide as myTrans} from 'svelte/transition';
+
+ import Ripple from '@smui/ripple';
  
  // decompose tree node
  // AI: parameterize tree structure interpretation (via callback param)
@@ -43,7 +45,7 @@
   <ul class:top transition:myTrans="{{duration:500}}">
     <li>
       {#if children}
-        <span class="mdc-typography--subtitle2" on:click={toggleExpansion}>
+        <span class="mdc-typography--subtitle2" on:click={toggleExpansion} use:Ripple={{ripple: true, color: 'secondary'}}>
   		    <span class="arrow" class:arrowDown>&#x25b6</span>
   		  	{label}
   		  </span>
