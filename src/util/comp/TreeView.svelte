@@ -10,7 +10,6 @@
  // component params
  export let tree;
  export let omitRoot    = false;
- export let depth       = 0;     // INTERNAL: maintain depth
  export let accumTreeId = '';    // INTERNAL: accumulative ID throughout tree
 
  // provide a visually animated transition for tree node expansion/contraction
@@ -25,33 +24,37 @@
  //         I suspect may need to be a proprietary component for this task (with all the DnD and double-click, etc.)
  const {label, children} = tree;
 
+ // maintain indicator as to whether this is the top-level
+ const top = accumTreeId === '';
+
  // maintain the accumulative ID throughout our tree
- accumTreeId += (accumTreeId ? ' - ' : '') + label;
+ accumTreeId += (top ? '' : ' - ') + label;
 
  // maintain expansion state
- let   expanded        = _expansionState[accumTreeId] || false; // ... default to false on first occurance
+ // ... initialize from any prior expansion state
+ // ... default to NOT expanded (false) on first occurance
+ let   expanded        = _expansionState[accumTreeId] || false;
  $:    arrowDown       = expanded;
  const toggleExpansion = () => expanded = _expansionState[accumTreeId] = !expanded;
-
- // maintain indicator as to whether this is the top-level
- $: top = depth === 0;
 </script>
 
 {#if omitRoot && top && children}
   {#each children as child}
-    <svelte:self tree={child} depth={depth + 1} accumTreeId={accumTreeId}/>
+    <svelte:self tree={child} accumTreeId={accumTreeId}/>
   {/each}
 {:else}
   <ul class:top transition:myTrans="{{duration:500}}">
     <li>
       {#if children}
-        <span class="mdc-typography--subtitle2" on:click={toggleExpansion} use:Ripple={{ripple: true, color: 'secondary'}}>
+        <span class="mdc-typography--subtitle2 expander"
+              on:click={toggleExpansion}
+              use:Ripple={{ripple: true, color: 'surface', unbounded: false}}>
   		    <span class="arrow" class:arrowDown>&#x25b6</span>
   		  	{label}
   		  </span>
         {#if expanded}
           {#each children as child}
-            <svelte:self tree={child} depth={depth + 1} accumTreeId={accumTreeId}/>
+            <svelte:self tree={child} accumTreeId={accumTreeId}/>
           {/each}
         {/if}
       {:else}
@@ -78,9 +81,11 @@
  .no-arrow-spacer {
    padding-left:    1.0rem;
  }
+ .expander {
+   cursor:  pointer;
+ }
  .arrow {
 /* color:               red; /* AI: how to access scss vars */
-   cursor:              pointer;
 	 display:             inline-block;
    transition-duration: 500ms;
 	 transition-property: transform;
