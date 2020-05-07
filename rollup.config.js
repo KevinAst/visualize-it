@@ -41,10 +41,8 @@ export default {
 
     // KJB: Absolute Imports
     alias({
-      resolve: ['.svelte', '.js'], // optional, by default this will just look for .js files or folders
       entries: [
-        { find: 'util', replacement: 'src/util' },
-        // ... maintain additional desired aliases here
+        { find: 'visualize-it', replacement: 'src' },
       ]
     }),
 
