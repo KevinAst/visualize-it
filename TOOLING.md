@@ -131,6 +131,11 @@ Dependency                     | Type        | Usage                  | Refer To
 `babel-jest`                   | **TOOLING** | Jest Testing related   | [Setup Jest Unit Testing]
 `crc`                          | **APP**     | CRC Hashing Utility    | app code: `src/util/crc.js`
 `jest`                         | **TOOLING** | Jest Testing Framework | [Setup Jest Unit Testing]
+`lodash.isequal`               | **APP**     | Validation             | app code: `src/util/typeCheck.js`
+`lodash.isfunction`            | **APP**     | Validation             | app code: `src/util/typeCheck.js`
+`lodash.isobject`              | **APP**     | Validation             | app code: `src/util/typeCheck.js`
+`lodash.isplainobject`         | **APP**     | Validation             | app code: `src/util/typeCheck.js`
+`lodash.isstring`              | **APP**     | Validation             | app code: `src/util/typeCheck.js`
 `rollup`                       | **TOOLING** | Svelte Bundler         | [Setup Svelte Tooling]
 `rollup-plugin-livereload`     | **TOOLING** | Svelte Bundler related | [Setup Svelte Tooling]
 `rollup-plugin-postcss`        | **TOOLING** | UI Kit related         | [Setup UI Kit (SMUI)]
