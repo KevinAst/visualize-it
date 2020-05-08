@@ -1,5 +1,5 @@
 <script>
- import {Notify, toast} from 'visualize-it/util/notify.js';
+ import {Notify, toast} from 'vit/util/notify.js';
  import Button /*, {Label} */ from '@smui/button';
 
  import Drawer, {AppContent, Content, Header, Title, Subtitle} from '@smui/drawer';
@@ -30,7 +30,7 @@
 // import './theme/_smui-theme.scss'; // THEME:?? shot in the dark
 
  // AI: ?? TreeView ... merge together
- import TreeView from 'visualize-it/util/comp/TreeView.svelte';
+ import TreeView from 'vit/util/comp/TreeView.svelte';
  const tree = {          // treeNode1: WITH children
 	 label: "Sandbox I",
 	 children: [

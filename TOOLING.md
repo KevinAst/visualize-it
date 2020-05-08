@@ -552,7 +552,7 @@ import TreeView  from "../../../../util/comp/TreeView.svelte";
 We enable absolute imports:
 
 ```js
-import TreeView  from "util/comp/TreeView.svelte";
+import TreeView  from "vit/util/comp/TreeView.svelte";
 ```
 
 **Links**:
@@ -585,30 +585,43 @@ At the end of this process you should have:
 
 - Configure `rollup.config.js` _(in support of **Absolute Imports**)_
 
-  * For details, see embedded comments: `Absolute Imports`
+  * For details, see embedded comments (`Absolute Imports`) in `rollup.config.js`
 
-  * **rollup.config.js**
+  * **rollup.config.js** _sample_
     ```js
     import alias from '@rollup/plugin-alias';  // KJB: in support of: Absolute Imports
 
     export default {
       ...
-
       plugins: [
         ...
-      
         // KJB: Absolute Imports
         alias({
-          resolve: ['.svelte', '.js'], // optional, by default this will just look for .js files or folders
           entries: [
-            { find: 'util', replacement: 'src/util' },
-            // ... maintain additional desired aliases here
+            // allow:      import TreeView  from "vit/util/comp/TreeView.svelte";
+            // instead of: import TreeView  from "../../../../util/comp/TreeView.svelte";
+            { find: 'vit', replacement: 'src' },
           ]
         }),
-      
       ]
     };
     ```
+
+  * NOTES:
+
+    - When using defined aliases, **you must supply extension** ... ex: .js or .svelte
+
+    - You cannot prefix with `src/` out-of-the-box
+
+    - Currently our unit tests may not import any code that uses alias imports
+      ... _because jest does **NOT** utilize rollup_
+
+    - You can define as many aliases as you like
+ 
+    - You can even employ regexp _(see [alias
+      docs](https://www.npmjs.com/package/@rollup/plugin-alias) for
+      details)_
+
 
 
 <!--- *** SUB-SECTION *************************************************************** --->
