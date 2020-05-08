@@ -382,9 +382,17 @@ _My personal Detailed Notes are "hidden" (in comment form) in this doc ..._
 
 - configure static resources
   * public/index.html
-    * change Title: visualize-it
-    * change resource resolution FROM absolute TO relative, making it deployable in a relative directory
-  * ?? public/favicon.png
+    - change Title: visualize-it
+    - change resource resolution FROM absolute TO relative, making it deployable in a relative directory
+  * change the public/favicon.png to be visualize-it specific
+    - define the vaiours visualize-it icons
+      public/
+        visualize-it.png            ... our favicon
+        visualize-it-logo.png       ... our logo
+        visualize-it-logo-eyes.jpg  ... prying eyes
+    - update index.html
+      * reference visualize-it.png
+    - delete template favicon.png
 
 - configure VSCode
   * setup VSCode workspace file (and edit):
