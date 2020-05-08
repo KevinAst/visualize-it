@@ -1,4 +1,7 @@
 <script>
+ import {Notify, toast} from 'visualize-it/util/notify.js';
+ import Button /*, {Label} */ from '@smui/button';
+
  import Drawer, {AppContent, Content, Header, Title, Subtitle} from '@smui/drawer';
  import List, {Item, Text, Graphic, Separator, Subheader} from '@smui/list';
  import H6 from '@smui/common/H6.svelte';
@@ -27,7 +30,7 @@
 // import './theme/_smui-theme.scss'; // THEME:?? shot in the dark
 
  // AI: ?? TreeView ... merge together
- import TreeView from 'util/comp/TreeView.svelte';
+ import TreeView from 'visualize-it/util/comp/TreeView.svelte';
  const tree = {          // treeNode1: WITH children
 	 label: "Sandbox I",
 	 children: [
@@ -237,6 +240,9 @@
 </style>
 
 
+<Notify/>
+
+
 <!-- top-level page container ... manages 1. vit-page-app-bar and 2: vit-page-content -->
 <div class="vit-page-container">
 
@@ -305,6 +311,27 @@
         <ul>
           <p class="mdc-typography--caption">Caption</p>
           <p class="mdc-typography--button">Button</p>
+
+          <Button variant="raised" color="primary" on:click={() => toast({
+            msg: 'WowZee Toast\nLine 2\n      Line 3 with pre-space\nHere is a really big line.  I hope it works ... now is the time for every good man to come to the aid of his country.',
+            stacked: true,
+            dismissible: false,
+            actions: [
+              {
+                txt:    'WowZee',
+                action: () => toast({msg: 'WowZee WowZee WooWoo!!'}),
+              },
+              {
+                txt:    'Error',
+                action: () => {throw new Error('Here is a run-time error from somewhere')},
+              },
+              {
+                txt:    'OK'
+              },
+            ],
+            })}>
+            <Label>Do a Toast</Label>
+          </Button>
           <p class="mdc-typography--body1">
             <small>small</small>
             <big>big</big>
