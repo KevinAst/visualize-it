@@ -130,7 +130,9 @@ Dependency                     | Type        | Usage                  | Refer To
 `@rollup/plugin-node-resolve`  | **TOOLING** | Svelte Bundler related | [Setup Svelte Tooling]
 `babel-jest`                   | **TOOLING** | Jest Testing related   | [Setup Jest Unit Testing]
 `crc`                          | **APP**     | CRC Hashing Utility    | app code: `src/util/crc.js`
+`enumify`                      | **APP**     | Enumeration Utility    | app code: `src/...`
 `jest`                         | **TOOLING** | Jest Testing Framework | [Setup Jest Unit Testing]
+`konva`                        | **APP**     | Konva canvas 2D lib    | app code: `src/...`
 `lodash.isequal`               | **APP**     | Validation             | app code: `src/util/typeCheck.js`
 `lodash.isfunction`            | **APP**     | Validation             | app code: `src/util/typeCheck.js`
 `lodash.isobject`              | **APP**     | Validation             | app code: `src/util/typeCheck.js`
