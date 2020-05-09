@@ -314,8 +314,6 @@
 
           <Button variant="raised" color="primary" on:click={() => toast({
             msg: 'WowZee Toast\nLine 2\n      Line 3 with pre-space\nHere is a really big line.  I hope it works ... now is the time for every good man to come to the aid of his country.',
-            stacked: true,
-            dismissible: false,
             actions: [
               {
                 txt:    'WowZee',

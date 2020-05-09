@@ -15,6 +15,8 @@ export {
   Notify,
 };
 
+const DEFAULT = 'APPLY-DEFAULT';
+
 /**
  * Display a toast message to the user.
  *
@@ -48,16 +50,18 @@ export {
  * }
  * ```
  *
- * @param {boolean} [stacked=false] - an indicator as to whether the
- * action buttons are vertically separated from the msg.
+ * @param {boolean} [stacked] - an indicator as to whether the
+ * action buttons are vertically separated from the msg
+ * ... DEFAULT: stacked when actions supplied.
  *
- * @param {boolean} [dismissible=true] - an indicator as to whether
- * the user can dismiss the toast dialog early.  NOTE: All toasts are
- * auto-dismissed.
+ * @param {boolean} [dismissible] - an indicator as to whether
+ * the user can dismiss the toast dialog early (NOTE: All toasts
+ * are auto-dismissed over time).
+ * ... DEFAULT: dismissible when actions are NOT supplied.
  *
  * @throws {Error} for invalid params.
  */
-export function toast({msg, actions=[], stacked=false, dismissible=true, ...unknownArgs}={}) {
+export function toast({msg, actions=[], stacked=DEFAULT, dismissible=DEFAULT, ...unknownArgs}={}) {
   // verify params
   const check = verify.prefix('toast() parameter violation: ');
   // ... msg
@@ -76,9 +80,16 @@ export function toast({msg, actions=[], stacked=false, dismissible=true, ...unkn
       action.action = (p) => p;  // no-op default
     }
   });
+  const actionsSupplied = actions.length > 0;
   // ... stacked
+  if (stacked===DEFAULT) {                    // apply run-time DEFAULT:
+    stacked = actionsSupplied ? true : false; // ... stacked with actions
+  }
   check(stacked===true || stacked===false, 'stacked must be a boolean');
   // ... dismissible
+  if (dismissible===DEFAULT) {                    // apply run-time DEFAULT:
+    dismissible = actionsSupplied ? false : true; // ... NOT dismissible with actions
+  }
   check(dismissible===true || dismissible===false, 'dismissible must be a boolean');
   // ... duration: NOT: can only set snackbar$timeoutMs at <Kitchen> instantiation time (see <Notify>)
   // check(isNumber(duration), `duration must be a number, NOT: ${duration}`);
