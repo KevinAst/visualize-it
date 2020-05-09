@@ -557,11 +557,31 @@ To alleviate the pain of relative path imports (for example):
 import TreeView  from "../../../../util/comp/TreeView.svelte";
 ```
 
-We enable absolute imports:
+We enable absolute imports, where tilde (`~/`) is the src root
+(`src/`):
 
 ```js
-import TreeView  from "vit/util/comp/TreeView.svelte";
+import TreeView  from "~/util/comp/TreeView.svelte";
 ```
+
+
+**Notes**:
+
+- When using defined aliases, **you must supply the extensions**
+  _(`.js`, `.svelte`, etc.)_
+
+- You cannot prefix with `src/` out of the box _(without this
+  alias utility)_.
+
+- Currently our unit tests may not import any code that uses alias imports
+  ... _because jest **does NOT** utilize rollup_
+
+- You can define as many aliases as you like
+
+- You can even employ regexp _(see [alias
+  docs](https://www.npmjs.com/package/@rollup/plugin-alias) for
+  details)_
+
 
 **Links**:
 - [Absolute Paths in Svelte](https://dev.to/sjafferi/absolute-paths-in-svelte-488c)
@@ -581,6 +601,7 @@ At the end of this process you should have:
   visualize-it/
     rollup.config.js ... modified to include alias configuration (Absolute Imports)
   ```
+
 
 **Installation Details**:
 
@@ -606,29 +627,14 @@ At the end of this process you should have:
         // KJB: Absolute Imports
         alias({
           entries: [
-            // allow:      import TreeView  from "vit/util/comp/TreeView.svelte";
+            // allow:      import TreeView  from "~/util/comp/TreeView.svelte";
             // instead of: import TreeView  from "../../../../util/comp/TreeView.svelte";
-            { find: 'vit', replacement: 'src' },
+            { find: '~', replacement: 'src' },
           ]
         }),
       ]
     };
     ```
-
-  * NOTES:
-
-    - When using defined aliases, **you must supply extension** ... ex: .js or .svelte
-
-    - You cannot prefix with `src/` out-of-the-box
-
-    - Currently our unit tests may not import any code that uses alias imports
-      ... _because jest does **NOT** utilize rollup_
-
-    - You can define as many aliases as you like
- 
-    - You can even employ regexp _(see [alias
-      docs](https://www.npmjs.com/package/@rollup/plugin-alias) for
-      details)_
 
 
 

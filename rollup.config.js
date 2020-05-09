@@ -42,9 +42,9 @@ export default {
     // KJB: Absolute Imports
     alias({
       entries: [
-        // allow:      import TreeView  from "vit/util/comp/TreeView.svelte";
+        // allow:      import TreeView  from "~/util/comp/TreeView.svelte";
         // instead of: import TreeView  from "../../../../util/comp/TreeView.svelte";
-        { find: 'vit', replacement: 'src' },
+        { find: '~', replacement: 'src' },
       ]
     }),
 

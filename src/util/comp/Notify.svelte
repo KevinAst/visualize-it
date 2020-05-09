@@ -1,5 +1,5 @@
 <script context="module">
- import verify from 'vit/util/verify.js';
+ import verify from '~/util/verify.js';
 
  // function in our one-and-only <Notify/> component instance
  // ... maintained by <Notify/> life-cycle-hooks
