@@ -4,6 +4,8 @@
  const _expansionState = {
    // accumTreeId: expanded <boolean>
  };
+
+ let _toggleNodeId = null; // ?? new
 </script>
 
 <script>
@@ -13,7 +15,7 @@
  export let accumTreeId = '';    // INTERNAL: accumulative ID throughout tree
 
  // provide a visually animated transition for tree node expansion/contraction
- import {slide as myTrans} from 'svelte/transition';
+ import {slide} from 'svelte/transition';
 
  import Ripple from '@smui/ripple';
  
@@ -27,6 +29,8 @@
  // maintain indicator as to whether this is the top-level
  const top = accumTreeId === '';
 
+ const parentTreeId = accumTreeId; // ?? new
+
  // maintain the accumulative ID throughout our tree
  accumTreeId += (top ? '' : ' - ') + label;
 
@@ -35,7 +39,17 @@
  // ... default to NOT expanded (false) on first occurance
  let   expanded        = _expansionState[accumTreeId] || false;
  $:    arrowDown       = expanded;
- const toggleExpansion = () => expanded = _expansionState[accumTreeId] = !expanded;
+ const toggleExpansion = () => {
+   expanded      = _expansionState[accumTreeId] = !expanded;
+   _toggleNodeId = accumTreeId; // ?? new
+   // duration = 500; // ?? need to reset all to transition for future ... very hoaky ... doesn't work anyway
+   // duration = expanded ? 0 : 500; // ?? need to reset all to transition for future ... very hoaky ... doesn't work anyway
+ }
+
+ // only transition the top-most node whose expansion changed
+ let duration = _toggleNodeId===parentTreeId ? 500 : 0; // ?? new
+ //setTimeout(() => duration = 500, 10); // ?? need to reset all to transition for future ... very hoaky ... doesn't work anyway
+
 </script>
 
 {#if omitRoot && top && children}
@@ -43,15 +57,16 @@
     <svelte:self tree={child} accumTreeId={accumTreeId}/>
   {/each}
 {:else}
-  <ul class:top transition:myTrans="{{duration:500}}">
+  {console.log(`?? accumTreeId: ${accumTreeId}, _toggleNodeId: ${_toggleNodeId}, parentTreeId: ${parentTreeId}, duration: ${duration}`) || ''}
+  <ul class:top transition:slide="{{duration}}">
     <li>
       {#if children}
         <span class="mdc-typography--subtitle2 expander"
               on:click={toggleExpansion}
               use:Ripple={{ripple: true, color: 'surface', unbounded: false}}>
-  		    <span class="arrow" class:arrowDown>&#x25b6</span>
-  		  	{label}
-  		  </span>
+          <span class="arrow" class:arrowDown>&#x25b6</span>
+          {label}
+        </span>
         {#if expanded}
           {#each children as child}
             <svelte:self tree={child} accumTreeId={accumTreeId}/>
@@ -86,9 +101,9 @@
  }
  .arrow {
 /* color:               red; /* AI: how to access scss vars */
-	 display:             inline-block;
+   display:             inline-block;
    transition-duration: 500ms;
-	 transition-property: transform;
+   transition-property: transform;
  }
  .arrowDown {
    transform: rotate(90deg);
