@@ -5,7 +5,8 @@
    // accumTreeId: expanded <boolean>
  };
 
- let _toggleNodeId = null; // ?? new
+ // ANIMATION-HACK: slight animation improvement hack - only transition the top-level (being expanded)
+ let _toggleNodeId = null; // ANIMATION-HACK
 </script>
 
 <script>
@@ -29,7 +30,7 @@
  // maintain indicator as to whether this is the top-level
  const top = accumTreeId === '';
 
- const parentTreeId = accumTreeId; // ?? new
+ const parentTreeId = accumTreeId; // ANIMATION-HACK
 
  // maintain the accumulative ID throughout our tree
  accumTreeId += (top ? '' : ' - ') + label;
@@ -41,14 +42,11 @@
  $:    arrowDown       = expanded;
  const toggleExpansion = () => {
    expanded      = _expansionState[accumTreeId] = !expanded;
-   _toggleNodeId = accumTreeId; // ?? new
-   // duration = 500; // ?? need to reset all to transition for future ... very hoaky ... doesn't work anyway
-   // duration = expanded ? 0 : 500; // ?? need to reset all to transition for future ... very hoaky ... doesn't work anyway
+   _toggleNodeId = accumTreeId; // ANIMATION-HACK
  }
 
  // only transition the top-most node whose expansion changed
- let duration = _toggleNodeId===parentTreeId ? 500 : 0; // ?? new
- //setTimeout(() => duration = 500, 10); // ?? need to reset all to transition for future ... very hoaky ... doesn't work anyway
+ let duration = _toggleNodeId===parentTreeId ? 500 : 0; // ANIMATION-HACK
 
 </script>
 
@@ -57,7 +55,6 @@
     <svelte:self tree={child} accumTreeId={accumTreeId}/>
   {/each}
 {:else}
-  {console.log(`?? accumTreeId: ${accumTreeId}, _toggleNodeId: ${_toggleNodeId}, parentTreeId: ${parentTreeId}, duration: ${duration}`) || ''}
   <ul class:top transition:slide="{{duration}}">
     <li>
       {#if children}
