@@ -14,6 +14,7 @@ development of the **visualize-it** project.
   - [Setup Svelte Tooling]
   - [Setup UI Kit (SMUI)]
   - [Setup Absolute Imports]
+  - [Setup Node Builtins]
   - [Setup Jest Unit Testing]
   - [Setup Documentation Tooling]
   - [Setup Deployment]
@@ -121,32 +122,34 @@ looking at `package.json`, the inevitable questions are:
 The following table itemizes the **visualize-it** dependencies,
 referencing when/where they were introduced/configured.
 
-Dependency                     | Type        | Usage                  | Refer To
------------------------------- | ----------- | ---------------------  | ----------------
-`@babel/core`                  | **TOOLING** | Jest Testing related   | [Setup Jest Unit Testing]
-`@babel/preset-env`            | **TOOLING** | Jest Testing related   | [Setup Jest Unit Testing]
-`@rollup/plugin-alias`         | **TOOLING** | Absolute Imports       | [Setup Absolute Imports]
-`@rollup/plugin-commonjs`      | **TOOLING** | Svelte Bundler related | [Setup Svelte Tooling]
-`@rollup/plugin-node-resolve`  | **TOOLING** | Svelte Bundler related | [Setup Svelte Tooling]
-`babel-jest`                   | **TOOLING** | Jest Testing related   | [Setup Jest Unit Testing]
-`crc`                          | **APP**     | CRC Hashing Utility    | app code: `src/util/crc.js`
-`enumify`                      | **APP**     | Enumeration Utility    | app code: `src/...`
-`jest`                         | **TOOLING** | Jest Testing Framework | [Setup Jest Unit Testing]
-`konva`                        | **APP**     | Konva canvas 2D lib    | app code: `src/...`
-`lodash.isequal`               | **APP**     | Validation             | app code: `src/util/typeCheck.js`
-`lodash.isfunction`            | **APP**     | Validation             | app code: `src/util/typeCheck.js`
-`lodash.isobject`              | **APP**     | Validation             | app code: `src/util/typeCheck.js`
-`lodash.isplainobject`         | **APP**     | Validation             | app code: `src/util/typeCheck.js`
-`lodash.isstring`              | **APP**     | Validation             | app code: `src/util/typeCheck.js`
-`rollup`                       | **TOOLING** | Svelte Bundler         | [Setup Svelte Tooling]
-`rollup-plugin-livereload`     | **TOOLING** | Svelte Bundler related | [Setup Svelte Tooling]
-`rollup-plugin-postcss`        | **TOOLING** | UI Kit related         | [Setup UI Kit (SMUI)]
-`rollup-plugin-svelte`         | **TOOLING** | Svelte Bundler related | [Setup Svelte Tooling]
-`rollup-plugin-terser`         | **TOOLING** | Svelte Bundler related | [Setup Svelte Tooling]
-`sass`                         | **TOOLING** | UI Kit related         | [Setup UI Kit (SMUI)]
-`sirv-cli`                     | **TOOLING** | A static file server   | [Setup Svelte Tooling]
-`svelte`                       | **TOOLING** | Svelte Compiler        | [Setup Svelte Tooling]
-`svelte-material-ui`           | **APP**<br>**TOOLING** | UI Kit      | app code: `src/...`<br>[Setup UI Kit (SMUI)]
+Dependency                     | Type        | Usage                   | Refer To
+------------------------------ | ----------- | ----------------------- | ----------------
+`@babel/core`                  | **TOOLING** | Jest Testing related    | [Setup Jest Unit Testing]
+`@babel/preset-env`            | **TOOLING** | Jest Testing related    | [Setup Jest Unit Testing]
+`@rollup/plugin-alias`         | **TOOLING** | Absolute Imports        | [Setup Absolute Imports]
+`@rollup/plugin-commonjs`      | **TOOLING** | Svelte Bundler related  | [Setup Svelte Tooling]
+`@rollup/plugin-node-resolve`  | **TOOLING** | Svelte Bundler related  | [Setup Svelte Tooling]
+`babel-jest`                   | **TOOLING** | Jest Testing related    | [Setup Jest Unit Testing]
+`crc`                          | **APP**     | CRC Hashing Utility     | app code: `src/util/crc.js`
+`enumify`                      | **APP**     | Enumeration Utility     | app code: `src/...`
+`jest`                         | **TOOLING** | Jest Testing Framework  | [Setup Jest Unit Testing]
+`konva`                        | **APP**     | Konva canvas 2D lib     | app code: `src/...`
+`lodash.isequal`               | **APP**     | Validation              | app code: `src/util/typeCheck.js`
+`lodash.isfunction`            | **APP**     | Validation              | app code: `src/util/typeCheck.js`
+`lodash.isobject`              | **APP**     | Validation              | app code: `src/util/typeCheck.js`
+`lodash.isplainobject`         | **APP**     | Validation              | app code: `src/util/typeCheck.js`
+`lodash.isstring`              | **APP**     | Validation              | app code: `src/util/typeCheck.js`
+`rollup`                       | **TOOLING** | Svelte Bundler          | [Setup Svelte Tooling]
+`rollup-plugin-livereload`     | **TOOLING** | Svelte Bundler related  | [Setup Svelte Tooling]
+`rollup-plugin-node-builtins`  | **TOOLING** | Build some npm packages | [Setup Node Builtins]
+`rollup-plugin-node-globals`   | **TOOLING** | Build some npm packages | [Setup Node Builtins]
+`rollup-plugin-postcss`        | **TOOLING** | UI Kit related          | [Setup UI Kit (SMUI)]
+`rollup-plugin-svelte`         | **TOOLING** | Svelte Bundler related  | [Setup Svelte Tooling]
+`rollup-plugin-terser`         | **TOOLING** | Svelte Bundler related  | [Setup Svelte Tooling]
+`sass`                         | **TOOLING** | UI Kit related          | [Setup UI Kit (SMUI)]
+`sirv-cli`                     | **TOOLING** | A static file server    | [Setup Svelte Tooling]
+`svelte`                       | **TOOLING** | Svelte Compiler         | [Setup Svelte Tooling]
+`svelte-material-ui`           | **APP**<br>**TOOLING** | UI Kit       | app code: `src/...`<br>[Setup UI Kit (SMUI)]
 
 
 
@@ -197,6 +200,7 @@ were carried out, however in some cases the order can be changed.
   - [Setup Svelte Tooling]
   - [Setup UI Kit (SMUI)]
   - [Setup Absolute Imports]
+  - [Setup Node Builtins]
   - [Setup Jest Unit Testing]
   - [Setup Documentation Tooling]
   - [Setup Deployment]
@@ -387,7 +391,7 @@ _My personal Detailed Notes are "hidden" (in comment form) in this doc ..._
     - change Title: visualize-it
     - change resource resolution FROM absolute TO relative, making it deployable in a relative directory
   * change the public/favicon.png to be visualize-it specific
-    - define the vaiours visualize-it icons
+    - define the various visualize-it icons
       public/
         visualize-it.png            ... our favicon
         visualize-it-logo.png       ... our logo
@@ -638,6 +642,107 @@ At the end of this process you should have:
     };
     ```
 
+
+<!--- *** SUB-SECTION *************************************************************** --->
+# Setup Node Builtins
+
+Some npm packages utilize node builtins.  This requires some
+additional rollup configuration!
+
+I ran across this using the `crc` npm package, which uses `buffer`
+internally, **which in turn requires this setup**.
+
+Without this rollup configuration, you will receive the following
+error from the svelte build process:
+
+```
+(!) Missing shims for Node.js built-ins
+Creating a browser bundle that depends on 'buffer'.
+You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins       
+(!) Plugin node-resolve: preferring built-in module 'buffer' over local alternative at 
+    'C:\dev\visualize-it\node_modules\buffer\index.js', pass 'preferBuiltins: false'
+    to disable this behavior or 'preferBuiltins: true' to disable this warning
+(!) Unresolved dependencies
+https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency
+
+buffer (imported by 
+        node_modules\crc\crc1.js,
+        node_modules\crc\crc8.js,
+        node_modules\crc\crc16xmodem.js,
+        node_modules\crc\crc16modbus.js,
+        node_modules\crc\crc16.js,
+        node_modules\crc\crc16ccitt.js,
+        node_modules\crc\crc16kermit.js,
+        node_modules\crc\crc24.js,
+        node_modules\crc\crcjam.js,
+        node_modules\crc\crc32.js,
+        node_modules\crc\crc81wire.js,
+        node_modules\crc\create_buffer.js)
+
+(!) Missing global variable name
+Use output.globals to specify browser global variable names corresponding to external modules
+buffer (guessing 'buffer')
+```
+
+**Links**:
+- [use node builtins in browser with rollup](https://openbase.io/js/rollup-plugin-node-builtins)
+- [npm rollup-plugin-node-builtins](https://www.npmjs.com/package/rollup-plugin-node-builtins)
+- [npm rollup-plugin-node-globals](https://www.npmjs.com/package/rollup-plugin-node-globals)
+
+
+At the end of this process you should have:
+
+- The ability to use npm packages that utilize node builtins _(such as
+  `buffer`, used by `crc`)_.
+
+- Impacted Dependencies:
+  ```
+  rollup-plugin-node-builtins
+  rollup-plugin-node-globals
+  ```
+
+- Impacted Files:
+  ```
+  visualize-it/
+    rollup.config.js ... modified to include Node Builtin configuration
+  ```
+
+**Installation Details**:
+
+- Install required dependencies:
+  ```
+  $ npm install --save-dev rollup-plugin-node-builtins
+    + rollup-plugin-node-builtins@2.1.2
+      added 99 packages from 57 contributors and audited 267136 packages in 12.685s
+      found 2 moderate severity vulnerabilities
+
+  $ npm install --save-dev rollup-plugin-node-globals
+    + rollup-plugin-node-globals@1.4.0
+      added 5 packages from 79 contributors and audited 267145 packages in 9.376s
+      found 2 moderate severity vulnerabilities
+  ```
+
+
+- Configure `rollup.config.js` _(in support of **Node Builtins**)_
+
+  * For details, see embedded comments (`Node Builtins`) in `rollup.config.js`
+
+  * **rollup.config.js** _sample_
+    ```js
+    // KJB: in support of: Node Builtins, used by some npm packages (e.g. crc/buffer), requiring built-in shim for modules designed for Browserfy
+    import globals   from 'rollup-plugin-node-globals';
+    import builtins  from 'rollup-plugin-node-builtins';
+
+    export default {
+      ...
+      plugins: [
+        ...
+        // KJB: in support of: Node Builtins, used by some npm packages (e.g. crc/buffer), requiring built-in shim for modules designed for Browserfy
+        globals(),
+        builtins(),
+      ]
+    };
+    ```
 
 
 <!--- *** SUB-SECTION *************************************************************** --->
@@ -1081,6 +1186,7 @@ KJB Notes --->
   [Setup Svelte Tooling]:         #setup-svelte-tooling
   [Setup UI Kit (SMUI)]:          #setup-ui-kit-smui
   [Setup Absolute Imports]:       #setup-absolute-imports
+  [Setup Node Builtins]:          #setup-node-builtins
   [Setup Jest Unit Testing]:      #setup-jest-unit-testing
   [Setup Documentation Tooling]:  #setup-documentation-tooling
   [Setup Deployment]:             #setup-deployment

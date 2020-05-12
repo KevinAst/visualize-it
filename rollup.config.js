@@ -6,6 +6,8 @@ import {terser}   from 'rollup-plugin-terser';
 import postcss    from 'rollup-plugin-postcss'; // KJB: in support of: Sass Processor (used by Svelte Material UI (SMUI))
 import path       from 'path';                  // KJB: in support of: Sass Processor (used by Svelte Material UI (SMUI))
 import alias      from '@rollup/plugin-alias';  // KJB: in support of: Absolute Imports
+import globals    from 'rollup-plugin-node-globals';  // KJB: in support of: Node Builtins, used by some npm packages (e.g. crc/buffer), requiring built-in shim for modules designed for Browserfy
+import builtins   from 'rollup-plugin-node-builtins'; // KJB: in support of: Node Builtins, used by some npm packages (e.g. crc/buffer), requiring built-in shim for modules designed for Browserfy
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -38,6 +40,10 @@ export default {
 			dedupe: ['svelte']
 		}),
 		commonjs(),
+
+    // KJB: in support of: Node Builtins, used by some npm packages (e.g. crc/buffer), requiring built-in shim for modules designed for Browserfy
+    globals(),
+    builtins(),
 
     // KJB: Absolute Imports
     alias({
