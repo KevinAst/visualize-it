@@ -1,9 +1,9 @@
-import verify            from '~/util/verify.js';
+import verify            from '../util/verify';
 import {isObject,
         isPlainObject,
         isSmartObject,
         isFunction,
-        isClass}         from '~/util/typeCheck.js';
+        isClass}         from '../util/typeCheck';
 
 /**
  * Generate `handleRefFn` with knowledge of how to handle **ALL** data

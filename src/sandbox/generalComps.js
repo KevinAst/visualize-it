@@ -1,7 +1,7 @@
 import Konva          from 'konva';
-import SmartComp      from '~/core/SmartComp.js';
-import SmartPkg       from '~/core/SmartPkg.js';
-import pkgManager     from '~/core/pkgManager.js';
+import SmartComp      from '../core/SmartComp';
+import SmartPkg       from '../core/SmartPkg';
+import pkgManager     from '../core/pkgManager';
 
 class Valve1 extends SmartComp {
 

@@ -1,6 +1,6 @@
 import SmartPkg    from './SmartPkg';
 import pkgManager  from './pkgManager';
-import verify      from '~/util/verify.js';
+import verify      from '../util/verify';
 
 /**
  * Load a package (SmartPkg) from an external resource (ex: web or

@@ -5,7 +5,6 @@ import livereload from 'rollup-plugin-livereload';
 import {terser}   from 'rollup-plugin-terser';
 import postcss    from 'rollup-plugin-postcss'; // KJB: in support of: Sass Processor (used by Svelte Material UI (SMUI))
 import path       from 'path';                  // KJB: in support of: Sass Processor (used by Svelte Material UI (SMUI))
-import alias      from '@rollup/plugin-alias';  // KJB: in support of: Absolute Imports
 import globals    from 'rollup-plugin-node-globals';  // KJB: in support of: Node Builtins, used by some npm packages (e.g. crc/buffer), requiring built-in shim for modules designed for Browserfy
 import builtins   from 'rollup-plugin-node-builtins'; // KJB: in support of: Node Builtins, used by some npm packages (e.g. crc/buffer), requiring built-in shim for modules designed for Browserfy
 
@@ -44,15 +43,6 @@ export default {
     // KJB: in support of: Node Builtins, used by some npm packages (e.g. crc/buffer), requiring built-in shim for modules designed for Browserfy
     globals(),
     builtins(),
-
-    // KJB: Absolute Imports
-    alias({
-      entries: [
-        // allow:      import TreeView  from "~/util/comp/TreeView.svelte";
-        // instead of: import TreeView  from "../../../../util/comp/TreeView.svelte";
-        { find: '~', replacement: 'src' },
-      ]
-    }),
 
     // KJB: Sass Processor (used by Svelte Material UI (SMUI))
     postcss({

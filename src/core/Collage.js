@@ -1,7 +1,7 @@
 import SmartPallet       from './SmartPallet';
 import Scene             from './Scene';
-import verify            from '~/util/verify.js';
-import checkUnknownArgs  from '~/util/checkUnknownArgs.js';
+import verify            from '../util/verify.js';
+import checkUnknownArgs  from '../util/checkUnknownArgs';
 // import {changeManager}   from 'features/xtra'; ?? AI: future svelte integration
 
 /**

@@ -1,6 +1,6 @@
 import SmartModel        from './SmartModel';
-import verify            from '~/util/verify.js';
-import checkUnknownArgs  from '~/util/checkUnknownArgs.js';
+import verify            from '../util/verify';
+import checkUnknownArgs  from '../util/checkUnknownArgs';
 
 /**
  * SmartPallet is an abstract base class representing the graphical

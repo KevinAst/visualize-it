@@ -1,10 +1,10 @@
-import Collage        from '~/core/Collage.js';
-import Scene          from '~/core/Scene.js';
-import SmartClassRef  from '~/core/SmartClassRef.js';
-import SmartPkg       from '~/core/SmartPkg.js';
-import pkgManager     from '~/core/pkgManager.js';
-import {replaceAll}   from '~/util/strUtil.js';
-import {createLogger} from '~/util/logger.js';
+import Collage        from '../core/Collage';
+import Scene          from '../core/Scene';
+import SmartClassRef  from '../core/SmartClassRef';
+import SmartPkg       from '../core/SmartPkg';
+import pkgManager     from '../core/pkgManager';
+import {replaceAll}   from '../util/strUtil';
+import {createLogger} from '../util/logger';
 import                     './generalComps'; // unnamed import activating it's package registration
 
 const log = createLogger('***DIAG*** konvaSandboxSmartPkg ... ').disable(); // enable this to see JSON in logs

@@ -1,8 +1,8 @@
 import Konva             from 'konva';
 import SmartModel        from './SmartModel';
-import verify            from '~/util/verify.js';
-import checkUnknownArgs  from '~/util/checkUnknownArgs.js';
-import {isNumber}        from '~/util/typeCheck.js';
+import verify            from '../util/verify';
+import checkUnknownArgs  from '../util/checkUnknownArgs';
+import {isNumber}        from '../util/typeCheck';
 import DispMode          from './DispMode';
 
 /**

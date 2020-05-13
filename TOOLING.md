@@ -122,34 +122,34 @@ looking at `package.json`, the inevitable questions are:
 The following table itemizes the **visualize-it** dependencies,
 referencing when/where they were introduced/configured.
 
-Dependency                     | Type        | Usage                   | Refer To
------------------------------- | ----------- | ----------------------- | ----------------
-`@babel/core`                  | **TOOLING** | Jest Testing related    | [Setup Jest Unit Testing]
-`@babel/preset-env`            | **TOOLING** | Jest Testing related    | [Setup Jest Unit Testing]
-`@rollup/plugin-alias`         | **TOOLING** | Absolute Imports        | [Setup Absolute Imports]
-`@rollup/plugin-commonjs`      | **TOOLING** | Svelte Bundler related  | [Setup Svelte Tooling]
-`@rollup/plugin-node-resolve`  | **TOOLING** | Svelte Bundler related  | [Setup Svelte Tooling]
-`babel-jest`                   | **TOOLING** | Jest Testing related    | [Setup Jest Unit Testing]
-`crc`                          | **APP**     | CRC Hashing Utility     | app code: `src/util/crc.js`
-`enumify`                      | **APP**     | Enumeration Utility     | app code: `src/...`
-`jest`                         | **TOOLING** | Jest Testing Framework  | [Setup Jest Unit Testing]
-`konva`                        | **APP**     | Konva canvas 2D lib     | app code: `src/...`
-`lodash.isequal`               | **APP**     | Validation              | app code: `src/util/typeCheck.js`
-`lodash.isfunction`            | **APP**     | Validation              | app code: `src/util/typeCheck.js`
-`lodash.isobject`              | **APP**     | Validation              | app code: `src/util/typeCheck.js`
-`lodash.isplainobject`         | **APP**     | Validation              | app code: `src/util/typeCheck.js`
-`lodash.isstring`              | **APP**     | Validation              | app code: `src/util/typeCheck.js`
-`rollup`                       | **TOOLING** | Svelte Bundler          | [Setup Svelte Tooling]
-`rollup-plugin-livereload`     | **TOOLING** | Svelte Bundler related  | [Setup Svelte Tooling]
-`rollup-plugin-node-builtins`  | **TOOLING** | Build some npm packages | [Setup Node Builtins]
-`rollup-plugin-node-globals`   | **TOOLING** | Build some npm packages | [Setup Node Builtins]
-`rollup-plugin-postcss`        | **TOOLING** | UI Kit related          | [Setup UI Kit (SMUI)]
-`rollup-plugin-svelte`         | **TOOLING** | Svelte Bundler related  | [Setup Svelte Tooling]
-`rollup-plugin-terser`         | **TOOLING** | Svelte Bundler related  | [Setup Svelte Tooling]
-`sass`                         | **TOOLING** | UI Kit related          | [Setup UI Kit (SMUI)]
-`sirv-cli`                     | **TOOLING** | A static file server    | [Setup Svelte Tooling]
-`svelte`                       | **TOOLING** | Svelte Compiler         | [Setup Svelte Tooling]
-`svelte-material-ui`           | **APP**<br>**TOOLING** | UI Kit       | app code: `src/...`<br>[Setup UI Kit (SMUI)]
+Dependency                        | Type        | Usage                   | Refer To
+--------------------------------- | ----------- | ----------------------- | ----------------
+`@babel/core`                     | **TOOLING** | Jest Testing related    | [Setup Jest Unit Testing]
+`@babel/preset-env`               | **TOOLING** | Jest Testing related    | [Setup Jest Unit Testing]
+<del>`@rollup/plugin-alias`</del> | **TOOLING** | Absolute Imports        | [Setup Absolute Imports]
+`@rollup/plugin-commonjs`         | **TOOLING** | Svelte Bundler related  | [Setup Svelte Tooling]
+`@rollup/plugin-node-resolve`     | **TOOLING** | Svelte Bundler related  | [Setup Svelte Tooling]
+`babel-jest`                      | **TOOLING** | Jest Testing related    | [Setup Jest Unit Testing]
+`crc`                             | **APP**     | CRC Hashing Utility     | app code: `src/util/crc.js`
+`enumify`                         | **APP**     | Enumeration Utility     | app code: `src/...`
+`jest`                            | **TOOLING** | Jest Testing Framework  | [Setup Jest Unit Testing]
+`konva`                           | **APP**     | Konva canvas 2D lib     | app code: `src/...`
+`lodash.isequal`                  | **APP**     | Validation              | app code: `src/util/typeCheck.js`
+`lodash.isfunction`               | **APP**     | Validation              | app code: `src/util/typeCheck.js`
+`lodash.isobject`                 | **APP**     | Validation              | app code: `src/util/typeCheck.js`
+`lodash.isplainobject`            | **APP**     | Validation              | app code: `src/util/typeCheck.js`
+`lodash.isstring`                 | **APP**     | Validation              | app code: `src/util/typeCheck.js`
+`rollup`                          | **TOOLING** | Svelte Bundler          | [Setup Svelte Tooling]
+`rollup-plugin-livereload`        | **TOOLING** | Svelte Bundler related  | [Setup Svelte Tooling]
+`rollup-plugin-node-builtins`     | **TOOLING** | Build some npm packages | [Setup Node Builtins]
+`rollup-plugin-node-globals`      | **TOOLING** | Build some npm packages | [Setup Node Builtins]
+`rollup-plugin-postcss`           | **TOOLING** | UI Kit related          | [Setup UI Kit (SMUI)]
+`rollup-plugin-svelte`            | **TOOLING** | Svelte Bundler related  | [Setup Svelte Tooling]
+`rollup-plugin-terser`            | **TOOLING** | Svelte Bundler related  | [Setup Svelte Tooling]
+`sass`                            | **TOOLING** | UI Kit related          | [Setup UI Kit (SMUI)]
+`sirv-cli`                        | **TOOLING** | A static file server    | [Setup Svelte Tooling]
+`svelte`                          | **TOOLING** | Svelte Compiler         | [Setup Svelte Tooling]
+`svelte-material-ui`              | **APP**<br>**TOOLING** | UI Kit       | app code: `src/...`<br>[Setup UI Kit (SMUI)]
 
 
 
@@ -556,6 +556,14 @@ At the end of this process you should have:
 
 <!--- *** SUB-SECTION *************************************************************** --->
 # Setup Absolute Imports
+
+**NOTE**: Due to a bug in the [alias rollup
+plugin](https://www.npmjs.com/package/@rollup/plugin-alias), resulting
+in duplicate JS class definitions, we are currently **NOT** using
+Absolute Imports _(details
+[here](https://github.com/rollup/plugins/issues/296)
+and
+[here](https://stackoverflow.com/questions/61756633/svelte-compiler-generating-multiple-javascript-class-definitions))_
 
 To alleviate the pain of relative path imports (for example):
 

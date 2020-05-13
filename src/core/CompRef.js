@@ -3,8 +3,8 @@ import Scene                from './Scene';
 import SmartClassRef        from './SmartClassRef';
 import {containerSizeFudge} from './konvaUtil';
 
-import verify               from '~/util/verify.js';
-import checkUnknownArgs     from '~/util/checkUnknownArgs.js';
+import verify               from '../util/verify';
+import checkUnknownArgs     from '../util/checkUnknownArgs';
 
 
 /**

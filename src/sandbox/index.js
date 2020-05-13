@@ -1,6 +1,6 @@
-import featureFlags     from '~/featureFlags.js'
+import featureFlags     from '../featureFlags'
 // import {leftNavManager} from 'features/xtra'; AI: ?? retrofit to pkgViewer (previously leftNavManager)
-import pkgManager       from '~/core/pkgManager.js';
+import pkgManager       from '../core/pkgManager';
 import                  './konvaSandboxSmartPkg'; // unnamed import activating it's package registration
 
 // feature: sandbox

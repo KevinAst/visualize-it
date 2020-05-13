@@ -1,6 +1,6 @@
-import verify      from '~/util/verify.js';
+import verify      from '../util/verify';
 import {isString,
-        isPkg}     from '~/util/typeCheck.js';
+        isPkg}     from '../util/typeCheck';
 
 /*-------------------------------------------------------------------------------
    

@@ -1,16 +1,16 @@
-/* eslint-disable react/no-is-mounted */ // isMount() usage is NOT react-based
-import verify               from '~/util/verify.js';
+/* eslint-disable react/no-is-mounted */ // isMount() usage is NOT react-based ?? should be able to nix this in svelte (ALSO LOOK FOR OTHERS)
+import verify               from '../util/verify';
 import {isString,
         isPlainObject,
-        isFunction}         from '~/util/typeCheck.js';
-import checkUnknownArgs     from '~/util/checkUnknownArgs.js';
+        isFunction}         from '../util/typeCheck';
+import checkUnknownArgs     from '../util/checkUnknownArgs';
 import pkgManager           from './pkgManager';
 import PseudoClass          from './PseudoClass';
 import DispMode             from './DispMode';
 import createTypeRefHandler from './createTypeRefHandler';
 
-import crc                  from '~/util/crc.js';
-import {toast}              from '~/util/notify.js';
+import crc                  from '../util/crc';
+import {toast}              from '../util/notify';
 
 // AI: future svelte integration
 // import changeManager     from 'features/common/changeManager/changeManager'; // AI: pull from horses mouth (rather than 'features/xtra') to avoid circular import in core/Scene.js ... ReferenceError: Cannot access 'SmartPallet' before initialization

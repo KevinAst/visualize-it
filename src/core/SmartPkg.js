@@ -3,9 +3,9 @@ import SmartClassRef     from './SmartClassRef';
 import PseudoClass       from './PseudoClass';
 import {isPlainObject,
         isSmartObject,
-        isClass}         from '~/util/typeCheck.js';
-import verify            from '~/util/verify.js';
-import checkUnknownArgs  from '~/util/checkUnknownArgs.js';
+        isClass}         from '../util/typeCheck';
+import verify            from '../util/verify';
+import checkUnknownArgs  from '../util/checkUnknownArgs';
 // import {changeManager}   from 'features/xtra'; AI: future svelte integration
 
 /**

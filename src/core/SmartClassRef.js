@@ -1,7 +1,7 @@
-import verify          from '~/util/verify.js';
+import verify          from '../util/verify';
 import {isClass,
-        isString}      from '~/util/typeCheck.js';
-import {createLogger}  from '~/util/logger.js';
+        isString}      from '../util/typeCheck';
+import {createLogger}  from '../util/logger';
 
 // our internal diagnostic logger (normally disabled)
 const log = createLogger('***DIAG*** SmartClassRef:').disable();

@@ -3,9 +3,9 @@ import PseudoClass          from './PseudoClass';
 import SmartPallet          from './SmartPallet';
 import {ancestorOfLayer,
         containerSizeFudge} from './konvaUtil';
-import verify               from '~/util/verify.js';
-import checkUnknownArgs     from '~/util/checkUnknownArgs.js';
-import {isNumber, isEqual}  from '~/util/typeCheck.js';
+import verify               from '../util/verify';
+import checkUnknownArgs     from '../util/checkUnknownArgs';
+import {isNumber, isEqual}  from '../util/typeCheck';
 // import {changeManager}   from 'features/xtra'; AI: future svelte integration
 
 /**

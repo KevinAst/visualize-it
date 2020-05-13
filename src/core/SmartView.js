@@ -2,9 +2,9 @@
 import SmartModel        from './SmartModel';
 import SmartPallet       from './SmartPallet';
 import Konva             from 'konva';
-import verify            from '~/util/verify.js';
-import checkUnknownArgs  from '~/util/checkUnknownArgs.js';
-import {createLogger}    from '~/util/logger.js';
+import verify            from '../util/verify';
+import checkUnknownArgs  from '../util/checkUnknownArgs';
+import {createLogger}    from '../util/logger';
 
 // our internal diagnostic logger (normally disabled, but keep enabled for a while)
 const log = createLogger('***DIAG*** <SmartView> ... ').disable();

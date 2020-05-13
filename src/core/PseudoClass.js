@@ -1,7 +1,7 @@
-import verify            from '~/util/verify.js';
-import checkUnknownArgs  from '~/util/checkUnknownArgs.js';
+import verify            from '../util/verify';
+import checkUnknownArgs  from '../util/checkUnknownArgs';
 import {isString,
-        isClass}         from '~/util/typeCheck.js';
+        isClass}         from '../util/typeCheck';
 
 /**
  * PseudoClass maintains meta data that allows an object instance to
