@@ -6,9 +6,6 @@ import                  './konvaSandboxSmartPkg'; // unnamed import activating i
 // feature: sandbox
 //          sandbox to play with konva.js
 
-console.log(`?? executing import ... sandbox/index.js`);
-
-
 // when sandbox is enabled, register the various sandbox packages to our LeftNav??
 if (featureFlags.sandbox) {
 
