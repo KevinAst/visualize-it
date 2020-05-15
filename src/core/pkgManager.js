@@ -60,7 +60,7 @@ class PkgManager {
    *   ... see: getClassRef() / getPkgEntry()
    * 
    * - is independent of LeftNav visualization (this is accomplished
-   *   through `leftNavManager.addLeftNav(smartPkg)`)
+   *   through `pkgViewer`'s `viewPkg(smartPkg)`)
    *
    * This registration  occurs automatically when using `openPkg()` (in pkgPersist.js)
    * ... so it could be interpreted as a pseudo private method.

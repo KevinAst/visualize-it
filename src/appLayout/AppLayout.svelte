@@ -1,5 +1,63 @@
+<script context="module">
+ import LeftNav  from './LeftNav.svelte';
+ import verify   from '../util/verify';
+
+ // DESC: <AppLayout> provides the layout of visualize-it.
+ //       It is a "singleton" UI Component, instantiated one time in the app root.
+
+ // NOTE: vars prefixed with underbar ("_"):
+ //       - represent component instance state of the one-and-only <AppLayout> instance
+ //       - are initialized through life-cycle-hooks (e.g. onMount())
+ //       - are indirectly used for public promotion to the outside world
+
+ let _leftNavComp; // ... our one-and-only <LeftNav/> component instance
+ const activate = (leftNavComp) => {
+   // verify singleton restriction
+   verify(!isActive(), 'only ONE <AppLayout/> component should be instantated (at the app root)');
+
+   // register component binding
+   _leftNavComp = leftNavComp;
+
+   // process any prior cached requests
+   if (cachedLeftNavComps.length) {
+     cachedLeftNavComps.forEach( (comp) => registerLeftNavEntry(comp));
+     cachedLeftNavComps = [];
+   }
+ };
+ const deactivate = () => _leftNavComp = null;
+ const isActive   = () => _leftNavComp ? true : false;
+
+ //***
+ //*** PUBLIC API
+ //***
+
+ let cachedLeftNavComps = [];
+
+ // + registerLeftNavEntry(comp): void ... dynamically add supplied component entry to LeftNav
+ export function registerLeftNavEntry(comp) {
+   // process request ... when we are active
+   if (isActive()) {
+     _leftNavComp.registerLeftNavEntry(comp);
+   }
+   // cache requests ... when we are inactive
+   else {
+     cachedLeftNavComps.push(comp);
+   }
+ }
+</script>
+
+
 <script>
- import {Notify, toast} from './util/notify';
+ import {toast}   from '../util/notify';
+ import {onMount} from 'svelte';
+
+ let leftNavComp; // maintained by `bind:this` (see below)
+
+ // maintain our external bindings (when <AppLayout> is mounted)
+ onMount(() => activate(leftNavComp), deactivate);
+
+
+ //  ?? CLEANUP POINT ********************************************************************************
  import Button /*, {Label} */ from '@smui/button';
 
  import Drawer, {AppContent, Content, Header, Title, Subtitle} from '@smui/drawer';
@@ -30,7 +88,7 @@
 // import './theme/_smui-theme.scss'; // THEME:?? shot in the dark
 
  // AI: ?? TreeView ... merge together
- import TreeView from './util/comp/TreeView.svelte';
+ import TreeView from '../util/comp/TreeView.svelte';
  const tree = {          // treeNode1: WITH children
 	 label: "Sandbox I",
 	 children: [
@@ -240,8 +298,6 @@
 </style>
 
 
-<Notify/>
-
 
 <!-- top-level page container ... manages 1. vit-page-app-bar and 2: vit-page-content -->
 <div class="vit-page-container">
@@ -270,25 +326,8 @@
 
     <!-- vit-drawer (LeftNav) -->
     <Drawer class="vit-drawer" variant="dismissible" bind:this={myDrawerRef} bind:open={myDrawerOpen}>
-      <!-- ??$$ farm this out to some LeftNav -->
-      <Header>
-        <Title>Super Drawer</Title>
-        <Subtitle>It's the best drawer.</Subtitle>
-      </Header>
-      <Content>
-        <List>
-          <!-- Crude Test of TreeView  -->
-          <Item class="vit-drawer-item" on:click={() => setActiveTxt('Tree View')} activated={activeTxt === 'Tree View'}>
-            <Text>Tree View</Text>
-          </Item>
-          <TreeView {tree} omitRoot/>
-          {#each ['WowZee', 'WooWoo', 'Poo', 'Pee', 'WomBee', 'WooLoo', 'I', 'Hope', 'This', 'Works', 'Here', 'We', 'GO!!'] as item}
-          <Item class="vit-drawer-item" on:click={() => setActiveTxt(item)} activated={activeTxt === item}>
-            <Text>{item}</Text>
-          </Item>
-          {/each}
-        </List>
-      </Content>
+      <!-- ??$$$ farm this out to some LeftNav -->
+      <LeftNav bind:this={leftNavComp}/>
     </Drawer>
 
     <!-- vit-drawer-app-content: everything MINUS vit-drawer -->

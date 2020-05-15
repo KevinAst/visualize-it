@@ -9,7 +9,7 @@
  // ... accessed via: import {pushMsgOnSnackbar} from './Notify.svelte'
  export function pushMsgOnSnackbar(snackbarParams) {
    // verify the proper context
-   verify(_pushMsgOnSnackbar$comp, 'pushMsgOnSnackbar() setup violation: a <Notify/> component is required to be instantated (at the app root)');
+   verify(_pushMsgOnSnackbar$comp, 'toast() setup violation: a <Notify/> component is required to be instantated (at the app root)');
 
    // propogate request to our one-and-only <Notify/> component instance
    _pushMsgOnSnackbar$comp(snackbarParams);

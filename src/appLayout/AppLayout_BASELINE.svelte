@@ -1,5 +1,5 @@
 <script>
- import {Notify, toast} from './util/notify';
+ import {toast} from '../util/notify';
  import Button /*, {Label} */ from '@smui/button';
 
  import Drawer, {AppContent, Content, Header, Title, Subtitle} from '@smui/drawer';
@@ -27,10 +27,10 @@
  import Tab, {Label} from '@smui/tab';
  import TabBar from '@smui/tab-bar';
 
-// import './theme/_smui-theme.scss'; // THEME:?? shot in the dark
+// import '../theme/_smui-theme.scss'; // THEME:?? shot in the dark
 
  // AI: ?? TreeView ... merge together
- import TreeView from './util/comp/TreeView.svelte';
+ import TreeView from '../util/comp/TreeView.svelte';
  const tree = {          // treeNode1: WITH children
 	 label: "Sandbox I",
 	 children: [
@@ -238,9 +238,6 @@
  }
 
 </style>
-
-
-<Notify/>
 
 
 <!-- top-level page container ... manages 1. vit-page-app-bar and 2: vit-page-content -->
