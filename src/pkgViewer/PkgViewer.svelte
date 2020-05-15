@@ -75,5 +75,5 @@
 
 
 {#each pkgs as pkg (pkg.getPkgId())}
-  <p>{pkg.getPkgId()}</p>
+  <p>{pkg.getPkgName()}</p>
 {/each}

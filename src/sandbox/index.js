@@ -17,6 +17,6 @@ if (featureFlags.sandbox) {
   viewPkg(konvaSandboxSmartPkg);
 
   // our clonedPkg
-  const clonedPkg = pkgManager.getPkg('cloned.pkg');
-  viewPkg(clonedPkg);
+  //const clonedPkg = pkgManager.getPkg('cloned.pkg');
+  //viewPkg(clonedPkg);
 }
