@@ -1,5 +1,7 @@
 <script context="module">
- import verify  from '../util/verify';
+ import verify         from '../util/verify';
+ import {createLogger} from '../util/logger';
+ const  log = createLogger('***DIAG*** <PkgViewer> ... ').disable();
 
  // DESC: The <PkgViewer> component visualizes one or more SmartPkgs
  //       in the LeftNav section of the visualize-it GUI.
@@ -73,7 +75,6 @@
  onMount(() => activate(viewPkg$comp), deactivate);
 </script>
 
-
 {#each pkgs as pkg (pkg.getPkgId())}
-  <p>{pkg.getPkgName()}</p>
+  <p>{log(`rendering pkg: ${pkg.getPkgName()}`) || pkg.getPkgName()}</p>
 {/each}

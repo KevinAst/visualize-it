@@ -1,7 +1,9 @@
-import featureFlags  from '../featureFlags'
-import {viewPkg}     from '../pkgViewer';
-import pkgManager    from '../core/pkgManager';
-import               './konvaSandboxSmartPkg'; // unnamed import activating it's package registration
+import featureFlags   from '../featureFlags'
+import {viewPkg}      from '../pkgViewer';
+import pkgManager     from '../core/pkgManager';
+import {createLogger} from '../util/logger';
+import                './konvaSandboxSmartPkg'; // unnamed import activating it's package registration
+const  log = createLogger('***DIAG*** sandbox feature ... ').disable();
 
 // feature: sandbox
 //          sandbox to play with konva.js
@@ -17,6 +19,7 @@ if (featureFlags.sandbox) {
   viewPkg(konvaSandboxSmartPkg);
 
   // our clonedPkg
-  //const clonedPkg = pkgManager.getPkg('cloned.pkg');
-  //viewPkg(clonedPkg);
+  const clonedPkg = pkgManager.getPkg('cloned.pkg');
+  // ... quick-and-dirty-test of PkgViewer reactivity (via timeout)
+  setTimeout( () => log(`adding viewPkg('cloned.pkg')`) || viewPkg(clonedPkg), 5000);
 }
