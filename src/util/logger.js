@@ -29,8 +29,8 @@ export function createLogger(prefix) {
   check(prefix,           'prefix is required');
   check(isString(prefix), 'prefix must be a string');
 
-  // our logger is disabled by default
-  let _enabled = false;
+  // our logger is enabled by default
+  let _enabled = true;
 
   // create our new logger
   const logger = function(msg, obj) { // our primary logging function
@@ -55,12 +55,12 @@ export function createLogger(prefix) {
 
   logger.enable = () => {
     _enabled = true;
-    logger('enabling logging');
+    //logger('enabling logging');
     return logger;
   };
 
   logger.disable = () => {
-    logger('disabling logging');
+    //logger('disabling logging');
     _enabled = false;
     return logger;
   };
