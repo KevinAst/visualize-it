@@ -61,7 +61,6 @@
  import Button /*, {Label} */ from '@smui/button';
 
  import Drawer, {AppContent, Content, Header, Title, Subtitle} from '@smui/drawer';
- import List, {Item, Text, Graphic, Separator, Subheader} from '@smui/list';
  import H6 from '@smui/common/H6.svelte';
  
  let myDrawerRef; // AI: not needed in this example
@@ -245,11 +244,6 @@
 
 /* background-color: pink; /* diagnostic */
 /* color:            red;  /* diagnostic */
- }
-
- /* vit-drawer-item: attempt to space out <TreeView> content a bit better */
- * :global(.vit-drawer-item) {
-   margin: 8px 8px 0px 8px !important;
  }
 
  /* vit-tabs-container: manages 1. vit-tabs-bar 2: vit-tabs-content */

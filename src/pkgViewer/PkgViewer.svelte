@@ -1,7 +1,5 @@
 <script context="module">
  import verify         from '../util/verify';
- import {createLogger} from '../util/logger';
- const  log = createLogger('***DIAG*** <PkgViewer> ... ').disable();
 
  // DESC: The <PkgViewer> component visualizes one or more SmartPkgs
  //       in the LeftNav section of the visualize-it GUI.
@@ -54,6 +52,7 @@
 <script>
  import {isPkg}   from '../util/typeCheck';
  import {onMount} from 'svelte';
+ import ViewPkg   from './ViewPkg.svelte';
 
  // the packages viewed by self: SmartPkg[]
  const pkgs = [];
@@ -76,5 +75,5 @@
 </script>
 
 {#each pkgs as pkg (pkg.getPkgId())}
-  <p>{log(`rendering pkg: ${pkg.getPkgName()}`) || pkg.getPkgName()}</p>
+  <ViewPkg {pkg}/>
 {/each}
