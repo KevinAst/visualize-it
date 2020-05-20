@@ -16,6 +16,9 @@ function isNumber(ref) {
   return typeof ref === 'number';
 }
 
+// isArray(ref): alias to Array.isArray(ref)
+const isArray = Array.isArray;
+
 // isSmartObject(ref): is ref a SmartObject (a SmartModel derivation)
 function isSmartObject(ref) {
   return ref && ref.isaSmartObject && ref.isaSmartObject();
@@ -51,6 +54,7 @@ export {
   isNumber,      // + isNumber(ref):        boolean
   isObject,      // + isObject(ref):        boolean
   isPlainObject, // + isPlainObject(ref):   boolean
+  isArray,       // + isArray(ref):         boolean
   isString,      // + isString(ref):        boolean
   isClass,       // + isClass(ref):         boolean
   isSmartObject, // + isSmartObject(ref):   boolean
