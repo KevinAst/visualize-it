@@ -3,6 +3,7 @@ import SmartClassRef     from './SmartClassRef';
 import PseudoClass       from './PseudoClass';
 import {isPlainObject,
         isSmartObject,
+        isArray,
         isClass}         from '../util/typeCheck';
 import verify            from '../util/verify';
 import checkUnknownArgs  from '../util/checkUnknownArgs';
@@ -60,6 +61,7 @@ import checkUnknownArgs  from '../util/checkUnknownArgs';
  *     * "instances" ALWAYS belong to the "self-contained" package
  *     * "instances" can be created from types that belong to either self's package or "other" packages
  *
+ * ??$$ TODO: RESTRUCTURE THIS with Dir root (a PkgTree derivation)
  * SmartPkg entries are defined in an object structure (with depth)
  * that represents the visual hierarchy by which they are promoted.
  *   - entries utilize an object structure (with depth)
@@ -157,8 +159,8 @@ export default class SmartPkg extends SmartModel {
     // ... id/name validated by base class
 
     // ... entries
-    check(entries,                 'entries is required');
-    check(isPlainObject(entries),  'entries must be a plain object (with depth)');
+    check(entries,                                  'entries is required');
+    check(isPlainObject(entries)||isArray(entries), 'entries must be a plain object or an array');
 
     // ... unknown arguments
     checkUnknownArgs(check, unknownArgs, arguments);
@@ -285,7 +287,7 @@ export default class SmartPkg extends SmartModel {
       }
     }
     // ... for array entry,
-    else if (Array.isArray(entry)) {
+    else if (isArray(entry)) {
       entry.forEach( (arrItem) => {
 
         // normally this is a smartObj
@@ -518,7 +520,7 @@ export default class SmartPkg extends SmartModel {
       }
 
       // entry is an array
-      else if (Array.isArray(jsonEntry)) {
+      else if (isArray(jsonEntry)) {
         // recursively pass through through all array items
         for (let i=0; i<jsonEntry.length; i++) {
           const oldVal = jsonEntry[i];

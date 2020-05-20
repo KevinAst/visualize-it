@@ -84,19 +84,23 @@ const collage1 = new Collage({id: 'collage1', name: 'Collage 1', scenes: [scene1
 const konvaSandboxSmartPkg = new SmartPkg({
   id:   'com.astx.KONVA',
   name: 'Konva Sandbox I',
-  entries: {
-    scenes: [
-      scene1,
-      { // ... nested sub-entries mixed in with our tabs
-        "More Depth": [
-          scene2,
-        ],
-      },
-    ],
-    collages: [
-      collage1,
-    ],
-  },
+  entries: [
+    {
+      scenes: [
+        scene1,
+        { // ... nested sub-entries mixed in with our tabs
+          "More Depth": [
+            scene2,
+          ],
+        },
+      ],
+    },
+    {
+      collages: [
+        collage1,
+      ],
+    },
+  ]
 });
 
 pkgManager.registerPkg(konvaSandboxSmartPkg);
