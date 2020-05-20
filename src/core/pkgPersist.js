@@ -155,7 +155,7 @@ export async function savePkg(pkg, saveAs=false) {
   // ... placement of this process is crucial - any unexpected errors
   //     occurring here will short-circuit the creation of an empty file!
   const smartJSON = pkg.toSmartJSON();
-  const content   = JSON.stringify(smartJSON);
+  const content   = JSON.stringify(smartJSON, null, 2); // TODO: parameterize pretty-print JSON
 
   // locate the file where the pkg will be saved
   let fileHandle = saveAs ? undefined : pkg.getPkgResourcePath();
