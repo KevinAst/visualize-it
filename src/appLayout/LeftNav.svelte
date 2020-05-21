@@ -5,7 +5,7 @@
  let leftNavCompEntries = [];
 
  // registerLeftNavEntry(comp): void ... dynamically add supplied component entry to LeftNav
- // ... comp: should render one-or-more <Item>s with optional additional content (such as <TreeView>)
+ // ... comp: should render one-or-more <Item>s with optional additional content
  export function registerLeftNavEntry(comp) {
    leftNavCompEntries.push(comp);
    leftNavCompEntries = leftNavCompEntries; // make reactive

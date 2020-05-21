@@ -30,7 +30,7 @@
 // import '../theme/_smui-theme.scss'; // THEME:?? shot in the dark
 
  // AI: ?? TreeView ... merge together
- import TreeView from '../util/comp/TreeView.svelte';
+ import TreeView from '../util/TreeView.svelte';
  const tree = {          // treeNode1: WITH children
 	 label: "Sandbox I",
 	 children: [
