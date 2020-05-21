@@ -1,4 +1,4 @@
-import featureFlags   from '../featureFlags'
+import {featureFlags} from '../App.svelte'
 import {viewPkg}      from '../pkgViewer';
 import pkgManager     from '../core/pkgManager';
 import {createLogger} from '../util/logger';
