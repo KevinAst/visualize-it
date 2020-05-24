@@ -756,6 +756,26 @@ export default class SmartModel {
   }
 
   /**
+   * Return the "qualified" identifier for a PkgEntry.
+   *
+   * Example:
+   * - 'com.astx.ACME/scene1'
+   *
+   * @returns {string} self's PkgEntry ID.
+   *
+   * @throws {Error} when self is NOT a PkgEntry.
+   */
+  getPkgEntryId() {
+    if (this.isaPkgEntry()) {
+      return `${this.getPkg().getPkgId()}/${this.getId()}`;
+    }
+    else {
+      throw new Error(`***ERROR*** ${this.diagClassName()}.getPkgEntryId() [id:${this.id}]: self is NOT a PkgEntry!`);
+    }
+  }
+
+
+  /**
    * Return the PkgEntry self belongs to (or self when it is a
    * PkgEntry).
    *
@@ -825,7 +845,7 @@ export default class SmartModel {
       return this.getPkgId();
     }
     else if (this.isaPkgEntry()) {
-      return `${this.getPkg().getPkgId()}/${this.getId()}`;
+      return this.getPkgEntryId();
     }
     else {
       throw new Error(`***ERROR*** ${this.diagClassName()}.getEPkgId() [id:${this.id}]: self is NOT an EPkg!`);
