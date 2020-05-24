@@ -11,7 +11,7 @@
  //       - are indirectly used for public promotion to the outside world
 
  let _leftNavComp; // ... our one-and-only <LeftNav/> component instance
- const activate = (leftNavComp) => {
+ const activateSingleton = (leftNavComp) => {
    // verify singleton restriction
    verify(!isActive(), 'only ONE <AppLayout/> component should be instantated (at the app root)');
 
@@ -24,8 +24,8 @@
      cachedLeftNavComps = [];
    }
  };
- const deactivate = () => _leftNavComp = null;
- const isActive   = () => _leftNavComp ? true : false;
+ const deactivateSingleton = () => _leftNavComp = null;
+ const isActive            = () => _leftNavComp ? true : false;
 
  //***
  //*** PUBLIC API
@@ -48,192 +48,25 @@
 
 
 <script>
+ import Drawer, {AppContent} from '@smui/drawer';
+ import TopAppBar, {Row, Section, Title as AppBarTitle} from '@smui/top-app-bar';
+ import Button /*, {Label} */ from '@smui/button'; // ?? TRASH (eventually)
+ import IconButton from '@smui/icon-button';
+ import Tab, {Label} from '@smui/tab';
+ import TabBar from '@smui/tab-bar';
  import {toast}   from '../util/notify';
  import {onMount} from 'svelte';
 
- let leftNavComp; // maintained by `bind:this` (see below)
-
  // maintain our external bindings (when <AppLayout> is mounted)
- onMount(() => activate(leftNavComp), deactivate);
+ let leftNavComp; // ... maintained by `bind:this` (see below)
+ onMount(() => activateSingleton(leftNavComp), deactivateSingleton);
 
-
- //  ?? CLEANUP POINT ********************************************************************************
- import Button /*, {Label} */ from '@smui/button';
-
- import Drawer, {AppContent, Content, Header, Title, Subtitle} from '@smui/drawer';
- import H6 from '@smui/common/H6.svelte';
- 
- let myDrawerRef; // AI: not needed in this example
- let myDrawerOpen = true;
- let activeTxt       = 'WowZee';
-
+ // toggle Drawer (LeftNav) open/closed
+ let drawerOpen = true;
  function toggleDrawer() {
-   myDrawerOpen = !myDrawerOpen;
+   drawerOpen = !drawerOpen;
  }
-
- function setActiveTxt(value) {
-    activeTxt = value;
-  }
-
- // AI: App Bar ... merge together
- import TopAppBar, {Row, Section, Title as AppBarTitle} from '@smui/top-app-bar';
- import IconButton from '@smui/icon-button';
-
-
- // AI: Tabs ... merge together
- import Tab, {Label} from '@smui/tab';
- import TabBar from '@smui/tab-bar';
-
-// import './theme/_smui-theme.scss'; // THEME:?? shot in the dark
 </script>
-
-
-<style>
- /* NOTE: clarification of the usage of: :global() -and- universal selector (*)
-
-    - example:
-       * :global(.vit-drawer-app-content) {
-         ... rules (snip snip)
-       }
-
-    - :global()
-
-      This is a Svelte feature that allows you to apply styles to a
-      selector globally.
-
-      In the example (above) it applies to ALL elements with class
-      vit-drawer-app-content, in any component that are decendants of
-      any element belonging to this component.
-
-      AI: I don't fully understand this, but without this in some
-          cases (as the one above), the generated css doesn't show up.
-
-    - descendant combinator using the universal selector (*) 
-
-      This is simply providing a "more specific" rule that overrides
-      the implicit mdc classes injected by the @smui UI Kit.
-
-      In the example above the implicit .mdc-drawer-app-content
-      (injected by the @smui UI Kit) takes precidence WITHOUT the
-      descendant combinator.  With it, it has the effect of making the
-      rule more "important"!
-
-    I believe this is due to a combination of Svelte heuristics -and-
-    the @smui UI Kit I am using.
-  */
-
- /* top-level page container ... manages 1. vit-page-app-bar and 2: vit-page-content */
- .vit-page-container {
-   /* baseline our size to fill the entire page (i.e. the browser window) */
-   width:          100%;
-   height:         100%;
-
-   /* flex container characteristics: */
-   display:        flex; /* AI: flex seems to work just as well as: inline-flex */
-   flex-direction: column;
-   flex-wrap:      nowrap;
-   align-items:    stretch;
- }
-
- /* top-level page app-bar */
- /* AI: NOT really needed: currently all characteristics are coming from @smui <TopAppBar> */
- * :global(.vit-page-app-bar) {
-   /* flex item characteristics: */
-   flex-grow:  0;
-
-   /* color: red; /* xx diagnostic */
- }
-
- /* vit-page-content: everything MINUS vit-page-app-bar */
- .vit-page-content {
-
-   /* flex item characteristics: */
-   flex-grow:  1;  /* fill out to all space */
-
-   overflow:   auto; /* inject scroll-bars at this level */
-
-   /* NOTE: flex container characteristics for our <Drawer> (LeftNav)
-            is supplied via a seperate class: vit-drawer-container */
-
-   /* general characteristics: */
-/* background-color: lightgrey; /* diagnostic */
- }
-
-
-
- /* vit-drawer-container: manages 1. vit-drawer 2: vit-drawer-app-content */
- .vit-drawer-container {
-   /* flex container characteristics: */
-   display:        flex; /* AI: flex seems to work just as well as: inline-flex */
-   flex-direction: row;
-   flex-wrap:      nowrap;
-   align-items:    stretch;
-
-   position: relative; /* REQUIRED (for Drawer): WEIRD: without this causes: browser scroll bar the height of <TopAppBar> */
-/* z-index:  0;        /* doesn't appear to be needed - suspect Drawer related for modal only */
- }
-
- /* vit-drawer (LeftNav) */
- /* AI: NOT really needed: currently all characteristics are coming from @smui <Drawer> */
- * :global(.vit-drawer) {
-/* color: red; /* xx diagnostic */
- }
-
- /* vit-drawer-app-content: everything MINUS vit-drawer */
- * :global(.vit-drawer-app-content) {
-
-   /* flex item characteristics: */
-   flex-grow: 1;    /* fill out to all space */
-   overflow:  auto; /* inject scroll-bars at this level ... without it, scrolls BOTH vit-drawer and vit-drawer-app-content */
-
-/* background-color: pink; /* diagnostic */
-/* color:            red;  /* diagnostic */
- }
-
- /* vit-tabs-container: manages 1. vit-tabs-bar 2: vit-tabs-content */
- :global(.vit-tabs-container) {
-   /* flex container characteristics: */
-   display:        flex;
-   flex-direction: column;
-   flex-wrap:      nowrap;
-   align-items:    stretch;
- }
-
- /* vit-tabs-bar (TabBar> */
- .vit-tabs-bar {
-   /* NOTE: currently all charistics are coming from @smui <TabBar> */
- }
-
- /* .vit-tabs-content: everything MINUS vit-tabs-bar */
- * :global(.vit-tabs-content) {
-
-   /* flex item characteristics: */
-   flex-grow:  1;  /* fill out to all space */
-
-/* background-color: lightblue; /* diagnostic */
-/* color:            darkblue;  /* diagnostic */
- }
-
-
-
-
- /* main-content: our application payload! */
- .main-content {
-
-   overflow: auto; /* provide scroll bars within main-content only ... without this, will scroll tabs too (BAD) */
-
-   /* general characteristics: */
-   box-sizing: border-box;       /* VERY KOOL: account for border/padding in specified width/height */
-   padding:    16px;             /* nicety */
-/* border:     5px solid green;  /* diagnostic */
-/* background-color: lightgreen; /* diagnostic */
-/* color:            darkgreen;  /* diagnostic */
-
-   background-color: #ececec; /* THEME:??  $mdc-theme-secondary-light; /* ?? shot in the dark */
-   border:           2px solid #26a69a;  /* THEME:?? copied from theme */
- }
-
-</style>
 
 
 
@@ -263,8 +96,8 @@
   <div class="vit-page-content vit-drawer-container">
 
     <!-- vit-drawer (LeftNav) -->
-    <Drawer class="vit-drawer" variant="dismissible" bind:this={myDrawerRef} bind:open={myDrawerOpen}>
-      <!-- ??$$$ farm this out to some LeftNav -->
+    <Drawer class="vit-drawer" variant="dismissible" bind:open={drawerOpen}>
+      <!-- farm this out to our LeftNav feature -->
       <LeftNav bind:this={leftNavComp}/>
     </Drawer>
 
@@ -272,7 +105,7 @@
     <!-- vit-tabs-container: manages 1. vit-tabs-bar 2: vit-tabs-content -->
     <AppContent class="vit-drawer-app-content vit-tabs-container">
 
-      <!-- ??$$ farm this out to some TabManager -->
+      <!-- ??$$$ farm this out to some TabManager -->
       <!-- vit-tabs-bar <TabBar> -->
       <div class="vit-tabs-bar">
         <TabBar tabs={[...Array(20)].map((v, i) => i + 1)} let:tab>
@@ -285,8 +118,6 @@
       <!-- .vit-tabs-content: everything MINUS vit-tabs-bar -->
       <!-- .main-content:     our application payload! -->
       <main class="vit-tabs-content main-content">
-        <pre>Active: {activeTxt}</pre>
-
         <p class="mdc-typography--subtitle2">Here are some Typography fonts:</p>
         <ul>
           <p class="mdc-typography--caption">Caption</p>
@@ -357,3 +188,152 @@ ac.
     </AppContent>
   </div>
 </div>
+
+
+
+<style>
+ /* NOTE: clarification of the usage of: :global() -and- universal selector (*)
+
+    - example:
+  * :global(.vit-drawer-app-content) {
+    ... rules (snip snip)
+    }
+
+    - :global()
+
+    This is a Svelte feature that allows you to apply styles to a
+    selector globally.
+
+    In the example (above) it applies to ALL elements with class
+    vit-drawer-app-content, in any component that are decendants of
+    any element belonging to this component.
+
+    AI: I don't fully understand this, but without this in some
+    cases (as the one above), the generated css doesn't show up.
+
+    - descendant combinator using the universal selector (*) 
+
+    This is simply providing a "more specific" rule that overrides
+    the implicit mdc classes injected by the @smui UI Kit.
+
+    In the example above the implicit .mdc-drawer-app-content
+    (injected by the @smui UI Kit) takes precidence WITHOUT the
+    descendant combinator.  With it, it has the effect of making the
+    rule more "important"!
+
+    I believe this is due to a combination of Svelte heuristics -and-
+    the @smui UI Kit I am using.
+  */
+
+ /* top-level page container ... manages 1. vit-page-app-bar and 2: vit-page-content */
+ .vit-page-container {
+   /* baseline our size to fill the entire page (i.e. the browser window) */
+   width:          100%;
+   height:         100%;
+
+   /* flex container characteristics: */
+   display:        flex; /* AI: flex seems to work just as well as: inline-flex */
+   flex-direction: column;
+   flex-wrap:      nowrap;
+   align-items:    stretch;
+ }
+
+ /* top-level page app-bar */
+ /* AI: NOT really needed: currently all characteristics are coming from @smui <TopAppBar> */
+ * :global(.vit-page-app-bar) {
+   /* flex item characteristics: */
+   flex-grow:  0;
+
+   /* color: red; /* xx diagnostic */
+ }
+
+ /* vit-page-content: everything MINUS vit-page-app-bar */
+ .vit-page-content {
+
+   /* flex item characteristics: */
+   flex-grow:  1;  /* fill out to all space */
+
+   overflow:   auto; /* inject scroll-bars at this level */
+
+   /* NOTE: flex container characteristics for our <Drawer> (LeftNav)
+      is supplied via a seperate class: vit-drawer-container */
+
+   /* general characteristics: */
+   /* background-color: lightgrey; /* diagnostic */
+ }
+
+
+
+ /* vit-drawer-container: manages 1. vit-drawer 2: vit-drawer-app-content */
+ .vit-drawer-container {
+   /* flex container characteristics: */
+   display:        flex; /* AI: flex seems to work just as well as: inline-flex */
+   flex-direction: row;
+   flex-wrap:      nowrap;
+   align-items:    stretch;
+
+   position: relative; /* REQUIRED (for Drawer): WEIRD: without this causes: browser scroll bar the height of <TopAppBar> */
+   /* z-index:  0;        /* doesn't appear to be needed - suspect Drawer related for modal only */
+ }
+
+ /* vit-drawer (LeftNav) */
+ /* AI: NOT really needed: currently all characteristics are coming from @smui <Drawer> */
+ * :global(.vit-drawer) {
+   /* color: red; /* xx diagnostic */
+ }
+
+ /* vit-drawer-app-content: everything MINUS vit-drawer */
+ * :global(.vit-drawer-app-content) {
+
+   /* flex item characteristics: */
+   flex-grow: 1;    /* fill out to all space */
+   overflow:  auto; /* inject scroll-bars at this level ... without it, scrolls BOTH vit-drawer and vit-drawer-app-content */
+
+   /* background-color: pink; /* diagnostic */
+   /* color:            red;  /* diagnostic */
+ }
+
+ /* vit-tabs-container: manages 1. vit-tabs-bar 2: vit-tabs-content */
+ :global(.vit-tabs-container) {
+   /* flex container characteristics: */
+   display:        flex;
+   flex-direction: column;
+   flex-wrap:      nowrap;
+   align-items:    stretch;
+ }
+
+ /* vit-tabs-bar (TabBar> */
+ .vit-tabs-bar {
+   /* NOTE: currently all charistics are coming from @smui <TabBar> */
+ }
+
+ /* .vit-tabs-content: everything MINUS vit-tabs-bar */
+ * :global(.vit-tabs-content) {
+
+   /* flex item characteristics: */
+   flex-grow:  1;  /* fill out to all space */
+
+   /* background-color: lightblue; /* diagnostic */
+   /* color:            darkblue;  /* diagnostic */
+ }
+
+
+
+
+ /* main-content: our application payload! */
+ .main-content {
+
+   overflow: auto; /* provide scroll bars within main-content only ... without this, will scroll tabs too (BAD) */
+
+   /* general characteristics: */
+   box-sizing: border-box;       /* VERY KOOL: account for border/padding in specified width/height */
+   padding:    16px;             /* nicety */
+   /* border:     5px solid green;  /* diagnostic */
+   /* background-color: lightgreen; /* diagnostic */
+   /* color:            darkgreen;  /* diagnostic */
+
+   background-color: #ececec; /* THEME:??  $mdc-theme-secondary-light; /* ?? shot in the dark */
+   border:           2px solid #26a69a;  /* THEME:?? copied from theme */
+ }
+
+</style>
