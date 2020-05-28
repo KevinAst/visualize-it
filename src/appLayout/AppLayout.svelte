@@ -50,12 +50,10 @@
 <script>
  import Drawer, {AppContent} from '@smui/drawer';
  import TopAppBar, {Row, Section, Title as AppBarTitle} from '@smui/top-app-bar';
- import Button /*, {Label} */ from '@smui/button'; // ?? TRASH (eventually)
- import IconButton from '@smui/icon-button';
- import Tab, {Label} from '@smui/tab';
- import TabBar from '@smui/tab-bar';
- import {toast}   from '../util/notify';
- import {onMount} from 'svelte';
+ import IconButton   from '@smui/icon-button';
+ import {toast}      from '../util/notify';
+ import {onMount}    from 'svelte';
+ import {TabManager} from '../tabManager';
 
  // maintain our external bindings (when <AppLayout> is mounted)
  let leftNavComp; // ... maintained by `bind:this` (see below)
@@ -104,91 +102,11 @@
     <!-- vit-drawer-app-content: everything MINUS vit-drawer -->
     <!-- vit-tabs-container: manages 1. vit-tabs-bar 2: vit-tabs-content -->
     <AppContent class="vit-drawer-app-content vit-tabs-container">
-
-      <!-- ??$$$ farm this out to some TabManager -->
-      <!-- vit-tabs-bar <TabBar> -->
-      <div class="vit-tabs-bar">
-        <TabBar tabs={[...Array(20)].map((v, i) => i + 1)} let:tab>
-          <Tab {tab}>
-            <Label>Tab {tab}</Label>
-          </Tab>
-        </TabBar>
-      </div>
-
-      <!-- .vit-tabs-content: everything MINUS vit-tabs-bar -->
-      <!-- .main-content:     our application payload! -->
-      <main class="vit-tabs-content main-content">
-        <p class="mdc-typography--subtitle2">Here are some Typography fonts:</p>
-        <ul>
-          <p class="mdc-typography--caption">Caption</p>
-          <p class="mdc-typography--button">Button</p>
-
-          <Button variant="raised" color="primary" on:click={() => toast({
-            msg: 'WowZee Toast\nLine 2\n      Line 3 with pre-space\nHere is a really big line.  I hope it works ... now is the time for every good man to come to the aid of his country.',
-            actions: [
-              {
-                txt:    'WowZee',
-                action: () => toast({msg: 'WowZee WowZee WooWoo!!'}),
-              },
-              {
-                txt:    'Error',
-                action: () => {throw new Error('Here is a run-time error from somewhere')},
-              },
-              {
-                txt:    'OK'
-              },
-            ],
-            })}>
-            <Label>Do a Toast</Label>
-          </Button>
-          <p class="mdc-typography--body1">
-            <small>small</small>
-            <big>big</big>
-            <sup>sup</sup>
-            <sub>sub</sub>
-            <strong>strong</strong>
-            <em>em</em>
-          </p>
-        </ul>
-
-        <p class="mdc-typography--subtitle2">
-          This is our tab content ... I hope it works ... here we go!!
-        </p>
-        <pre>
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-eiusmod tempor incididunt ut labore et dolore magna aliqua. Eu nisl
-nunc mi ipsum faucibus vitae aliquet. Magna ac placerat vestibulum
-lectus mauris ultrices eros in cursus. Quam elementum pulvinar etiam
-non. Donec massa sapien faucibus et. Lorem ipsum dolor sit
-amet. Convallis posuere morbi leo urna molestie at elementum eu
-facilisis. Donec pretium vulputate sapien nec sagittis aliquam
-malesuada bibendum arcu. Libero justo laoreet sit amet cursus sit amet
-dictum sit. Urna molestie at elementum eu facilisis sed odio
-morbi. Commodo ullamcorper a lacus vestibulum sed arcu non
-odio. Aliquet sagittis id consectetur purus ut faucibus pulvinar
-elementum integer.
-
-Massa ultricies mi quis hendrerit dolor magna eget est. Sit amet
-cursus sit amet dictum sit amet. Lacus sed viverra tellus in hac
-habitasse platea dictumst vestibulum. Donec pretium vulputate sapien
-nec sagittis aliquam. Tristique senectus et netus et malesuada
-fames. Nulla facilisi cras fermentum odio eu feugiat. Eu mi bibendum
-neque egestas congue quisque egestas. Iaculis at erat pellentesque
-adipiscing commodo elit at imperdiet. Odio ut sem nulla pharetra diam
-sit amet nisl. Sed turpis tincidunt id aliquet risus feugiat in
-ante. Diam vulputate ut pharetra sit amet aliquam id. Quisque non
-tellus orci ac auctor augue. Purus sit amet volutpat consequat mauris
-nunc congue nisi. Nisl purus in mollis nunc sed id. Velit scelerisque
-in dictum non consectetur a erat. Lacus luctus accumsan tortor posuere
-ac.
-        </pre>
-
-      </main>
-
+      <!-- TabManager manages our dynamic tabs -->
+      <TabManager/>
     </AppContent>
   </div>
 </div>
-
 
 
 <style>
@@ -262,8 +180,6 @@ ac.
    /* background-color: lightgrey; /* diagnostic */
  }
 
-
-
  /* vit-drawer-container: manages 1. vit-drawer 2: vit-drawer-app-content */
  .vit-drawer-container {
    /* flex container characteristics: */
@@ -300,40 +216,6 @@ ac.
    flex-direction: column;
    flex-wrap:      nowrap;
    align-items:    stretch;
- }
-
- /* vit-tabs-bar (TabBar> */
- .vit-tabs-bar {
-   /* NOTE: currently all charistics are coming from @smui <TabBar> */
- }
-
- /* .vit-tabs-content: everything MINUS vit-tabs-bar */
- * :global(.vit-tabs-content) {
-
-   /* flex item characteristics: */
-   flex-grow:  1;  /* fill out to all space */
-
-   /* background-color: lightblue; /* diagnostic */
-   /* color:            darkblue;  /* diagnostic */
- }
-
-
-
-
- /* main-content: our application payload! */
- .main-content {
-
-   overflow: auto; /* provide scroll bars within main-content only ... without this, will scroll tabs too (BAD) */
-
-   /* general characteristics: */
-   box-sizing: border-box;       /* VERY KOOL: account for border/padding in specified width/height */
-   padding:    16px;             /* nicety */
-   /* border:     5px solid green;  /* diagnostic */
-   /* background-color: lightgreen; /* diagnostic */
-   /* color:            darkgreen;  /* diagnostic */
-
-   background-color: #ececec; /* THEME:??  $mdc-theme-secondary-light; /* ?? shot in the dark */
-   border:           2px solid #26a69a;  /* THEME:?? copied from theme */
  }
 
 </style>

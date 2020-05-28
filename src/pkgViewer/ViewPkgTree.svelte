@@ -8,6 +8,9 @@
 
 <script>
  import {pkgEntry2Tree} from './PkgTree'
+ import {TabControllerPkgEntry,
+         tabRegistry,
+         activateTab}   from '../tabManager';
  import {isPkg}         from '../util/typeCheck';
  import {slide}         from 'svelte/transition'; // visually animated transitions for tree node expansion/contraction
  import Ripple          from '@smui/ripple';
@@ -42,7 +45,19 @@
  $:    arrowDown       = expanded;
  const toggleExpansion = () => {
    expanded = _expansionState[accumTreeId] = !expanded;
+ };
+
+ // pre-register our pkgEntries for tabs display
+ let tabController = null;
+ if (pkgTree.isEntry()) {
+   tabController = new TabControllerPkgEntry(pkgTree.entry);
+   tabRegistry.registerTab(tabController);
  }
+ const displayEntry = () => {
+   // console.log(`xx displaying ${tabController.getTabId()}`);
+   activateTab(tabController.getTabId())
+ };
+
 
  // console.log(`xx <ViewPkgTree> for ${accumTreeId}`);
 </script>
@@ -53,28 +68,29 @@
     <svelte:self pkg={child} {accumTreeId}/>
   {/each}
 {:else}
-<ul class:top transition:slide="{{duration: 500}}">
-  <li>
-    {#if children}
-      <span class="mdc-typography--subtitle2 expander"
-            on:click={toggleExpansion}
-            use:Ripple={{ripple: true, color: 'surface', unbounded: false}}>
-        <span class="arrow" class:arrowDown>&#x25b6</span>
-        {label}
-      </span>
-      {#if expanded}
-        {#each children as child}
-          <svelte:self pkg={child} {accumTreeId}/>
-        {/each}
+  <ul class:top transition:slide="{{duration: 500}}">
+    <li>
+      {#if children}
+        <span class="mdc-typography--subtitle2 expander"
+              on:click={toggleExpansion}
+              use:Ripple={{ripple: true, color: 'surface', unbounded: false}}>
+          <span class="arrow" class:arrowDown>&#x25b6</span>
+          {label}
+        </span>
+        {#if expanded}
+          {#each children as child}
+            <svelte:self pkg={child} {accumTreeId}/>
+          {/each}
+        {/if}
+      {:else}
+        <span on:click={displayEntry}
+              class="mdc-typography--subtitle2">
+          <span class="no-arrow-spacer"/>
+          {label}
+        </span>
       {/if}
-    {:else}
-      <span class="mdc-typography--subtitle2">
-        <span class="no-arrow-spacer"/>
-        {label}
-      </span>
-    {/if}
-  </li>
-</ul>
+    </li>
+  </ul>
 {/if}
 
 <style>
