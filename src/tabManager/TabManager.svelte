@@ -108,18 +108,29 @@
 
 {#if tabs.length}
   {#await resolveTabs then tabs}
-    <!-- render the tabs -->
-    <div> <!-- ?? do NOT believe this <div> is needed -->
+    <!-- tabs -->
+    <div>
       <TabBar tabs={tabs} let:tab key={(tab) => tab.getTabId()} bind:active={activeTab}>
-        <Tab {tab} minWidth>
-          <Label>{tab.getTabName()}</Label>
-          <Icon on:click={()=> alert('?? closing tab')} class="material-icons">cancel</Icon> <!-- ?? cannot get on:click to work ... even with Button wrapper -->
+        <Tab {tab}
+             minWidth
+             on:contextmenu={(e)=> {
+                              e.preventDefault();
+                              log('?? context menu, e: ', {e, tab})
+                            }}>
+          <Label>
+            {tab.getTabName()}
+          </Label>
+          <!-- use tab-indicator slot to highlight ACTIVE TAB (NONE with &nbsp;) however places bar on top WHEN sized correctly (which some may like)
+          <span slot="tab-indicator">&nbsp;</span>
+          -->
         </Tab>
+        <!-- NOTE: only way to activate close control on:click is by placing it outside of <Tab> :-( -->
+        <Icon class="material-icons close-icon" on:click={(e)=> log('?? closing tab', {e, tab})}>cancel_presentation</Icon>
       </TabBar>
     </div>
     
-    <!-- render the tab content -->
-    <!-- ?? adding key (tab.getTabId()) does NOT help in conditional rendering ... when tabs array changes, all panels unmounted/remounted :-( -->
+    <!-- tab content -->
+    <!-- TODO: ?? adding key (tab.getTabId()) does NOT help in conditional rendering ... when tabs array changes, all panels unmounted/remounted :-( -->
     {#each tabs as tab (tab.getTabId())}
       <TabPanel {tab} active={tab===activeTab}/>
     {/each}
@@ -128,3 +139,29 @@
 {:else}
   <span>Spash Page</span>
 {/if}
+
+
+<style>
+ * :global(.mdc-tab) {
+   padding: 0 6px 0 12px;
+   height:  30px; /* ORIGINAL: 48px */
+ }
+
+ * :global(.mdc-tab-indicator) :global(.mdc-tab-indicator__content--underline) {
+   border-top-width: 4px; /* thicker active tab line (original 2px) */
+ }
+
+ * :global(.close-icon) {
+   cursor:    pointer;
+   font-size: 18px;     /* reduce icon size */
+   color:     lightgrey;
+ }
+
+/*
+ * :global(.mdc-tab__content) {
+   align-items:     flex-end;  REM: place tab labels on bottom (only works on items within <Tab>)
+   align-items:     center;    REM: ORIGINAL
+   justify-content: center;    REM: ORIGINAL
+ }
+*/
+</style>
