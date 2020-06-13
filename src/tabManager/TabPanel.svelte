@@ -48,5 +48,6 @@
 
    background-color: #ececec; /* THEME:??  $mdc-theme-secondary-light; /* ?? shot in the dark */
    border:           2px solid #26a69a;  /* THEME:?? copied from theme */
+   /* z-index: 1; /* ?? attempt to pevent popup menu from being covered up by other elements */
  }
 </style>

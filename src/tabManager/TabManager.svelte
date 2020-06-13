@@ -55,8 +55,8 @@
 
 <script>
  import {onMount}    from 'svelte';
- import Tab, {Label, Icon} from '@smui/tab';
  import TabBar       from '@smui/tab-bar';
+ import TabEntry     from './TabEntry.svelte';
  import TabPanel     from './TabPanel.svelte';
  import tabRegistry  from './tabRegistry';
 
@@ -111,21 +111,7 @@
     <!-- tabs -->
     <div>
       <TabBar tabs={tabs} let:tab key={(tab) => tab.getTabId()} bind:active={activeTab}>
-        <Tab {tab}
-             minWidth
-             on:contextmenu={(e)=> {
-                              e.preventDefault();
-                              log('?? context menu, e: ', {e, tab})
-                            }}>
-          <Label>
-            {tab.getTabName()}
-          </Label>
-          <!-- use tab-indicator slot to highlight ACTIVE TAB (NONE with &nbsp;) however places bar on top WHEN sized correctly (which some may like)
-          <span slot="tab-indicator">&nbsp;</span>
-          -->
-        </Tab>
-        <!-- NOTE: only way to activate close control on:click is by placing it outside of <Tab> :-( -->
-        <Icon class="material-icons close-icon" on:click={(e)=> log('?? closing tab', {e, tab})}>cancel_presentation</Icon>
+        <TabEntry {tab}/>
       </TabBar>
     </div>
     
