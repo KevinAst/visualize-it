@@ -129,8 +129,11 @@
 
 <style>
  * :global(.mdc-tab) {
-   padding: 0 6px 0 12px;
-   height:  30px; /* ORIGINAL: 48px */
+   padding:        0 6px 0 12px;
+   height:         30px;  /* WAS: 48px */
+/* font-size:      .8rem; /* WAS: .875rem */
+   font-weight:    bold;  /* WAS: 500 */
+   text-transform: none;  /* WAS: uppercase */
  }
 
  * :global(.mdc-tab-indicator) :global(.mdc-tab-indicator__content--underline) {
