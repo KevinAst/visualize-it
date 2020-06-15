@@ -1,6 +1,7 @@
 <script context="module">
  import List, {Item, Meta, Text, Separator} from '@smui/list';
  import Menu            from '@smui/menu';
+ import {Icon}          from '@smui/common';
  import verify          from '../util/verify';
  import {isPkg}         from '../util/typeCheck';
  import {createLogger}  from '../util/logger';
@@ -23,9 +24,12 @@
 </script>
 
 <!-- using activated strictly for it's coloring :-) -->
-<Item class="vit-drawer-item" activated on:click={() => menu.setOpen(true)}>
+<Item class="vit-drawer-item" activated>
   <Text>{log(`rendering pkg: ${pkg.getPkgName()}`) || pkg.getPkgName()}</Text>
-  <Meta class="material-icons md-tooltip--left" data-md-tooltip="Manage Package">more_vert</Meta>
+  <Meta>
+    <Icon class="material-icons md-tooltip--left" data-md-tooltip="Save Package"   on:click={() => alert('FUTURE: save package')}>save</Icon>
+    <Icon class="material-icons md-tooltip--left" data-md-tooltip="Manage Package" on:click={() => menu.setOpen(true)}>more_vert</Icon>
+  </Meta>
 </Item>
 
 <span>
