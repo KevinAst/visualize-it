@@ -58,6 +58,7 @@
  import TabBar       from '@smui/tab-bar';
  import TabEntry     from './TabEntry.svelte';
  import TabPanel     from './TabPanel.svelte';
+ import StartUpPage  from './StartUpPage.svelte';
  import tabRegistry  from './tabRegistry';
 
  // maintain our external bindings (when <TabManager> is mounted)
@@ -123,7 +124,7 @@
 
   {/await}
 {:else}
-  <span>Spash Page</span>
+  <StartUpPage/>
 {/if}
 
 
