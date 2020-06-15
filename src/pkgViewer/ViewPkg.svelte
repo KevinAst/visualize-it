@@ -23,21 +23,20 @@
 </script>
 
 <!-- using activated strictly for it's coloring :-) -->
-<Item class="vit-drawer-item" activated={true}>
+<Item class="vit-drawer-item" activated on:click={() => menu.setOpen(true)}>
   <Text>{log(`rendering pkg: ${pkg.getPkgName()}`) || pkg.getPkgName()}</Text>
-  <!-- ?? can put an IconButton in the Meta PRO: better animation CON: NOT vertically centered -->
-  <Meta class="material-icons" on:click={() => menu.setOpen(true)}>more_vert</Meta>
+  <Meta class="material-icons">more_vert</Meta>
 </Item>
 
 <span>
   <Menu bind:this={menu}>
     <List>
-      <Item on:SMUI:action={() => log.force('save menu')}><Text>Save {pkg.getPkgName()}</Text></Item>
-      <Item on:SMUI:action={() => log.force('save-as menu')}><Text>Save As ...</Text></Item>
+      <Item on:SMUI:action={() => alert('FUTURE: Save')}><Text>Save {pkg.getPkgName()}</Text></Item>
+      <Item on:SMUI:action={() => alert('FUTURE: Save-As')}><Text>Save As ...</Text></Item>
       <Separator/>
-      <Item on:SMUI:action={() => log.force('rename menu')}><Text>Rename</Text></Item>
+      <Item on:SMUI:action={() => alert('FUTURE: Rename')}><Text>Rename</Text></Item>
       <Separator/>
-      <Item on:SMUI:action={() => log.force('close menu')}><Text>Close</Text></Item>
+      <Item on:SMUI:action={() => alert('FUTURE: Close')}><Text>Close</Text></Item>
     </List>
   </Menu>
 </span>

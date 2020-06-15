@@ -1,6 +1,6 @@
 <script>
- import {Header, Title, Subtitle, Content} from '@smui/drawer';
- import List                               from '@smui/list';
+ import {Content} from '@smui/drawer';
+ import List      from '@smui/list';
 
  let leftNavCompEntries = [];
 
@@ -11,11 +11,6 @@
    leftNavCompEntries = leftNavCompEntries; // make reactive
  }
 </script>
-
-<Header>
-  <Title>Visualize It</Title>
-  <Subtitle>packages ...</Subtitle>
-</Header>
 
 <Content>
   <List>

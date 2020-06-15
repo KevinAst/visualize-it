@@ -53,6 +53,7 @@
  import {isPkg}   from '../util/typeCheck';
  import {onMount} from 'svelte';
  import ViewPkg   from './ViewPkg.svelte';
+ import {Item, Meta, Text} from '@smui/list';
 
  // the packages viewed by self: SmartPkg[]
  const pkgs = [];
@@ -73,6 +74,12 @@
  // maintain our external bindings (when <PkgViewer> is mounted)
  onMount(() => activate(viewPkg$comp), deactivate);
 </script>
+
+<Item on:click={() => alert('FUTURE: open dialog')}>
+  <Text>packages ...</Text>
+  <Meta class="material-icons">folder_open</Meta>
+</Item>
+
 
 {#each pkgs as pkg (pkg.getPkgId())}
   <ViewPkg {pkg}/>

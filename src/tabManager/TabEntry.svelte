@@ -39,18 +39,18 @@
 </Tab>
 
 <!-- NOTE: only way to activate close control on:click is by placing it outside of <Tab> :-( -->
-<Icon class="material-icons close-icon" on:click={(e)=> log('closing tab', {e, tab})}>cancel_presentation</Icon>
+<Icon class="material-icons close-icon" on:click={(e)=> alert('FUTURE: closing tab', {e, tab})}>cancel_presentation</Icon>
 
 <!-- our context menu -->
 <span>
   <Menu bind:this={contextMenu}>
     <List>
-      <Item on:SMUI:action={() => log('Close')}><Text>Close</Text></Item>
-      <Item on:SMUI:action={() => log('Close Others')}><Text>Close Others</Text></Item>
-      <Item on:SMUI:action={() => log('Close to Right')}><Text>Close to the Right</Text></Item>
-      <Item on:SMUI:action={() => log('Close All')}><Text>Close All</Text></Item>
+      <Item on:SMUI:action={() => alert('FUTURE: Close')}><Text>Close</Text></Item>
+      <Item on:SMUI:action={() => alert('FUTURE: Close Others')}><Text>Close Others</Text></Item>
+      <Item on:SMUI:action={() => alert('FUTURE: Close to Right')}><Text>Close to the Right</Text></Item>
+      <Item on:SMUI:action={() => alert('FUTURE: Close All')}><Text>Close All</Text></Item>
       <Separator />
-      <Item on:SMUI:action={() => log('Reveal in Left Nav')}><Text>Reveal in Left Nav</Text></Item>
+      <Item on:SMUI:action={() => alert('FUTURE: Reveal in Left Nav')}><Text>Reveal in Left Nav</Text></Item>
     </List>
   </Menu>
 </span>
