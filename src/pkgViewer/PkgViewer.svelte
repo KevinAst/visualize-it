@@ -75,9 +75,10 @@
  onMount(() => activate(viewPkg$comp), deactivate);
 </script>
 
-<Item on:click={() => alert('FUTURE: open dialog')}>
-  <Text>packages ...</Text>
-  <Meta class="material-icons">folder_open</Meta>
+<Item>
+  <Text>Packages ...</Text>
+  <Meta class="material-icons md-tooltip--left" data-md-tooltip="Create New Package"    on:click={() => alert('FUTURE: add new package')}>add_circle_outline</Meta>
+  <Meta class="material-icons md-tooltip--left" data-md-tooltip="Open Existing Package" on:click={() => alert('FUTURE: open dialog')}>folder_open</Meta>
 </Item>
 
 

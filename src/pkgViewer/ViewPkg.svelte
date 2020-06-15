@@ -25,7 +25,7 @@
 <!-- using activated strictly for it's coloring :-) -->
 <Item class="vit-drawer-item" activated on:click={() => menu.setOpen(true)}>
   <Text>{log(`rendering pkg: ${pkg.getPkgName()}`) || pkg.getPkgName()}</Text>
-  <Meta class="material-icons">more_vert</Meta>
+  <Meta class="material-icons md-tooltip--left" data-md-tooltip="Manage Package">more_vert</Meta>
 </Item>
 
 <span>

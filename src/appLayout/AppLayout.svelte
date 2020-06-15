@@ -77,7 +77,7 @@
     <!-- ??$$ farm this out to some AppBar -->
     <Row>
       <Section>
-        <IconButton class="material-icons" on:click={toggleDrawer}>menu</IconButton>
+        <IconButton class="material-icons md-tooltip--right md-tooltip--light" data-md-tooltip="Toggle Left Nav Package View" on:click={toggleDrawer}>menu</IconButton>
         <AppBarTitle>Visualize It</AppBarTitle>
       </Section>
       <Section align="end" toolbar>
