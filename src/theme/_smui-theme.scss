@@ -65,9 +65,10 @@ $mdc-theme-error: $material-color-red-900;
 
 [data-md-tooltip]:hover:before {
  transform: translateX(-50%) scale(1);
+ transition-delay: 0.5s; /* KJB (new): delay tooltip display just a bit */
 }
 
-// alternate color ... for display in dark background (like in AppBar)
+// KJB (new) alternate color ... for display in dark background (like in AppBar)
 [data-md-tooltip].md-tooltip--light:before {
  background: white;
  color:      red; /* AI: not very good ... very faint */
