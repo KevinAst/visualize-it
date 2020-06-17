@@ -37,19 +37,11 @@
 
  // + activateTab(tabId, preview=true): void ... activate tab preregistered to given tabId
  export function activateTab(tabId, preview=true) {
-   // validate setup and parameters
-   const check = verify.prefix('activateTab() issue: ');
-   // ... setup
-   check(isMounted(), 'a single <TabManager/> component MUST be instantated (it is a "singleton" UI Component)');
-   // ... tabId
-   check(tabId,            'tabId is required');
-   check(isString(tabId),  'tabId must be a string');
-   // ... preview
-   check(preview===true || 
-         preview===false,  'preview must be a boolean');
+   // validate setup
+   verify(isMounted(), 'activateTab() pre-condition violation: this function is ONLY operational when the <TabManager/> component has been instantated');
 
    // propogate request to our component instance
-   _activateTab$comp(tabId, preview, check);
+   _activateTab$comp(tabId, preview);
  }
 </script>
 
@@ -80,7 +72,29 @@
  // locate the tab being managed ... return: TabController or undefined
  const findTab = (tabId) => tabs.find( (tabController) => tabController.getTabId()===tabId );
 
- function activateTab$comp(tabId, preview, check) {
+ // WORK-AROUND supporting dynamic tabs in @smui
+ // - without this, we receive a @smui internal error (whenever the tabs array changes):
+ //   Tab.svelte:58 Uncaught (in promise) TypeError: Cannot read property 'tabIndicator_' of undefined
+ // - see issue: https://github.com/hperrin/svelte-material-ui/issues/67
+ $: resolveTabs = Promise.resolve(tabs);
+
+
+ //***
+ //*** Component API
+ //***
+
+ // + activateTab(tabId, preview=true): void ... activate tab preregistered to given tabId
+ function activateTab$comp(tabId, preview) {
+
+   // validate parameters
+   const check = verify.prefix('activateTab() parameter violation: ');
+   // ... tabId
+   check(tabId,            'tabId is required');
+   check(isString(tabId),  'tabId must be a string');
+   // ... preview
+   check(preview===true || 
+         preview===false,  'preview must be a boolean');
+
    // reset our activeTab (when requested tab is already managed by <TabManager>)
    activeTab = findTab(tabId);
 
@@ -88,7 +102,7 @@
    if (!activeTab) {
      // must be in the tabRegistry
      activeTab = tabRegistry.getTabController(tabId);
-     check(activeTab, `tabId: '${tabId}' cannot be displayed ... it has NOT been pre-registered via: registerTab(tabController)`);
+     check(activeTab, `tabId: '${tabId}' cannot be displayed ... it has NOT been pre-registered via: tabRegistry.registerTab(tabController)`);
 
      // introduce the new tab
      tabs = [...tabs, activeTab];
@@ -98,12 +112,6 @@
      log(`activateTab('${tabId}') ... used EXISTING: `, activeTab)
    }
  }
-
- // WORK-AROUND supporting dynamic tabs in @smui
- // - without this, we receive a @smui internal error (whenever the tabs array changes):
- //   Tab.svelte:58 Uncaught (in promise) TypeError: Cannot read property 'tabIndicator_' of undefined
- // - see issue: https://github.com/hperrin/svelte-material-ui/issues/67
- $: resolveTabs = Promise.resolve(tabs);
 </script>
 
 
