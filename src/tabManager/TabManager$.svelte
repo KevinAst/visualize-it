@@ -5,7 +5,8 @@
  import StartUpPage     from './StartUpPage.svelte';
  import tabRegistry     from './tabRegistry';
  import verify          from '../util/verify';
- import {isString}      from '../util/typeCheck';
+ import {isString,
+         isBoolean}     from '../util/typeCheck';
  import {createLogger}  from '../util/logger';
 
  // our internal diagnostic logger (normally disabled, but keep enabled for a while)
@@ -40,16 +41,15 @@
  //***
 
  // + activateTab(tabId, preview=true): void ... activate tab preregistered to given tabId
- export function activateTab(tabId, preview) {
+ export function activateTab(tabId, preview=true) {
 
    // validate parameters
    const check = verify.prefix('activateTab() parameter violation: ');
    // ... tabId
-   check(tabId,            'tabId is required');
-   check(isString(tabId),  'tabId must be a string');
+   check(tabId,              'tabId is required');
+   check(isString(tabId),    'tabId must be a string');
    // ... preview
-   check(preview===true || 
-         preview===false,  'preview must be a boolean');
+   check(isBoolean(preview), 'preview must be a boolean');
 
    // reset our activeTab (when requested tab is already managed by <TabManager>)
    activeTab = findTab(tabId);
