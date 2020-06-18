@@ -42,6 +42,12 @@
    verifySetup('activateTab()');
    _tabManager$.activateTab(tabId, preview);
  }
+
+ // + closeTab(tabId): void ... close tab of given tabId
+ export function closeTab(tabId) {
+   verifySetup('closeTab()');
+   _tabManager$.closeTab(tabId);
+ }
 </script>
 
 

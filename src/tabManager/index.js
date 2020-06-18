@@ -1,4 +1,5 @@
-import TabManager, {activateTab}  from './TabManager.svelte';
+import TabManager, 
+       {activateTab, closeTab}    from './TabManager.svelte';
 import TabController              from './TabController';
 import TabControllerPkgEntry      from './TabControllerPkgEntry';
 import tabRegistry                from './tabRegistry';
@@ -13,5 +14,5 @@ export {
   tabRegistry, // with + tabRegistry.registerTab(tabController): void
 
   activateTab, // + activateTab(tabId, preview=true): void ... activate tab preregistered to given tabId
-//closeTab,    // + closeTab(tabId): void ... close tab
+  closeTab,    // + closeTab(tabId): void ... close tab of given tabId
 };

@@ -16,6 +16,11 @@ function isNumber(ref) {
   return typeof ref === 'number';
 }
 
+// isBoolean(ref): is ref a boolean?
+function isBoolean(ref) {
+  return ref === true || ref === false;
+}
+
 // isArray(ref): alias to Array.isArray(ref)
 const isArray = Array.isArray;
 
@@ -52,6 +57,7 @@ export {
   isEqual,       // + isEqual(ref1, ref2):  boolean ... a deep comparison AI: doesn't really belong in typeCheck, but hey
   isFunction,    // + isFunction(ref):      boolean
   isNumber,      // + isNumber(ref):        boolean
+  isBoolean,     // + isBoolean(ref):       boolean
   isObject,      // + isObject(ref):        boolean
   isPlainObject, // + isPlainObject(ref):   boolean
   isArray,       // + isArray(ref):         boolean

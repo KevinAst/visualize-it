@@ -25,7 +25,8 @@
  }
 
  // locate the tab being managed ... return: TabController or undefined
- const findTab = (tabId) => tabs.find( (tabController) => tabController.getTabId()===tabId );
+ const findTab      = (tabId) => tabs.find(      (tabController) => tabController.getTabId()===tabId );
+ const findTabIndex = (tabId) => tabs.findIndex( (tabController) => tabController.getTabId()===tabId );
 
  // WORK-AROUND supporting dynamic tabs in @smui
  // - without this, we receive a @smui internal error (whenever the tabs array changes):
@@ -67,6 +68,37 @@
      log(`activateTab('${tabId}') ... used EXISTING: `, activeTab)
    }
  }
+
+ // + closeTab(tabId): void ... close tab of given tabId
+ export function closeTab(tabId) {
+
+   // validate parameters
+   const check = verify.prefix('closeTab() parameter violation: ');
+   // ... tabId
+   check(tabId,            'tabId is required');
+   check(isString(tabId),  'tabId must be a string');
+
+   // locate the tab to close
+   const closeTabIndex = findTabIndex(tabId);
+   if (closeTabIndex < 0) 
+     return; // ... no-op if we can't find it
+   const closeTab = tabs[closeTabIndex];
+
+   // adjust activeTab (when it is being closed)
+   if (closeTab === activeTab) {
+     // shift the active tab to the right (except on end - to the left)
+     // REMEMBER: we are dealing with the tabs array state BEFORE it has been altered
+     //           ... we alter the tabs array in the next step (i.e. close our tab)
+
+     //                                                 AT END ...        NOT AT END ...
+     //                                                 ===============   ===============
+     const nextIndx = (closeTabIndex===tabs.length-1) ? closeTabIndex-1 : closeTabIndex+1;
+     activeTab = nextIndx < 0 ? undefined : tabs[nextIndx];
+   }
+
+   // close the requested tab
+   tabs = tabs.filter( (tab) => tab !== closeTab );
+ }
 </script>
 
 
@@ -75,7 +107,7 @@
     <!-- tabs -->
     <div>
       <TabBar tabs={tabs} let:tab key={(tab) => tab.getTabId()} bind:active={activeTab}>
-        <TabEntry {tab} isActive={tab===activeTab}/>
+        <TabEntry {tab} isActive={tab===activeTab} closeTabFn={closeTab}/>
       </TabBar>
     </div>
     

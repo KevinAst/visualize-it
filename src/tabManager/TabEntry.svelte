@@ -1,11 +1,11 @@
 <script>
- import verify             from '../util/verify';
- import Tab, {Label, Icon} from '@smui/tab';
-
+ import Tab, {Label, Icon}            from '@smui/tab';
  import Menu                          from '@smui/menu';
  import List, {Item, Text, Separator} from '@smui/list';
 
- import {createLogger} from '../util/logger';
+ import verify                  from '../util/verify';
+ import {isBoolean, isFunction} from '../util/typeCheck';
+ import {createLogger}          from '../util/logger';
 
  // our internal diagnostic logger (normally disabled, but keep enabled for a while)
  const log = createLogger('***DIAG*** <TabEntry> ... ').enable();
@@ -13,6 +13,7 @@
  // component params
  export let tab; // ... TabController
  export let isActive=false;
+ export let closeTabFn
 
  let contextMenu;
 
@@ -21,6 +22,11 @@
  // ... tab
  check(tab,               'tab is required');
  check(tab.getTabContext, `tab must be a TabController ... NOT: ${tab}`);
+ // ... isActive
+ check(isBoolean(isActive), `isActive must be a boolean ... NOT: ${isActive}`);
+ // ... closeTabFn
+ check(closeTabFn,             'closeTabFn is required');
+ check(isFunction(closeTabFn), `closeTabFn must be a function ... NOT: ${closeTabFn}`);
 </script>
 
 <Tab {tab}
@@ -41,14 +47,14 @@
 
 <!-- NOTE: only way to activate close control on:click is by placing it outside of <Tab> :-( -->
 {#if isActive}
-  <Icon class="material-icons close-icon" on:click={(e)=> alert('FUTURE: closing tab', {e, tab})}>cancel_presentation</Icon>
+  <Icon class="material-icons close-icon" on:click={(e)=> closeTabFn(tab.getTabId())}>cancel_presentation</Icon>
 {/if}
 
 <!-- our context menu -->
 <span>
   <Menu bind:this={contextMenu}>
     <List>
-      <Item on:SMUI:action={() => alert('FUTURE: Close')}><Text>Close</Text></Item>
+      <Item on:SMUI:action={() => closeTabFn(tab.getTabId())}><Text>Close</Text></Item>
       <Item on:SMUI:action={() => alert('FUTURE: Close Others')}><Text>Close Others</Text></Item>
       <Item on:SMUI:action={() => alert('FUTURE: Close to Right')}><Text>Close to the Right</Text></Item>
       <Item on:SMUI:action={() => alert('FUTURE: Close All')}><Text>Close All</Text></Item>
