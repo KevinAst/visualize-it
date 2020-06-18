@@ -6,22 +6,30 @@
  import tabRegistry     from './tabRegistry';
  import verify          from '../util/verify';
  import {isString,
-         isBoolean}     from '../util/typeCheck';
+         isBoolean,
+         isFunction}    from '../util/typeCheck';
  import {createLogger}  from '../util/logger';
 
  // our internal diagnostic logger (normally disabled, but keep enabled for a while)
  const log = createLogger('***DIAG*** <TabManager> ... ').enable();
 
  // our component state
- let tabs          = [];   // ... all tabs being managed:      TabController[]
- let activeTab     = null; // ... the active tab (visualized): TabController (null for NO tabs)
- let lastActiveTab = null; // ... assist in pruning duplicate activeTab events
+ let   tabs              = [];        // ... all tabs being managed:      TabController[]
+ let   activeTab         = null;      // ... the active tab (visualized): TabController (null for NO tabs)
+ const activeTabMonitors = [];        // ... monitors of active tab: tabActivatedCB[]
+ let   lastActiveTab     = undefined; // ... assist in pruning duplicate activeTab events (`undefined` forces initial promotion of activeTab changed to `null`)
 
  // monitor/promote activeTab changes
  $: {
-   if (activeTab && activeTab !== lastActiveTab) {
-     log(`activeTab changed: ${activeTab.getTabId()}`);
-     lastActiveTab = activeTab;
+   if (activeTab !== lastActiveTab) {
+     lastActiveTab = activeTab; // ... prune duplicate activeTab events
+
+     // promote the change in active tab
+     log(`activeTab changed: ${activeTab ? activeTab.getTabId() : 'null <no-active-tab>'}`);
+     // ... to our activeTap
+     activeTab && activeTab.tabActivated();
+     // ... to all registered monitors
+     activeTabMonitors.forEach( (tabActivatedCB) => tabActivatedCB(activeTab) );
    }
  }
 
@@ -93,11 +101,24 @@
      //                                                 AT END ...        NOT AT END ...
      //                                                 ===============   ===============
      const nextIndx = (closeTabIndex===tabs.length-1) ? closeTabIndex-1 : closeTabIndex+1;
-     activeTab = nextIndx < 0 ? undefined : tabs[nextIndx];
+     activeTab = nextIndx < 0 ? null : tabs[nextIndx];
    }
 
    // close the requested tab
    tabs = tabs.filter( (tab) => tab !== closeTab );
+ }
+
+ // + monitorActiveTab(tabActivatedCB): void ... monitor active tab via: + tabActivatedCB(tabController | null<no-active-tab>): void
+ export function monitorActiveTab(tabActivatedCB) {
+
+   // validate parameters
+   const check = verify.prefix('monitorActiveTab() parameter violation: ');
+   // ... tabActivatedCB
+   check(tabActivatedCB,             'tabActivatedCB is required');
+   check(isFunction(tabActivatedCB), 'tabActivatedCB must be a string');
+
+   // register this callback
+   activeTabMonitors.push(tabActivatedCB);
  }
 </script>
 

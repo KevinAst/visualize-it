@@ -48,6 +48,12 @@
    verifySetup('closeTab()');
    _tabManager$.closeTab(tabId);
  }
+
+ // + monitorActiveTab(tabActivatedCB): void ... monitor active tab via: + tabActivatedCB(tabController | null<no-active-tab>): void
+ export function monitorActiveTab(tabActivatedCB) {
+   verifySetup('monitorActiveTab()');
+   _tabManager$.monitorActiveTab(tabActivatedCB);
+ }
 </script>
 
 
