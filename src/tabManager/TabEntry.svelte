@@ -12,6 +12,7 @@
 
  // component params
  export let tab; // ... TabController
+ export let isActive=false;
 
  let contextMenu;
 
@@ -24,7 +25,7 @@
 
 <Tab {tab}
      minWidth
-     on:contextmenu={(e)=> {
+     on:contextmenu={(e) => {
                     e.preventDefault(); // prevent context menu of native browser from displaying
                     log('context menu, e: ', {e, tab});
                     // debugger;
@@ -39,7 +40,9 @@
 </Tab>
 
 <!-- NOTE: only way to activate close control on:click is by placing it outside of <Tab> :-( -->
-<Icon class="material-icons close-icon" on:click={(e)=> alert('FUTURE: closing tab', {e, tab})}>cancel_presentation</Icon>
+{#if isActive}
+  <Icon class="material-icons close-icon" on:click={(e)=> alert('FUTURE: closing tab', {e, tab})}>cancel_presentation</Icon>
+{/if}
 
 <!-- our context menu -->
 <span>

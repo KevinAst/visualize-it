@@ -75,7 +75,7 @@
     <!-- tabs -->
     <div>
       <TabBar tabs={tabs} let:tab key={(tab) => tab.getTabId()} bind:active={activeTab}>
-        <TabEntry {tab}/>
+        <TabEntry {tab} isActive={tab===activeTab}/>
       </TabBar>
     </div>
     
