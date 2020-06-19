@@ -54,6 +54,21 @@ export default class TabController {
   }
 
   /**
+   * Return self's qualifying description (for example, the Pkg name
+   * of a PkgEntry).  This is used (in one case) to supplement/qualify
+   * the active tab in the AppBar.  So in this example, it helps to
+   * qualify two PkgEntries with the same name in different packages.
+   *
+   * This is an abstract method that must be implemented by the class
+   * derivations.
+   *
+   * @returns {string} self's qualifying supplemental description
+   */
+  getTabQualifyingDesc() {
+    throw new Error(`***ERROR*** TabController.getTabQualifyingDesc() the ${this.diagClassName()} class derivation MUST implement this abstract method (tabId: ${this.tabId}, tabName: ${this.tabName})!!`);
+  }
+
+  /**
    * The tabActivated() method is invoked whenever this tab is
    * activated.  By default, it does nothing, but it can be overridden
    * in various derivations to perform app-specific logic.

@@ -53,11 +53,22 @@
  import IconButton   from '@smui/icon-button';
  import {toast}      from '../util/notify';
  import {onMount}    from 'svelte';
- import {TabManager} from '../tabManager';
+ import {TabManager,
+         monitorActiveTab} from '../tabManager';
 
- // maintain our external bindings (when <AppLayout> is mounted)
+ // App Title ... either "Visualize It" or the Pkg Name of the active tab
+ const appTitleDefault = 'Visualize It';
+ let   appTitle        = appTitleDefault;
+
+ // maintain our external bindings (once <AppLayout> is mounted)
  let leftNavComp; // ... maintained by `bind:this` (see below)
- onMount(() => activateSingleton(leftNavComp), deactivateSingleton);
+ onMount(() => {
+   // also, monitor active tap, updating our appTitle to the active Pkg Name
+   monitorActiveTab( (tabController) => appTitle = tabController ? tabController.getTabQualifyingDesc() : appTitleDefault);
+
+   activateSingleton(leftNavComp);
+   return deactivateSingleton;
+ });
 
  // toggle Drawer (LeftNav) open/closed
  let drawerOpen = true;
@@ -65,7 +76,6 @@
    drawerOpen = !drawerOpen;
  }
 </script>
-
 
 
 <!-- top-level page container ... manages 1. vit-page-app-bar and 2: vit-page-content -->
@@ -78,7 +88,7 @@
     <Row>
       <Section>
         <IconButton class="material-icons md-tooltip--right md-tooltip--light" data-md-tooltip="Toggle Left Nav Package View" on:click={toggleDrawer}>menu</IconButton>
-        <AppBarTitle>Visualize It</AppBarTitle>
+        <AppBarTitle>{appTitle}</AppBarTitle>
       </Section>
       <Section align="end" toolbar>
         <IconButton class="material-icons" aria-label="Download">file_download</IconButton>

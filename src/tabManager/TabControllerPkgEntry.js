@@ -34,6 +34,18 @@ export default class TabControllerPkgEntry extends TabController {
   }
 
   /**
+   * Return self's qualifying description (in THIS derivation, the Pkg name
+   * of a PkgEntry).  This is used (in one case) to supplement/qualify
+   * the active tab in the AppBar.  So in this example, it helps to
+   * qualify two PkgEntries with the same name in different packages.
+   *
+   * @returns {string} self's qualifying supplemental description (our Pkg name)
+   */
+  getTabQualifyingDesc() {
+    return this.pkgEntry.getPkg().getPkgName();
+  }
+
+  /**
    * Expose our pkgEntry - the app-specific object targeted by this tab.
    */
   getTabContext() {
