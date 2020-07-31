@@ -7,13 +7,15 @@
 </script>
 
 <script>
- import {pkgEntry2Tree} from './PkgTree'
+ import {pkgEntry2Tree}      from './PkgTree';
  import {TabControllerPkgEntry,
          tabRegistry,
-         activateTab}   from '../tabManager';
- import {isPkg}         from '../util/typeCheck';
- import {slide}         from 'svelte/transition'; // visually animated transitions for tree node expansion/contraction
- import Ripple          from '@smui/ripple';
+         activateTab}        from '../tabManager';
+ import {isPkg}              from '../util/typeCheck';
+ import genDualClickHandler  from '../util/ui/genDualClickHandler';
+ import {slide}              from 'svelte/transition'; // visually animated transitions for tree node expansion/contraction
+ import Ripple               from '@smui/ripple';
+
 
  // component params
  export let pkg;                 // the SmartPkg entry point (for public consumption) ... INTERNALLY morphed into PkgTree
@@ -53,11 +55,10 @@
    tabController = new TabControllerPkgEntry(pkgTree.entry);
    tabRegistry.registerTab(tabController);
  }
- const displayEntry = () => {
-   // console.log(`xx displaying ${tabController.getTabId()}`);
-   activateTab(tabController.getTabId())
- };
-
+ const displayEntry = genDualClickHandler(
+   () => activateTab(tabController.getTabId(), /*preview*/true),  // single-click
+   () => activateTab(tabController.getTabId(), /*preview*/false), // double-click
+ );
 
  // console.log(`xx <ViewPkgTree> for ${accumTreeId}`);
 </script>
