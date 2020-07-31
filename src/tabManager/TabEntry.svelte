@@ -1,11 +1,12 @@
 <script>
- import Tab, {Label, Icon}            from '@smui/tab';
+ import Tab, {Label/*, Icon xx OLD*/}            from '@smui/tab';
  import Menu                          from '@smui/menu';
  import List, {Item, Text, Separator} from '@smui/list';
 
  import verify                  from '../util/verify';
  import {isBoolean, isFunction} from '../util/typeCheck';
  import {createLogger}          from '../util/logger';
+ import Icon                    from '../util/ui/Icon.svelte'; // xx NEW
 
  // our internal diagnostic logger (normally disabled, but keep enabled for a while)
  const log = createLogger('***DIAG*** <TabEntry> ... ').enable();
@@ -47,7 +48,11 @@
 
 <!-- NOTE: only way to activate close control on:click is by placing it outside of <Tab> :-( -->
 {#if isActive}
+  <!-- xx OLD
   <Icon class="material-icons close-icon" on:click={(e)=> closeTabFn(tab.getTabId())}>cancel_presentation</Icon>
+  -->
+  <!-- xx NEW -->
+  <Icon class="close-icon" name="cancel_presentation" on:click={(e)=> closeTabFn(tab.getTabId())}/>
 {/if}
 
 <!-- our context menu -->
@@ -63,3 +68,11 @@
     </List>
   </Menu>
 </span>
+
+<style>
+ * :global(.material-icons) { /* control <Icon> xx NO WORK :-( */
+   cursor:    pointer;
+   font-size: 18px;     /* reduce icon size */
+   color:     lightgrey;
+ }
+</style>
