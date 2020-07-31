@@ -1,11 +1,11 @@
 import Notify,
        {pushMsgOnSnackbar} from './Notify.svelte';
-import verify              from '../verify';
-import checkUnknownArgs    from '../checkUnknownArgs';
+import verify              from '../../verify';
+import checkUnknownArgs    from '../../checkUnknownArgs';
 import {isString,
         isNumber,
         isPlainObject,
-        isFunction}        from '../typeCheck';
+        isFunction}        from '../../typeCheck';
 
 /**
  * The one-and-only `<Notify/>` component to be instantiated at the

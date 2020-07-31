@@ -8,7 +8,7 @@
 </script>
 
 <script>
-  import {Notify}    from './util/notify';
+  import {Notify}    from './util/ui/notify';
   import {AppLayout} from './appLayout';
 </script>
 

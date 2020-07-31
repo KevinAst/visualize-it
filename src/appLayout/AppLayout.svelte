@@ -51,7 +51,7 @@
  import Drawer, {AppContent} from '@smui/drawer';
  import TopAppBar, {Row, Section, Title as AppBarTitle} from '@smui/top-app-bar';
  import IconButton   from '@smui/icon-button';
- import {toast}      from '../util/notify';
+ import {toast}      from '../util/ui/notify';
  import {onMount}    from 'svelte';
  import {TabManager,
          monitorActiveTab} from '../tabManager';

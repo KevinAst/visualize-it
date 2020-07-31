@@ -1,5 +1,5 @@
 <script context="module">
- import verify from '../verify';
+ import verify from '../../verify';
 
  // function in our one-and-only <Notify/> component instance
  // ... maintained by <Notify/> life-cycle-hooks

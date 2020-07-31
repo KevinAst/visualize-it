@@ -10,7 +10,7 @@ import DispMode             from './DispMode';
 import createTypeRefHandler from './createTypeRefHandler';
 
 import crc                  from '../util/crc';
-import {toast}              from '../util/notify';
+import {toast}              from '../util/ui/notify';
 
 // AI: future svelte integration
 // import changeManager     from 'features/common/changeManager/changeManager'; // AI: pull from horses mouth (rather than 'features/xtra') to avoid circular import in core/Scene.js ... ReferenceError: Cannot access 'SmartPallet' before initialization
