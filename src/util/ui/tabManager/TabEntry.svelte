@@ -1,5 +1,7 @@
 <script>
  import Icon from '../Icon.svelte';
+ import Menu                          from '@smui/menu';
+ import List, {Item, Text, Separator} from '@smui/list';
 
  // accept component props
  export let tab;        // ... the TabController we are displaying
@@ -16,6 +18,8 @@
  const tabId   = tab.getTabId();
  const tabName = tab.getTabName();
 
+ let contextMenu;
+
  // maintain our dynamic css classes
  $: classes = `tab-entry mdc-typography--subtitle2
                ${tab===$activeTab  ? 'active-tab'  : ''}
@@ -26,14 +30,33 @@
 <!-- in lieu of genDualClickHandler(), 
      double registration of click/dblclick WORKS (in this case),
      and is more responsive! -->
-<!-- ?? add contextmenu ... see: c:/dev/visualize-it/src/tabManager/TabEntry.svelte -->
 <div class={classes}
      on:click=   {() => activateTab(tabId, /*preview*/true)}
-     on:dblclick={() => activateTab(tabId, /*preview*/false)}>
+     on:dblclick={() => activateTab(tabId, /*preview*/false)}
+     on:contextmenu|preventDefault={() => contextMenu.setOpen(true)}>
+
+  <!-- our tab label -->
   {tabName}
+
+  <!-- close tab control -->
   <Icon name="cancel_presentation"
         size="1.0rem"
         on:click={(e)=> { e.stopPropagation(); closeTab(tabId); }}/>
+
+  <!-- context menu -->
+  <span>
+    <Menu bind:this={contextMenu}>
+      <List class="mdc-typography--subtitle2">
+        <Item on:SMUI:action={() => closeTab(tabId)}><Text>Close</Text></Item>
+        <Item on:SMUI:action={() => alert('FUTURE: Close Others')}><Text>Close Others</Text></Item>
+        <Item on:SMUI:action={() => alert('FUTURE: Close to Right')}><Text>Close to the Right</Text></Item>
+        <Item on:SMUI:action={() => alert('FUTURE: Close All')}><Text>Close All</Text></Item>
+        <Separator />
+        <Item on:SMUI:action={() => alert('FUTURE: Reveal in Left Nav')}><Text>Reveal in Left Nav</Text></Item>
+      </List>
+    </Menu>
+  </span>
+
 </div>
 
 
