@@ -8,9 +8,9 @@
 
 <script>
  import {pkgEntry2Tree}      from './PkgTree';
- import {TabControllerPkgEntry,
-         tabRegistry,
-         activateTab}        from '../tabManager';
+ import {TabControllerPkgEntry, 
+         preregisterTab,
+         activateTab}        from '../pkgEntryTabs';
  import {isPkg}              from '../util/typeCheck';
  import genDualClickHandler  from '../util/ui/genDualClickHandler';
  import {slide}              from 'svelte/transition'; // visually animated transitions for tree node expansion/contraction
@@ -53,7 +53,7 @@
  let tabController = null;
  if (pkgTree.isEntry()) {
    tabController = new TabControllerPkgEntry(pkgTree.entry);
-   tabRegistry.registerTab(tabController);
+   preregisterTab(tabController);
  }
  const displayEntry = genDualClickHandler(
    () => activateTab(tabController.getTabId(), /*preview*/true),  // single-click

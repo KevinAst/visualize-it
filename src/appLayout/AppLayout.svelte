@@ -53,19 +53,15 @@
  import IconButton   from '@smui/icon-button';
  import {toast}      from '../util/ui/notify';
  import {onMount}    from 'svelte';
- import {TabManager,
-         monitorActiveTab} from '../tabManager';
+ import {PkgEntryTabs, 
+         activeTab}  from '../pkgEntryTabs';
 
  // App Title ... either "Visualize It" or the Pkg Name of the active tab
- const appTitleDefault = 'Visualize It';
- let   appTitle        = appTitleDefault;
+ $: appTitle = $activeTab ? $activeTab.getTabQualifyingDesc() : 'Visualize It';
 
  // maintain our external bindings (once <AppLayout> is mounted)
  let leftNavComp; // ... maintained by `bind:this` (see below)
  onMount(() => {
-   // also, monitor active tap, updating our appTitle to the active Pkg Name
-   monitorActiveTab( (tabController) => appTitle = tabController ? tabController.getTabQualifyingDesc() : appTitleDefault);
-
    activateSingleton(leftNavComp);
    return deactivateSingleton;
  });
@@ -84,7 +80,7 @@
   <!-- top-level page app-bar -->
   <div class="vit-page-app-bar">
   <TopAppBar variant="static" dense color="secondary">
-    <!-- ??$$ farm this out to some AppBar -->
+    <!-- ?? farm this out to some AppBar -->
     <Row>
       <Section>
         <IconButton class="material-icons md-tooltip--right md-tooltip--light" data-md-tooltip="Toggle Left Nav Package View" on:click={toggleDrawer}>menu</IconButton>
@@ -110,10 +106,10 @@
     </Drawer>
 
     <!-- vit-drawer-app-content: everything MINUS vit-drawer -->
-    <!-- vit-tabs-container: manages 1. vit-tabs-bar 2: vit-tabs-content -->
+    <!-- vit-tabs-container:     manages 1. vit-tabs-bar 2: vit-tabs-content -->
     <AppContent class="vit-drawer-app-content vit-tabs-container">
-      <!-- TabManager manages our dynamic tabs -->
-      <TabManager/>
+      <!-- our dynamic Pkgentry tabs -->
+      <PkgEntryTabs/>
     </AppContent>
   </div>
 </div>

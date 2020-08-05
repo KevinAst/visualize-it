@@ -23,7 +23,7 @@ export {
 
 
   //***
-  //*** reactive svlete stores
+  //*** reactive svelte stores
   //***
 
   activeTab, // the current active tab (null for NO tabs) ... TabController

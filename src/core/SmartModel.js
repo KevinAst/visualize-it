@@ -624,7 +624,7 @@ export default class SmartModel {
    * Currently this is accomplished by our single invoking agent:
    * `syncOutOfDateClasses()`
    * ... the tabManager logic module that is activated whenever a tab is changed
-   *     (src/features/common/tabManager/logic.js).
+   *     (src/features/common/tabManager/logic.js). ?? this is an obsolete reference
    */
   syncClassInstances() {
 

@@ -4,4 +4,4 @@
  import Tabs                from '../util/ui/tabManager/Tabs.svelte';
 </script>
 
-<Tabs tabManger={pkgEntryTabManager} splashComp={StartUpPage}/>
+<Tabs tabManager={pkgEntryTabManager} splashComp={StartUpPage}/>

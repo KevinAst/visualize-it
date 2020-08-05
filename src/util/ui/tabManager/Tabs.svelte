@@ -5,7 +5,7 @@
  import {isClass}   from '../../typeCheck';
 
  // accept component props
- export let tabManger;  // ... the TabManager governing our set of dynamic tabs
+ export let tabManager; // ... the TabManager governing our set of dynamic tabs
  export let splashComp; // ... the UI Component to use when NO tabs are present
 
  // validate component props
@@ -23,19 +23,17 @@
 
 
 {#if $tabs.length > 0}
-  <div>
-    <!-- TabBar with TabEntries -->
-    <div class="tab-bar">
-      {#each $tabs as tab (tab.getTabId())}
-        <TabEntry {tab} {tabManager}/>
-    	{/each}
-    </div>
-    
-    <!-- TabPanels  -->
+  <!-- TabBar with TabEntries -->
+  <div class="tab-bar">
     {#each $tabs as tab (tab.getTabId())}
-      <TabPanel {tab} isActive={tab===$activeTab}/>
-    {/each}
+      <TabEntry {tab} {tabManager}/>
+  	{/each}
   </div>
+  
+  <!-- TabPanels  -->
+  {#each $tabs as tab (tab.getTabId())}
+    <TabPanel {tab} isActive={tab===$activeTab}/>
+  {/each}
 {:else}
   <svelte:component this={splashComp}/>
 {/if}

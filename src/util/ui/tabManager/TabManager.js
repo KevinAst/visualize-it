@@ -45,7 +45,7 @@ export default class TabManager {
     this.tabs         = writable([]);   // reactive svlete store representing ALL visualized tabs: TabController[]
     this.activeTab    = writable(null); // reactive svlete store representing the current active tab: TabController (null for NO tabs)
     this.previewTab   = writable(null); // reactive svlete store representing the reusable preview tab (if any): TabController (null for none)
-    this.#tabRegistry = {};             // self's tab registry catalog: ObjectMap[key:tabId, value: TabController]
+    this.tabRegistry  = {};             // self's tab registry catalog: ObjectMap[key:tabId, value: TabController]
 
     // bind our methods to self's object, allowing them to be used as isolated functions
     this.preregisterTab   = this.preregisterTab.bind(this);
@@ -58,7 +58,7 @@ export default class TabManager {
    * A human interpretable name for self's context.
    * @type {string}
    */
-  ctxName;
+//ctxName; ... Svelte build cannot currently handle instance properties
 
 
   //****************************************************************************
@@ -69,14 +69,14 @@ export default class TabManager {
    * A reactive svlete store representing ALL visualized tabs.
    * @type {TabController[]}
    */
-  tabs;
+//tabs; ... Svelte build cannot currently handle instance properties
 
   /**
    * A reactive svlete store representing the current active tab (null
    * for NO tabs).
    * @type {TabController}
    */
-  activeTab;
+//activeTab; ... Svelte build cannot currently handle instance properties
 
   /**
    * A reactive svlete store representing the reusable preview tab (if
@@ -84,7 +84,7 @@ export default class TabManager {
    * TODO: consider making private
    * @type {TabController}
    */
-  previewTab;
+//previewTab; ... Svelte build cannot currently handle instance properties
 
 
   //****************************************************************************
@@ -96,7 +96,7 @@ export default class TabManager {
    * @type {ObjectMap[key:tabId, value: TabController]}
    * @private
    */
-  #tabRegistry;
+//tabRegistry; ... Svelte build cannot currently handle instance properties
 
   /**
    * Preregister the supplied `tabController` as a potential tab that
@@ -119,7 +119,7 @@ export default class TabManager {
     // maintain our tabRegistry catalog
     const tabId = tabController.getTabId();
     // console.log(`xx TabManager.preregisterTab() registering tabController(${tabId}): `, tabController);
-    if (this.#tabRegistry[tabId]) { // NO LONGER: verify tabController is not already loaded!
+    if (this.tabRegistry[tabId]) { // NO LONGER: verify tabController is not already loaded!
       // ... we tightly control the tabId federated name-space,
       //     so any re-registration is presumably due to left-nav menu regeneration
       //     - THEREFORE we do not throw an exception here
@@ -130,7 +130,7 @@ export default class TabManager {
       // throw new Error(`***ERROR*** TabManager.preregisterTab() tabId: ${tabId} is already registered :-(`);
     }
     else {
-      this.#tabRegistry[tabId] = tabController;
+      this.tabRegistry[tabId] = tabController;
     }
   }
 
@@ -151,7 +151,7 @@ export default class TabManager {
     check(isString(tabId),   'tabId must be a string');
 
     // return the TabController (if any)
-    return this.#tabRegistry[tabId];
+    return this.tabRegistry[tabId];
   }
 
 
@@ -176,10 +176,10 @@ export default class TabManager {
     // validate parameters
     const check = verify.prefix('TabManager.activateTab() parameter violation: ');
     // ... tabId
-    check(tabId,             'tabId is required');
-    check(isString(tabId),   'tabId must be a string');
+    check(tabId,              'tabId is required');
+    check(isString(tabId),    'tabId must be a string');
     // ... preview
-    check(isString(preview), 'preview must be a boolean');
+    check(isBoolean(preview), 'preview must be a boolean');
 
     let logQualifier = '';
 
@@ -202,7 +202,7 @@ export default class TabManager {
       if (_activeTab === _previewTab && !preview) {
         _previewTab = null;
       }
-      logQualifier += ` ... activated EXISTING tab: ${_activeTab.label}`;
+      logQualifier += ` ... activated EXISTING tab: ${_activeTab.getTabName()}`;
     }
     // when the requested tab is NOT currently under our control, setup a new tab
     else {
@@ -214,13 +214,13 @@ export default class TabManager {
       if (preview && _previewTab) {
         _tabs       = $tabs.map( (tab) => tab===_previewTab ? _activeTab : tab );
         _previewTab = _activeTab;
-        logQualifier += ` ... introduced NEW tab: ${_activeTab.label} in existing preview slot`;
+        logQualifier += ` ... introduced NEW tab: ${_activeTab.getTabName()} in existing preview slot`;
       }
       // otherwise carve out a new tab (at end)
       else {
         _tabs       = [...$tabs, _activeTab];
         _previewTab = preview ? _activeTab : _previewTab;
-        logQualifier += ` ... introduced NEW tab: ${_activeTab.label} at end`;
+        logQualifier += ` ... introduced NEW tab: ${_activeTab.getTabName()} at end`;
       }
     }
 
@@ -256,6 +256,8 @@ export default class TabManager {
     // ... tabId
     check(tabId,             'tabId is required');
     check(isString(tabId),   'tabId must be a string');
+
+    let logQualifier = '';
 
     // get our current state
     // NOTE: get() is somewhat inefficient, BUT this is NOT a heavy usage

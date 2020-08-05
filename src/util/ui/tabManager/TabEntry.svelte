@@ -3,7 +3,7 @@
 
  // accept component props
  export let tab;        // ... the TabController we are displaying
- export let tabManger;  // ... the TabManager governing our set of dynamic tabs
+ export let tabManager; // ... the TabManager governing our set of dynamic tabs
 
  // validate component props
  // ... because this is an internal component, we bypass this step :-)
@@ -51,7 +51,7 @@
  }
 
  .active-tab {
-	 background-color: #556B2F; /* darkolivegreen */
+	 background-color: #26a69a; /* cheap hard-coded match of current system */
 	 color:            #F5F5F5; /* whitesmoke */
  }
 
