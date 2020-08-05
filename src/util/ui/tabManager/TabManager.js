@@ -52,6 +52,9 @@ export default class TabManager {
     this.getRegisteredTab = this.getRegisteredTab.bind(this);
     this.activateTab      = this.activateTab.bind(this);
     this.closeTab         = this.closeTab.bind(this);
+    this.closeOtherTabs   = this.closeOtherTabs.bind(this);
+    this.closeTabsToRight = this.closeTabsToRight.bind(this);
+    this.closeAllTabs     = this.closeAllTabs.bind(this);
   }
 
   /**
@@ -315,6 +318,202 @@ export default class TabManager {
       logQualifier += ` ... NOTHING CHANGED!!`;
     }
     log(`closeTab('${tabId}')` +
+        ` ... state changed: {tabs: ${tabsChanged}, activeTab: ${activeTabChanged}, previewTab: ${previewTabChanged}}` +
+        logQualifier);
+  }
+
+  /**
+   * Close all tabs except the supplied tabId.
+   *
+   * @param {string} tabId - the id of the Tab to remain open.
+   */
+  closeOtherTabs(tabId) {
+    // validate parameters
+    const check = verify.prefix('TabManager.closeOtherTabs() parameter violation: ');
+    // ... tabId
+    check(tabId,             'tabId is required');
+    check(isString(tabId),   'tabId must be a string');
+
+    let logQualifier = '';
+
+    // get our current state
+    // NOTE: get() is somewhat inefficient, BUT this is NOT a heavy usage
+    const $tabs       = get(this.tabs);
+    const $activeTab  = get(this.activeTab);
+    const $previewTab = get(this.previewTab);
+
+    // locate the tab to retain
+    const retainTabIndex = findTabIndex(tabId, $tabs);
+    if (retainTabIndex < 0) { // ... no-op if we can't find it
+      log(`closeOtherTabs('${tabId}') ... tab NOT found ... NO-OP ... NOTHING CHANGED!!`);
+      return;
+    }
+    const retainTab = $tabs[retainTabIndex];
+
+    // adjust activeTab (when was not currently active - it is the only one left)
+    let _activeTab = $activeTab;
+    if (retainTab !== _activeTab) {
+      _activeTab   = retainTab;
+      logQualifier += ` ... activeTab adjusted`;
+    }
+
+    // clear previewTab (when it is being closed)
+    let _previewTab = $previewTab;
+    if (_previewTab && retainTab !== _previewTab) {
+      _previewTab = null;
+      logQualifier += ` ... previewTab cleared`;
+    }
+
+    // purge the requested tabs
+    let _tabs = $tabs;
+    if ($tabs.length > 1) {
+      _tabs = $tabs.filter( (tab) => tab === retainTab );
+      logQualifier += ` ... other tabs purged`;
+    }
+
+    // update store
+    const tabsChanged       = $tabs       !== _tabs;
+    const activeTabChanged  = $activeTab  !== _activeTab;
+    const previewTabChanged = $previewTab !== _previewTab;
+    if (tabsChanged) {
+      this.tabs.set(_tabs);
+    }
+    if (activeTabChanged) {
+      this.activeTab.set(_activeTab);
+    }
+    if (previewTabChanged) {
+      this.previewTab.set(_previewTab);
+    }
+    if ( !(tabsChanged || activeTabChanged || previewTabChanged)) {
+      logQualifier += ` ... NOTHING CHANGED!!`;
+    }
+    log(`closeOtherTabs('${tabId}')` +
+        ` ... state changed: {tabs: ${tabsChanged}, activeTab: ${activeTabChanged}, previewTab: ${previewTabChanged}}` +
+        logQualifier);
+  }
+
+  /**
+   * Close all tabs to the right of the supplied tabId.
+   *
+   * @param {string} tabId - the id of the anchor Tab (remaining open and to
+   * the left).
+   */
+  closeTabsToRight(tabId) {
+    // validate parameters
+    const check = verify.prefix('TabManager.closeTabsToRight() parameter violation: ');
+    // ... tabId
+    check(tabId,             'tabId is required');
+    check(isString(tabId),   'tabId must be a string');
+
+    let logQualifier = '';
+
+    // get our current state
+    // NOTE: get() is somewhat inefficient, BUT this is NOT a heavy usage
+    const $tabs       = get(this.tabs);
+    const $activeTab  = get(this.activeTab);
+    const $previewTab = get(this.previewTab);
+
+    // locate the anchorTab (remaining open and to the left)
+    const anchorTabIndex = findTabIndex(tabId, $tabs);
+    if (anchorTabIndex < 0) { // ... no-op if we can't find it
+      log(`closeTabsToRight('${tabId}') ... tab NOT found ... NO-OP ... NOTHING CHANGED!!`);
+      return;
+    }
+    const anchorTab = $tabs[anchorTabIndex];
+
+    // purge the requested tabs
+    let _tabs = $tabs;
+    if ($tabs.length > anchorTabIndex+1) {
+      _tabs = $tabs.filter( (tab, indx) => indx <= anchorTabIndex );
+      logQualifier += ` ... tabs to the right purged`;
+    }
+
+    // adjust activeTab (when the prior active has been closed)
+    let _activeTab = $activeTab;
+    if (!findTab(_activeTab.getTabId(), _tabs)) {
+      _activeTab   = anchorTab;
+      logQualifier += ` ... activeTab adjusted`;
+    }
+
+    // clear previewTab (when it has been closed)
+    let _previewTab = $previewTab;
+    if (_previewTab && !findTab(_previewTab.getTabId(), _tabs)) {
+      _previewTab = null;
+      logQualifier += ` ... previewTab cleared`;
+    }
+
+    // update store
+    const tabsChanged       = $tabs       !== _tabs;
+    const activeTabChanged  = $activeTab  !== _activeTab;
+    const previewTabChanged = $previewTab !== _previewTab;
+    if (tabsChanged) {
+      this.tabs.set(_tabs);
+    }
+    if (activeTabChanged) {
+      this.activeTab.set(_activeTab);
+    }
+    if (previewTabChanged) {
+      this.previewTab.set(_previewTab);
+    }
+    if ( !(tabsChanged || activeTabChanged || previewTabChanged)) {
+      logQualifier += ` ... NOTHING CHANGED!!`;
+    }
+    log(`closeTabsToRight('${tabId}')` +
+        ` ... state changed: {tabs: ${tabsChanged}, activeTab: ${activeTabChanged}, previewTab: ${previewTabChanged}}` +
+        logQualifier);
+  }
+
+  /**
+   * Close all tabs.
+   */
+  closeAllTabs() {
+
+    let logQualifier = '';
+
+    // get our current state
+    // NOTE: get() is somewhat inefficient, BUT this is NOT a heavy usage
+    const $tabs       = get(this.tabs);
+    const $activeTab  = get(this.activeTab);
+    const $previewTab = get(this.previewTab);
+
+    // close all tabs
+    let _tabs = $tabs;
+    if ($tabs.length > 0) {
+      _tabs = [];
+      logQualifier += ` ... all tabs closed`;
+    }
+
+    // adjust activeTab (when it has been closed)
+    let _activeTab = $activeTab;
+    if (_activeTab) {
+      _activeTab   = null;
+      logQualifier += ` ... activeTab cleared`;
+    }
+
+    // clear previewTab (when it has been closed)
+    let _previewTab = $previewTab;
+    if (_previewTab) {
+      _previewTab = null;
+      logQualifier += ` ... previewTab cleared`;
+    }
+
+    // update store
+    const tabsChanged       = $tabs       !== _tabs;
+    const activeTabChanged  = $activeTab  !== _activeTab;
+    const previewTabChanged = $previewTab !== _previewTab;
+    if (tabsChanged) {
+      this.tabs.set(_tabs);
+    }
+    if (activeTabChanged) {
+      this.activeTab.set(_activeTab);
+    }
+    if (previewTabChanged) {
+      this.previewTab.set(_previewTab);
+    }
+    if ( !(tabsChanged || activeTabChanged || previewTabChanged)) {
+      logQualifier += ` ... NOTHING CHANGED!!`;
+    }
+    log(`closeAllTabs()` +
         ` ... state changed: {tabs: ${tabsChanged}, activeTab: ${activeTabChanged}, previewTab: ${previewTabChanged}}` +
         logQualifier);
   }

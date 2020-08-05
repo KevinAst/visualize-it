@@ -11,7 +11,7 @@
  // ... because this is an internal component, we bypass this step :-)
 
  // extract the various controls needed from our tabManager
- const {activeTab, previewTab, activateTab, closeTab} = tabManager;
+ const {activeTab, previewTab, activateTab, closeTab, closeOtherTabs, closeTabsToRight, closeAllTabs} = tabManager;
 
  // extract needed primitives out of our tab
  // ... this optimizes svelte, because it uses primitive staleness identity semantics
@@ -43,21 +43,22 @@
         size="1.0rem"
         on:click={(e)=> { e.stopPropagation(); closeTab(tabId); }}/>
 
-  <!-- context menu -->
-  <span>
-    <Menu bind:this={contextMenu}>
-      <List class="mdc-typography--subtitle2">
-        <Item on:SMUI:action={() => closeTab(tabId)}><Text>Close</Text></Item>
-        <Item on:SMUI:action={() => alert('FUTURE: Close Others')}><Text>Close Others</Text></Item>
-        <Item on:SMUI:action={() => alert('FUTURE: Close to Right')}><Text>Close to the Right</Text></Item>
-        <Item on:SMUI:action={() => alert('FUTURE: Close All')}><Text>Close All</Text></Item>
-        <Separator />
-        <Item on:SMUI:action={() => alert('FUTURE: Reveal in Left Nav')}><Text>Reveal in Left Nav</Text></Item>
-      </List>
-    </Menu>
-  </span>
-
 </div>
+
+<!-- context menu -->
+<!-- NOTE: this menu MUST be outside of <div> (above) because KRAZY @smui on:SMUI:action is invoking on:click of that <div> invoking activateTab() -->
+<span>
+  <Menu bind:this={contextMenu}>
+    <List class="mdc-typography--subtitle2">
+      <Item on:SMUI:action={() => closeTab(tabId)}><Text>Close</Text></Item>
+      <Item on:SMUI:action={() => closeOtherTabs(tabId)}><Text>Close Others</Text></Item>
+      <Item on:SMUI:action={() => closeTabsToRight(tabId)}><Text>Close to the Right</Text></Item>
+      <Item on:SMUI:action={() => closeAllTabs()}><Text>Close All</Text></Item>
+      <Separator />
+      <Item on:SMUI:action={() => alert('FUTURE: Reveal in Left Nav')}><Text>Reveal in Left Nav</Text></Item>
+    </List>
+  </Menu>
+</span>
 
 
 <style>
