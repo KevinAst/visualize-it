@@ -17,7 +17,7 @@
  const tabName = tab.getTabName();
 
  // maintain our dynamic css classes
- $: classes = `tab-entry
+ $: classes = `tab-entry mdc-typography--subtitle2
                ${tab===$activeTab  ? 'active-tab'  : ''}
                ${tab===$previewTab ? 'preview-tab' : ''}`;
 </script>
@@ -31,9 +31,8 @@
      on:click=   {() => activateTab(tabId, /*preview*/true)}
      on:dblclick={() => activateTab(tabId, /*preview*/false)}>
   {tabName}
-  <!-- ?? play with only promoting close on active tab ?? or on hover ?? could place spacer in to reduce jumpyness -->
   <Icon name="cancel_presentation"
-        size="0.9em"
+        size="1.0rem"
         on:click={(e)=> { e.stopPropagation(); closeTab(tabId); }}/>
 </div>
 
