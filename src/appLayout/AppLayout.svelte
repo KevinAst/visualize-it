@@ -106,7 +106,7 @@
     </Drawer>
 
     <!-- vit-drawer-app-content: everything MINUS vit-drawer -->
-    <!-- vit-tabs-container:     manages 1. vit-tabs-bar 2: vit-tabs-content -->
+    <!-- vit-tabs-container:     flex container for util/ui/tabManager/Tabs (really TabEntry/TabPanel) -->
     <AppContent class="vit-drawer-app-content vit-tabs-container">
       <!-- our dynamic Pkgentry tabs -->
       <PkgEntryTabs/>
@@ -215,7 +215,7 @@
    /* color:            red;  /* diagnostic */
  }
 
- /* vit-tabs-container: manages 1. vit-tabs-bar 2: vit-tabs-content */
+ /* vit-tabs-container: flex container for util/ui/tabManager/Tabs (really TabEntry/TabPanel) */
  :global(.vit-tabs-container) {
    /* flex container characteristics: */
    display:        flex;
