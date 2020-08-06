@@ -79,8 +79,8 @@
 <Item>
   <Text>Packages ...</Text>
   <Meta>
-    <Icon class="material-icons md-tooltip--left" data-md-tooltip="Create New Package"    on:click={() => alert('FUTURE: add new package')}>add_circle_outline</Icon>
-    <Icon class="material-icons md-tooltip--left" data-md-tooltip="Open Existing Package" on:click={() => alert('FUTURE: open dialog')}>folder_open</Icon>
+    <Icon class="material-icons" title="Create New Package"    on:click={() => alert('FUTURE: add new package')}>add_circle_outline</Icon>
+    <Icon class="material-icons" title="Open Existing Package" on:click={() => alert('FUTURE: open dialog')}>folder_open</Icon>
   </Meta>
 </Item>
 

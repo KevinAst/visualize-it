@@ -27,8 +27,8 @@
 <Item class="vit-drawer-item" activated>
   <Text>{log(`rendering pkg: ${pkg.getPkgName()}`) || pkg.getPkgName()}</Text>
   <Meta>
-    <Icon class="material-icons md-tooltip--left" data-md-tooltip="Save Package"   on:click={() => alert('FUTURE: save package')}>save</Icon>
-    <Icon class="material-icons md-tooltip--left" data-md-tooltip="Manage Package" on:click={() => menu.setOpen(true)}>more_vert</Icon>
+    <Icon class="material-icons" title="Save Package"   on:click={() => alert('FUTURE: save package')}>save</Icon>
+    <Icon class="material-icons" title="Manage Package" on:click={() => menu.setOpen(true)}>more_vert</Icon>
   </Meta>
 </Item>
 

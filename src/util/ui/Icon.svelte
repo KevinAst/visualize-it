@@ -13,4 +13,5 @@
  let style = size ? `font-size: ${size}` : '';
 </script>
 
-<i class="material-icons" {style} on:click>{name}</i>
+<!-- $$restProps pass through things like title="Tootip here" -->
+<i class="material-icons" {style} on:click {...$$restProps}>{name}</i>
