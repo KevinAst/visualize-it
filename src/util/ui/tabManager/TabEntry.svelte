@@ -39,9 +39,11 @@
   {tabName}
 
   <!-- close tab control -->
-  <Icon name="cancel_presentation"
-        size="1.0rem"
-        on:click={(e)=> { e.stopPropagation(); closeTab(tabId); }}/>
+  <span class="md-tooltip--left" data-md-tooltip="Close Tab">
+    <Icon name="cancel_presentation"
+          size="1.0rem"
+          on:click={(e)=> { e.stopPropagation(); closeTab(tabId); }}/>
+  </span>
 
 </div>
 
