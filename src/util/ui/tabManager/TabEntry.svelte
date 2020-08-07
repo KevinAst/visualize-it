@@ -68,6 +68,7 @@
    user-select: none;
    font-weight: 500;
 	 padding:     0.2rem 0.5rem;
+   transition:  all, 0.3s;  /* transition animation for active-tab changes */
 	 border:                  solid lightgray 1px;
 	 border-bottom:           none;
 	 border-top-left-radius:  10px;
