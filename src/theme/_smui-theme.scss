@@ -50,3 +50,8 @@ $mdc-theme-error: $material-color-red-900;
 .mdc-drawer .mdc-list-item {
   height:  2.0rem;; /* was: 40px ... massively too big */
 }
+
+// Icon Size:
+.material-icons {
+  font-size: 1.3rem;
+}

@@ -1,7 +1,7 @@
 <script context="module">
  import List, {Item, Meta, Text, Separator} from '@smui/list';
  import Menu            from '@smui/menu';
- import {Icon}          from '@smui/common';
+ import Icon            from '../util/ui/Icon.svelte';
  import verify          from '../util/verify';
  import {isPkg}         from '../util/typeCheck';
  import {createLogger}  from '../util/logger';
@@ -27,8 +27,12 @@
 <Item class="vit-drawer-item" activated>
   <Text>{log(`rendering pkg: ${pkg.getPkgName()}`) || pkg.getPkgName()}</Text>
   <Meta>
-    <Icon class="material-icons" title="Save Package"   on:click={() => alert('FUTURE: save package')}>save</Icon>
-    <Icon class="material-icons" title="Manage Package" on:click={() => menu.setOpen(true)}>more_vert</Icon>
+    <Icon name="save"
+          title="Save Package"
+          on:click={() => alert('FUTURE: save package')}/>
+    <Icon name="more_vert"
+          title="Manage Package"
+          on:click={() => menu.setOpen(true)}/>
   </Meta>
 </Item>
 

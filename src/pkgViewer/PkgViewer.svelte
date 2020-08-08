@@ -53,8 +53,8 @@
  import {isPkg}   from '../util/typeCheck';
  import {onMount} from 'svelte';
  import ViewPkg   from './ViewPkg.svelte';
+ import Icon      from '../util/ui/Icon.svelte';
  import {Item, Meta, Text} from '@smui/list';
- import {Icon}             from '@smui/common';
 
  // the packages viewed by self: SmartPkg[]
  const pkgs = [];
@@ -79,8 +79,12 @@
 <Item>
   <Text>Packages ...</Text>
   <Meta>
-    <Icon class="material-icons" title="Create New Package"    on:click={() => alert('FUTURE: add new package')}>add_circle_outline</Icon>
-    <Icon class="material-icons" title="Open Existing Package" on:click={() => alert('FUTURE: open dialog')}>folder_open</Icon>
+    <Icon name="add_circle_outline"
+          title="Create New Package"
+          on:click={() => alert('FUTURE: add new package')}/>
+    <Icon name="folder_open"
+          title="Open Existing Package"
+          on:click={() => alert('FUTURE: open dialog')}/>
   </Meta>
 </Item>
 
