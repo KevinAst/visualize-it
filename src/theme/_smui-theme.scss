@@ -37,3 +37,16 @@ $mdc-theme-background: #fff;
 $mdc-theme-surface:    #fff;
 
 $mdc-theme-error: $material-color-red-900;
+
+//
+// @SMUI Global adjustments
+//
+// Menu Spacing (context menus):
+.mdc-list-item {
+  height:  2.0rem;; /* was: 48px ... massively too big */
+  padding: 0 8px;   /* was: 0 16px */
+}
+// Menu Spacing (within our left-nav drawer):
+.mdc-drawer .mdc-list-item {
+  height:  2.0rem;; /* was: 40px ... massively too big */
+}
