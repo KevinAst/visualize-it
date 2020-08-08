@@ -8,11 +8,16 @@
 
  // extract needed items out of our tab
  const {Comp, props} = tab.getTabPanel();
+
+ // simple TabPanel animation technique - delay activation to match animation duration of TabEntry
+ // ... use half of the time in TabEntry animation
+ let delayedActivation = false;
+ $: setTimeout(()=>delayedActivation=isActive, 150);
 </script>
 
 
 <!-- .main-content: our payload! -->
-<main class="main-content" style="display: {isActive ? 'block' : 'none'};">
+<main class="main-content" style="display: {delayedActivation ? 'block' : 'none'};">
   <svelte:component this={Comp} {...props}/>
 </main>
 
