@@ -7,7 +7,7 @@ import checkUnknownArgs  from '../util/checkUnknownArgs';
 import {createLogger}    from '../util/logger';
 
 // our internal diagnostic logger (normally disabled, but keep enabled for a while)
-const log = createLogger('***DIAG*** <SmartView> ... ').enable();
+const log = createLogger('***DIAG*** <SmartView> ... ').disable();
 
 /**
  * SmartView is a viewport in which pallet(s) are displayed/visualized.

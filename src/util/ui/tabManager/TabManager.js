@@ -6,7 +6,7 @@ import {isString,
 import {createLogger}  from '../../logger';
 
 // our internal diagnostic logger
-const log = createLogger('***DIAG*** TabManager ... ').enable();
+const log = createLogger('***DIAG*** TabManager ... ').disable();
 
 /**
  * TabManager is the primary class that manages a set of dynamic tabs
