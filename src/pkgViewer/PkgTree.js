@@ -5,7 +5,16 @@ import {isString,
         isPkgEntry,
         isClass}         from '../util/typeCheck';
 import checkUnknownArgs  from '../util/checkUnknownArgs';
+import CompRef           from '../core/CompRef';
+import SmartClassRef     from '../core/SmartClassRef';
 
+
+// ?? consider pkgEntry term in lue of entry
+// ... however this is really a distinction of directory/entry
+// ... STILL: this is a PkgTree ... as in pkgEntries
+// ... ?? SOOO: rename ALL nodes to begin with Pkg:
+//     PkgDir/PkgEntry ?? HOWEVER: this may conflict with a real PkgEntry should we decide to do this in the future?
+//     PkgTreeDir/PkgTreeEntry ?? what about this ... this makes it clear that we are dealing with the PkgTree wrapper
 
 //********************************************************************************
 // SmartPkg.entries done right (AI: currently a proof-of-concept)
@@ -15,14 +24,18 @@ export class PkgTree {
     throw new Error(`***ERROR*** PkgTree pseudo-interface-violation: ${this.diagClassName()}.getName() is an abstract method that MUST BE implemented!`);
   }
 
+  // ?? only used in one spot: src/pkgViewer/ViewPkgTree.svelte
+  // ?? technically only applicable for Dir, however usage is for all nodes
   getChildren() { // getChildren(): PkgTree[] | undefined
     return undefined; // by default, NO children are supported
   }
 
+  // ?? hmmm NOT USED ANYWHERE ... just a coorelatation to isEntry()
   isDir() { // isDir(): boolean
     return this.getChildren() ? true : false;
   }
 
+  // ?? only used in one spot: src/pkgViewer/ViewPkgTree.svelte
   isEntry() { // isEntry(): boolean
     return !this.isDir();
   }
@@ -35,7 +48,7 @@ PkgTree.unmangledName = 'PkgTree';
 
 
 //********************************************************************************
-export class Dir extends PkgTree {
+export class Dir extends PkgTree { // ... a directory of PkgTree entries (PkgTree[])
 
   constructor({name, entries=[], ...unknownArgs}={}) {
     super();
@@ -66,9 +79,9 @@ Dir.unmangledName = 'Dir';
 
 
 //********************************************************************************
-export class Entry extends PkgTree {
+export class Entry extends PkgTree { // ... a PkgTree PkgEntry <isPkgEntry() || CompRef> (which is also a pkgEntry) ... I think this is where the whole SmartPallet/pkgEntry merge is all about
 
-  constructor({entry, ...unknownArgs}={}) {
+  constructor({entry, pkg, ...unknownArgs}={}) { // >>> ?? FIX: pkg needed for class entry wrapper of CompRef
     super();
     // validate parameters
     const check = verify.prefix(`${this.diagClassName()} constructor parameter violation: `);
@@ -79,17 +92,47 @@ export class Entry extends PkgTree {
     checkUnknownArgs(check, unknownArgs, arguments);
 
     // retain parameters in self
-    this.entry = entry;
+    // ANALYSIS: we must retrofit raw classes into a SmartModel/SmartPallet/CompRef
+    //           ULTIMATELY this will be done by DIRECTLY using Entry/CompRef in SmartPkg
+    // ?? FIX:
+    // >>> OLD:
+    //? this.entry = entry;
+    // >>> NEW:
+    if (isPkgEntry(entry)) {
+      this.entry = entry;
+    }
+    else { // ... isClass(entry) ... convert into CompRef (a pkgEntry)
+      const clazz     = entry;
+      const clazzName = clazz.unmangledName || clazz.name;
+      const compRef   = new CompRef({id:   clazzName, // id (only think we have is name)
+                                     name: clazzName,
+                                     compClassRef: new SmartClassRef(clazz, pkg.getPkgId())});
+
+      // stuff that would normally be done in SmartPkg (once fully retrofitted)
+      compRef.markAsPkgEntry(); // AI: suspect this will work here BECAUSE pkgManager is still based on raw entry ... ULTIMATELY (once retrofitted) pkgManager needs to know and catalog this
+      compRef.setParent(pkg);   // ANALYSIS: need parentage, so getPkgEntryId() will work
+      // ANALYSIS: normally done via SmartModel.setParent(parent) in:
+      // - constructor: Collage(...scenes) ... hooking up Collage         -1:m- scenes
+      // - constructor: CompRef(...)       ... hooking up Scene (working) -1:1- CompRef (this) 
+      // - constructor: Scene(...comps)    ... hooking up Scene           -1:m- comp
+      // - SmartPkg.initializeCatalogs(entry) ... hooking up SmartPkg     -1:m- pkgEntries <<< THIS IS KEY (currently does NOT hook up because we only have a class TILL the retrofit)
+
+      this.entry = compRef;
+    }
   }
 
   getName() { // getName(): string
+    // ??  FIX:
+    // >>> OLD:
     // AI: this will eventually be cleaned up through CompRef/SmartClassRef usage
-    if (isPkgEntry(this.entry)) {
-      return this.entry.getName();
-    }
-    else { // ... a real class
-      return this.entry.unmangledName || this.entry.name;
-    }
+    //? if (isPkgEntry(this.entry)) {
+    //?   return this.entry.getName();
+    //? }
+    //? else { // ... a real class
+    //?   return this.entry.unmangledName || this.entry.name;
+    //? }
+    // >>> NEW:
+    return this.entry.getName();
   }
 }
 Entry.unmangledName = 'Entry';
@@ -102,6 +145,8 @@ Entry.unmangledName = 'Entry';
 export function pkgEntry2Tree(pkg) {
 
   const check = verify.prefix(`***ERROR*** pkgEntry2Tree(): `);
+
+//  const myPkgId = pkg.getPkgId(); ?? NO just use pkg
 
   // seed pkg.entries with the root "/" directory
   // ... varies based on starting point 
@@ -155,9 +200,9 @@ export function pkgEntry2Tree(pkg) {
         // support real entries <<< morph into the Entry PkgTree derivation
         // ... either a PkgEntry
         // ... or a class (eventually WILL be a PkgEntry with the advent of CompRef SmartPallet derivation)
-        if (isPkgEntry(arrItem) || isClass(arrItem)) {
+        if (isPkgEntry(arrItem) || isClass(arrItem)) { // ?? here is our special isClass check again
           const realEntry = arrItem; // ... alias to clarify logic
-          return new Entry({entry: realEntry});
+          return new Entry({entry: realEntry, pkg}); // ?? use pkg instead of myPkgId
         }
 
         // support directory wrappers (a plainObject) <<< morph into the Dir PkgTree derivation
