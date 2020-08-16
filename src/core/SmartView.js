@@ -34,7 +34,7 @@ export default class SmartView extends SmartModel {
    * view (DEFAULT to id).
    * @param {SmartPallet} pallet - the pallet visualized in this view
    * (can be a single scene (Scene obj) or multiple scenes (Collage
-   * obj).
+   * obj) or a component (CompRef obj).
    */
   constructor({id, name, pallet, ...unknownArgs}={}) {
 

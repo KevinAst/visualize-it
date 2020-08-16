@@ -51,7 +51,7 @@ export default class CompRef extends SmartPallet {
 
     // instantiate a single component from self's class
     // ... this is what we will visualize :-)
-    const compName = compClassRef.getClassName(compClassRef);
+    const compName = compClassRef.getClassName();
     this.comp      = compClassRef.createSmartObject({id: `comp-${compName}`, // I think we are OK ... hopefully no other param context is needed
                                                      x:  containerSizeFudge,
                                                      y:  containerSizeFudge});
@@ -82,8 +82,10 @@ export default class CompRef extends SmartPallet {
   // support persistance by encoding needed props of self
   getEncodingProps() { 
     // AI: currently class-based CompRef are NOT persisted
-    //     ... hard-coded assumption (as of now) found in SmartComp.canHandleDispMode(dispMode)
+    //     ... hard-coded assumption (as of now) found in SmartPkg.canPersist()
     //     ... we will have to deal with persistence once we introduce resource-based DynamicComp pseudoClass
+    //     ... SOOOO, technically this method is NEVER executed 
+    //         it would not work with compClassRef
     return [...super.getEncodingProps(), ...['compClassRef']];
   }
 
