@@ -30,7 +30,7 @@ export class PkgTree {
     return undefined; // by default, NO children are supported
   }
 
-  // ?? hmmm NOT USED ANYWHERE ... just a coorelatation to isEntry()
+  // ?? hmmm NOT USED ANYWHERE ... just a correlation to isEntry()
   isDir() { // isDir(): boolean
     return this.getChildren() ? true : false;
   }

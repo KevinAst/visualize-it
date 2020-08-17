@@ -84,7 +84,7 @@ export default class CompRef extends SmartPallet {
     // AI: currently class-based CompRef are NOT persisted
     //     ... hard-coded assumption (as of now) found in SmartPkg.canPersist()
     //     ... we will have to deal with persistence once we introduce resource-based DynamicComp pseudoClass
-    //     ... SOOOO, technically this method is NEVER executed 
+    //     ... SOOO, technically this method is NEVER executed 
     //         it would not work with compClassRef
     return [...super.getEncodingProps(), ...['compClassRef']];
   }
