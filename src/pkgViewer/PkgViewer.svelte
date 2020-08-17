@@ -50,11 +50,14 @@
 </script>
 
 <script>
- import {isPkg}   from '../util/typeCheck';
- import {onMount} from 'svelte';
- import ViewPkg   from './ViewPkg.svelte';
- import Icon      from '../util/ui/Icon.svelte';
+ import {onMount}          from 'svelte';
+ import ViewPkg            from './ViewPkg.svelte';
  import {Item, Meta, Text} from '@smui/list';
+ import {openPkg}          from '../core/pkgPersist';
+ import Icon               from '../util/ui/Icon.svelte';
+ import {isPkg}            from '../util/typeCheck';
+ import {toast}            from '../util/ui/notify';
+ import discloseError      from '../util/discloseError';
 
  // the packages viewed by self: SmartPkg[]
  const pkgs = [];
@@ -74,6 +77,27 @@
 
  // maintain our external bindings (when <PkgViewer> is mounted)
  onMount(() => activate(viewPkg$comp), deactivate);
+
+ // Open (i.e. load) a SmartPkg selected from the user's local file system.
+ async function openPkg() {
+   try {
+     const pkg = await openPkg();
+     if (!pkg) {
+       return; // no-op when user canceled the pick dialog
+     }
+
+     // register pkg in self's PkgViewer
+     viewPkg(pkg);
+
+     toast({msg: `"${pkg.getPkgName()}" has been loaded in the Left Nav Menu`})
+   }
+   catch (err) {
+     // gracefully report unexpected conditions to user
+     discloseError({err, logIt:true});
+   }
+ }
+
+
 </script>
 
 <Item>
@@ -84,7 +108,7 @@
           on:click={() => alert('FUTURE: add new package')}/>
     <Icon name="folder_open"
           title="Open Existing Package"
-          on:click={() => alert('FUTURE: open dialog')}/>
+          on:click={openPkg}/>
   </Meta>
 </Item>
 

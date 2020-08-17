@@ -51,7 +51,7 @@ export async function openPkg(pkgResourcePath) {
     // select the fileHandle via an interactive file picker dialog
     try {
       fileHandle = await window.chooseFileSystemEntries({
-        type: 'openFile',
+        type: 'open-file',
         accepts: [{
           description: 'visualize-it file',
           extensions: ['vit'],
