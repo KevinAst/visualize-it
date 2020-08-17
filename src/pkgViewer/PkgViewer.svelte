@@ -79,7 +79,7 @@
  onMount(() => activate(viewPkg$comp), deactivate);
 
  // Open (i.e. load) a SmartPkg selected from the user's local file system.
- async function openPkg() {
+ async function handleOpenPkg() {
    try {
      const pkg = await openPkg();
      if (!pkg) {
@@ -108,7 +108,7 @@
           on:click={() => alert('FUTURE: add new package')}/>
     <Icon name="folder_open"
           title="Open Existing Package"
-          on:click={openPkg}/>
+          on:click={handleOpenPkg}/>
   </Meta>
 </Item>
 
