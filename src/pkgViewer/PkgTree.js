@@ -5,53 +5,86 @@ import {isString,
         isPkgEntry,
         isClass}         from '../util/typeCheck';
 import checkUnknownArgs  from '../util/checkUnknownArgs';
+import SmartModel        from '../core/SmartModel';
 import CompRef           from '../core/CompRef';
 import SmartClassRef     from '../core/SmartClassRef';
 
 
-// ?? consider pkgEntry term in lue of entry
-// ... however this is really a distinction of directory/entry
-// ... STILL: this is a PkgTree ... as in pkgEntries
-// ... ?? SOOO: rename ALL nodes to begin with Pkg:
-//     PkgDir/PkgEntry ?? HOWEVER: this may conflict with a real PkgEntry should we decide to do this in the future?
-//     PkgTreeDir/PkgTreeEntry ?? what about this ... this makes it clear that we are dealing with the PkgTree wrapper
-
 //********************************************************************************
-// SmartPkg.entries done right (AI: currently a proof-of-concept)
-export class PkgTree {
+// ?? OBSOLETE MODULE: see SmartPkg.js for PRODUCTION RENDITION)
+// ?? SmartPkg.entries done right (AI: currently a proof-of-concept
 
-  getName() { // getName(): string ... AI: may conflict with SmartModel
-    throw new Error(`***ERROR*** PkgTree pseudo-interface-violation: ${this.diagClassName()}.getName() is an abstract method that MUST BE implemented!`);
+
+/**
+ * A tree-based structure cataloging entries and directories (with
+ * depth) of a SmartPkg.
+ */
+export class PkgTree extends SmartModel {
+
+  /**
+   * Self's PkgTree name, visualized in UI.
+   * NOTE: Technically this API is promoted by SmartModel, and will work (since
+   *       the correct name is promoted to SmartModel), HOWEVER this implementation 
+   *       is MORE explicit!
+   * @returns {string} the PkgTree node name (for human consumption).
+   */
+  getName() {
+    throw new Error(`***ERROR*** PkgTree interface-violation: ${this.diagClassName()}.getName() is an abstract method that MUST BE implemented!`);
   }
 
-  // ?? only used in one spot: src/pkgViewer/ViewPkgTree.svelte
-  // ?? technically only applicable for Dir, however usage is for all nodes
-  getChildren() { // getChildren(): PkgTree[] | undefined
-    return undefined; // by default, NO children are supported
+  /**
+   * The children of self (for Dir nodes).
+   * @returns {PkgTree[] | undefined} the children of self's Dir node (undefined for Entry node).
+   */
+  getChildren() {
+    return undefined; // default implementation is: NO children
   }
 
-  // ?? hmmm NOT USED ANYWHERE ... just a correlation to isEntry()
-  isDir() { // isDir(): boolean
+  /**
+   * Self's entry (for Entry nodes).
+   * @returns {SmartPallet | undefined} self's Entry node (undefined for Dir nodes).
+   */
+  getEntry() {
+    return undefined; // default implementation is: NO entry
+  }
+
+  /**
+   * Indicator as to whether self is a PkgTree Dir node (i.e. a PkgTreeDir).
+   * @returns {boolean} true: PkgTreeDir, false: PkgTreeEntry
+   */
+  isDir() {
     return this.getChildren() ? true : false;
   }
 
-  // ?? only used in one spot: src/pkgViewer/ViewPkgTree.svelte
-  isEntry() { // isEntry(): boolean
+  /**
+   * Indicator as to whether self is a PkgTree Entry node (i.e. a PkgTreeEntry).
+   * @returns {boolean} true: PkgTreeEntry, false: PkgTreeDir
+   */
+  isEntry() {
     return !this.isDir();
-  }
-
-  diagClassName() { // AI: really part of SmartModel
-    return this.constructor.unmangledName || this.constructor.name;
   }
 }
 PkgTree.unmangledName = 'PkgTree';
 
 
-//********************************************************************************
-export class Dir extends PkgTree { // ... a directory of PkgTree entries (PkgTree[])
 
+
+/**
+ * A PkgTree derivation modeling named directories.
+ */
+export class PkgTreeDir extends PkgTree { // ... a directory of PkgTree entries (PkgTree[])
+
+  /**
+   * Create a PkgTreeDir.
+   *
+   * **Please Note** this constructor uses named parameters.
+   *
+   * @param {string} name - the name of this directory (for human consumption).
+   * @param {PkgTree[]} [entries] - the optional entries of this directory.
+   */
   constructor({name, entries=[], ...unknownArgs}={}) {
-    super();
+    super({id: name, name});
+
     // validate parameters
     const check = verify.prefix(`${this.diagClassName()}(name:'${name}') constructor parameter violation: `);
     // ... name
@@ -59,6 +92,7 @@ export class Dir extends PkgTree { // ... a directory of PkgTree entries (PkgTre
     check(isString(name),   'name must be a string');
     // ... entries
     check(isArray(entries), 'entries must be an array (when supplied)');
+    entries.forEach((entry) => check(entry instanceof PkgTree, 'entries must be a PkgTree[] array'));
     // ... unknown arguments
     checkUnknownArgs(check, unknownArgs, arguments);
 
@@ -67,44 +101,70 @@ export class Dir extends PkgTree { // ... a directory of PkgTree entries (PkgTre
     this.entries = entries;
   }
 
-  getName() { // getName(): string
+  // support persistance by encoding needed props of self
+  getEncodingProps() {
+    return [...super.getEncodingProps(), ...['name', 'entries']];
+  }
+
+  /**
+   * Self's PkgTree name, visualized in UI.
+   * NOTE: Technically this API is promoted by SmartModel, and will work (since
+   *       the correct name is promoted to SmartModel), HOWEVER this implementation 
+   *       is MORE explicit!
+   * @returns {string} the PkgTree node name (for human consumption).
+   */
+  getName() {
     return this.name;
   }
 
-  getChildren() { // getChildren(): PkgTree[] | undefined
+  /**
+   * The children of self (for Dir nodes).
+   * @returns {PkgTree[] | undefined} the children of self's Dir node (undefined for Entry node).
+   */
+  getChildren() {
     return this.entries;
   }
 }
-Dir.unmangledName = 'Dir';
+PkgTreeDir.unmangledName = 'PkgTreeDir';
 
 
-//********************************************************************************
-export class Entry extends PkgTree { // ... a PkgTree PkgEntry <isPkgEntry() || CompRef> (which is also a pkgEntry) ... I think this is where the whole SmartPallet/pkgEntry merge is all about
 
-  constructor({entry, pkg, ...unknownArgs}={}) { // >>> ?? FIX: pkg needed for class entry wrapper of CompRef
-    super();
+/**
+ * A PkgTree derivation modeling concrete entries (SmartPallet entries
+ * that are in turn PkgEntries).
+ */
+export class PkgTreeEntry extends PkgTree {
+
+  /**
+   * Create a PkgTreeEntry.
+   *
+   * **Please Note** this constructor uses named parameters.
+   *
+   * @param {SmartPallet} entry - the SmartPallet promoted as self's entry.
+   */
+  constructor({entry, pkg, ...unknownArgs}={}) { // >>> ?? FIX: pkg param TEMPORARILY needed for class entry wrapper of CompRef ... ULTIMATELY will directly come in as a CompRef
+    super({id: 'L8TR', name: 'L8TR'}); // ... too early to know (post-process this - see below)
+
     // validate parameters
     const check = verify.prefix(`${this.diagClassName()} constructor parameter violation: `);
-    // ... entry
+    // ... entry ?? ULTIMATELY (once in mainstream usage) I think this needs to be a SmartPallet, which will in turn become a pkgEntry WITHIN the post-processing of SmartPkg
+    //           ?? this is reflected in JavaDoc (above)
+    //           ?? however needs to be accomplished HERE and throughout SmartPkg post-processing
     check(entry,                               'entry is required');
-    check(isPkgEntry(entry) || isClass(entry), 'entry must be a PkgEntry -or- a class');
+    check(isPkgEntry(entry) || isClass(entry), 'entry must be a PkgEntry -or- a class'); // ?? really SmartPallet
     // ... unknown arguments
     checkUnknownArgs(check, unknownArgs, arguments);
 
     // retain parameters in self
     // ANALYSIS: we must retrofit raw classes into a SmartModel/SmartPallet/CompRef
     //           ULTIMATELY this will be done by DIRECTLY using Entry/CompRef in SmartPkg
-    // ?? FIX:
-    // >>> OLD:
-    //? this.entry = entry;
-    // >>> NEW:
     if (isPkgEntry(entry)) {
       this.entry = entry;
     }
     else { // ... isClass(entry) ... convert into CompRef (a pkgEntry)
       const clazz     = entry;
       const clazzName = clazz.unmangledName || clazz.name;
-      const compRef   = new CompRef({id:   clazzName, // id (only think we have is name)
+      const compRef   = new CompRef({id:   clazzName, // id (only think we have is name) ??$$ I think a CompRef can get by with the compClassRef <SmartClassRef> ... from there it will derive id/name via: compClassRef.getClassName()
                                      name: clazzName,
                                      compClassRef: new SmartClassRef(clazz, pkg.getPkgId())});
 
@@ -119,34 +179,49 @@ export class Entry extends PkgTree { // ... a PkgTree PkgEntry <isPkgEntry() || 
 
       this.entry = compRef;
     }
+
+    // post-process real SmartModel id/name (once we know this)
+    // TODO: ?? ULTIMATELY this should NOT be needed when we pass in a SmartPallet
+    //       ... just pass in the entries id/name or some derivative, ex: `PkgTreeEntry for PkgEntry: ${entry.getId()}`
+    this.id   = this.entry.getName();
+    this.name = this.entry.getName();
   }
 
-  getName() { // getName(): string
-    // ??  FIX:
-    // >>> OLD:
-    // AI: this will eventually be cleaned up through CompRef/SmartClassRef usage
-    //? if (isPkgEntry(this.entry)) {
-    //?   return this.entry.getName();
-    //? }
-    //? else { // ... a real class
-    //?   return this.entry.unmangledName || this.entry.name;
-    //? }
-    // >>> NEW:
+  // support persistance by encoding needed props of self
+  getEncodingProps() {
+    return [...super.getEncodingProps(), ...['entry']];
+  }
+
+  /**
+   * Self's PkgTree name, visualized in UI.
+   * NOTE: Technically this API is promoted by SmartModel, and will work (since
+   *       the correct name is promoted to SmartModel), HOWEVER this implementation 
+   *       is MORE explicit!
+   * @returns {string} the PkgTree node name (for human consumption).
+   */
+  getName() {
     return this.entry.getName();
   }
+
+  /**
+   * Self's entry (for Entry nodes).
+   * @returns {SmartPallet | undefined} self's Entry node (undefined for Dir nodes).
+   */
+  getEntry() {
+    return this.entry;
+  }
 }
-Entry.unmangledName = 'Entry';
+PkgTreeEntry.unmangledName = 'PkgTreeEntry';
 
 
 //********************************************************************************
 // convert pkg.entries TO: PkgTree
 // ... our temporary stop-gap measure
 // RETURN: Dir PkgTree derivation
+// ?? OBSOLETE once fully integrated ... part of SmartModel
 export function pkgEntry2Tree(pkg) {
 
   const check = verify.prefix(`***ERROR*** pkgEntry2Tree(): `);
-
-//  const myPkgId = pkg.getPkgId(); ?? NO just use pkg
 
   // seed pkg.entries with the root "/" directory
   // ... varies based on starting point 
@@ -177,7 +252,7 @@ export function pkgEntry2Tree(pkg) {
       for (const dirName in dirWrapper) {
         const dirContentArr = dirWrapper[dirName];
         check(isArray(dirContentArr), `a Directory Wrapper (PlainObject) contains a dirName: "${dirName}" whose content is NOT an array.`);
-        dirEntries.push( new Dir({name: dirName, entries: accumLegacyEntries(dirContentArr)}) );
+        dirEntries.push( new PkgTreeDir({name: dirName, entries: accumLegacyEntries(dirContentArr)}) );
       }
       // restrict usage to first entry only (see NOTE above)
       check(dirEntries.length === 1, 'Directory Wrapper (PlainObject) only supports one directory at a time, ' + 
@@ -202,7 +277,7 @@ export function pkgEntry2Tree(pkg) {
         // ... or a class (eventually WILL be a PkgEntry with the advent of CompRef SmartPallet derivation)
         if (isPkgEntry(arrItem) || isClass(arrItem)) { // ?? here is our special isClass check again
           const realEntry = arrItem; // ... alias to clarify logic
-          return new Entry({entry: realEntry, pkg}); // ?? use pkg instead of myPkgId
+          return new PkgTreeEntry({entry: realEntry, pkg}); // ?? ULTIMATELY pkg param NOT needed
         }
 
         // support directory wrappers (a plainObject) <<< morph into the Dir PkgTree derivation

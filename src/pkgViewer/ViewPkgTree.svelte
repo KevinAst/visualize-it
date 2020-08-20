@@ -52,7 +52,7 @@
  // pre-register our pkgEntries for tabs display
  let tabController = null;
  if (pkgTree.isEntry()) {
-   tabController = new TabControllerPkgEntry(pkgTree.entry);
+   tabController = new TabControllerPkgEntry(pkgTree.getEntry());
    preregisterTab(tabController);
  }
  const displayEntry = genDualClickHandler(
