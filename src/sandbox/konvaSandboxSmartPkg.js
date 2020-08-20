@@ -15,7 +15,7 @@ const Valve3 = pkgManager.getClassRef('generalComps', 'Valve3');
 
 
 //************************************************************************************
-//*** Scene: scene1
+//*** Scene: scene1 ... a pseudoClass MASTER
 //************************************************************************************
 
 const scene1 = new Scene({
@@ -29,7 +29,7 @@ const scene1 = new Scene({
 
 
 //************************************************************************************
-//*** Scene: scene2
+//*** Scene: scene2 ... a pseudoClass MASTER
 //************************************************************************************
 
 const scene2 = new Scene({
@@ -45,8 +45,8 @@ const scene2 = new Scene({
 //*** Collage: collage1
 //**********************************************************
 
-// create an instance of type scene1 (to live in our collage)
-//const scene1ClassRef = pkgManager.getClassRef('sceneView1', 'scene1'); // NORMALLY HOW DONE - HOWEVER we don't have a pkg yet
+// create a pseudoClass INSTANCE of type scene1 (to live in our collage)
+//const scene1ClassRef = pkgManager.getClassRef('sceneView1', 'scene1'); // NORMALLY HOW DONE - HOWEVER we don't have a pkg yet, BECAUSE this is the self-referencing pkg we are creating
 const scene1ClassRef = new SmartClassRef(scene1, 'DUMMY-PKG-NAME');      // DO THIS INSTEAD ... NOTE: this DUMMY-PKG-NAME is NOT propagated into any persistence!
 const scene1Copy     = scene1ClassRef.createSmartObject({
   id: 'scene1Copy',
@@ -59,8 +59,8 @@ const scene1Copy     = scene1ClassRef.createSmartObject({
   y:0,
 });
 
-// create an instance of type scene2 (to live in our collage)
-//const scene2ClassRef = pkgManager.getClassRef('sceneView2', 'scene2'); // NORMALLY HOW DONE - HOWEVER we don't have a pkg yet
+// create a pseudoClass INSTANCE of type scene2 (to live in our collage)
+//const scene2ClassRef = pkgManager.getClassRef('sceneView2', 'scene2'); // NORMALLY HOW DONE - HOWEVER we don't have a pkg yet, BECAUSE this is the self-referencing pkg we are creating
 const scene2ClassRef = new SmartClassRef(scene2, 'DUMMY-PKG-NAME');      // DO THIS INSTEAD ... NOTE: this DUMMY-PKG-NAME is NOT propagated into any persistence!
 const scene2Copy     = scene2ClassRef.createSmartObject({
   id: 'scene2Copy',
