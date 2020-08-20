@@ -162,11 +162,8 @@ export class PkgTreeEntry extends PkgTree {
       this.entry = entry;
     }
     else { // ... isClass(entry) ... convert into CompRef (a pkgEntry)
-      const clazz     = entry;
-      const clazzName = clazz.unmangledName || clazz.name;
-      const compRef   = new CompRef({id:   clazzName, // id (only think we have is name) ??$$ I think a CompRef can get by with the compClassRef <SmartClassRef> ... from there it will derive id/name via: compClassRef.getClassName()
-                                     name: clazzName,
-                                     compClassRef: new SmartClassRef(clazz, pkg.getPkgId())});
+      const clazz   = entry;
+      const compRef = new CompRef({compClassRef: new SmartClassRef(clazz, pkg.getPkgId())});
 
       // stuff that would normally be done in SmartPkg (once fully retrofitted)
       compRef.markAsPkgEntry(); // AI: suspect this will work here BECAUSE pkgManager is still based on raw entry ... ULTIMATELY (once retrofitted) pkgManager needs to know and catalog this

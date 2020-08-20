@@ -20,16 +20,17 @@ export default class CompRef extends SmartPallet {
    *
    * **Please Note** this constructor uses named parameters.
    *
-   * @param {string} id - the unique identifier of this compRef.
-   * @param {string} [name=id] - The name of this compRef (DEFAULT to id).
    * @param {SmartClassRef} compClassRef - the compClassRef visualized by this
    * compRef.
    */
-  constructor({id, name, compClassRef, ...unknownArgs}={}) {
-    super({id, name});
+  constructor({compClassRef, ...unknownArgs}={}) {
+    // derive id/name from supplied compClassRef's class name
+    // ... coded defensively when bad compClassRef supplied (will error in our validation - below)
+    const className = (compClassRef && compClassRef.getClassName) ? compClassRef.getClassName() : 'INVALID compClassRef';
+    super({id: className, name: className});
 
     // validate CompRef() constructor parameters
-    const check = verify.prefix(`${this.diagClassName()}(id:'${id}', name:'${name}') constructor parameter violation: `);
+    const check = verify.prefix(`${this.diagClassName()}(id:'${this.getId()}', name:'${this.getName()}') constructor parameter violation: `);
 
     // ... id/name validated by base class
 
