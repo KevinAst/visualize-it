@@ -1,3 +1,4 @@
+import PseudoClass     from './PseudoClass';
 import verify          from '../util/verify';
 import {isClass,
         isString}      from '../util/typeCheck';
@@ -69,7 +70,7 @@ export default class SmartClassRef {
 
     }
     // ... a pseudoClass MASTER (i.e. a logical type)
-    else if (classRef.pseudoClass && classRef.pseudoClass.isType()) {
+    else if (PseudoClass.isPseudoClassMaster(classRef)) {
       this.pseudoClassContainer = classRef;
     }
     else {
