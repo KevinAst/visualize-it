@@ -1221,9 +1221,7 @@ export default class SmartModel {
   getClassRef() {
 
     // validation checks
-    // ... we use plain `this.constructor.name`, even though it may be mangled in production build
-    //     to avoid reliance on the value-added classRef we are accessing "in this method" :-)
-    const check = verify.prefix(`${this.constructor.name}.getClassRef() id:'${this.id}', name:'${this.name}') ... `);
+    const check = verify.prefix(`${this.diagClassName()}.getClassRef() id:'${this.id}', name:'${this.name}') ... `);
 
     // interpret pseudoClass instances
     // ... once again, we interpret this structure directly
