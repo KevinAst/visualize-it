@@ -45,9 +45,23 @@ const scene2Master = new Scene({
 //*** Collage: collage1
 //**********************************************************
 
-// create a pseudoClass INSTANCE of type Scene1 (to live in our collage)
-//const scene1ClassRef = pkgManager.getClassRef('com.astx.KONVA', 'Scene1'); // NORMALLY HOW DONE, HOWEVER we don't have the self-referencing pkg yet (we are creating it)!
-const scene1ClassRef = new SmartClassRef(scene1Master, 'DUMMY-PKG-NAME');    // WORK-AROUND (NOTE: this DUMMY-PKG-NAME is NOT propagated into any persistence)!
+// NOTE: The scenes used in our collage must be instance copies of the
+//       master (defined above). To create these copies, we need their
+//       pseudo class reference (SmartClassRef).
+//
+//       NORMALLY, we would ask the pkgManager for this:
+//
+//         const scene1ClassRef = pkgManager.getClassRef('com.astx.KONVA', 'Scene1');
+//
+//       HOWEVER, this is NOT possible in this case, because we are creating this
+//       self-referencing pkg yet (i.e. it doesn't exist yet)!
+//
+//       THEREFORE, as a work-around we create a temporary classRef as follows
+//       (NOTE: The 'DUMMY-PKG-NAME' is NOT propagated into any persistence):
+//
+//         const scene1ClassRef = new SmartClassRef(scene1Master, 'DUMMY-PKG-NAME');
+
+const scene1ClassRef = new SmartClassRef(scene1Master, 'DUMMY-PKG-NAME');
 const scene1Instance = scene1ClassRef.createSmartObject({
   id: 'Scene1',
   // comps: [ // KOOL: do NOT need comps ... they are created (cloned) from the scene1 pseudoClass!
@@ -59,9 +73,7 @@ const scene1Instance = scene1ClassRef.createSmartObject({
   y:0,
 });
 
-// create a pseudoClass INSTANCE of type Scene2 (to live in our collage)
-//const scene2ClassRef = pkgManager.getClassRef('com.astx.KONVA', 'Scene2'); // NORMALLY HOW DONE, HOWEVER we don't have the self-referencing pkg yet (we are creating it)!
-const scene2ClassRef = new SmartClassRef(scene2Master, 'DUMMY-PKG-NAME');    // WORK-AROUND (NOTE: this DUMMY-PKG-NAME is NOT propagated into any persistence)!
+const scene2ClassRef = new SmartClassRef(scene2Master, 'DUMMY-PKG-NAME');
 const scene2Instance = scene2ClassRef.createSmartObject({
   id: 'Scene2',
   // comps: [ // KOOL: do NOT need comps ... they are created (cloned) from the scene2 pseudoClass!
@@ -73,7 +85,6 @@ const scene2Instance = scene2ClassRef.createSmartObject({
   y:250,
 });
 
-// our Collage
 const collage1 = new Collage({id: 'collage1', name: 'Collage 1', scenes: [scene1Instance, scene2Instance]});
 
 
