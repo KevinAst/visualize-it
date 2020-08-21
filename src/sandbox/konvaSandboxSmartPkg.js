@@ -15,11 +15,11 @@ const Valve3 = pkgManager.getClassRef('generalComps', 'Valve3');
 
 
 //************************************************************************************
-//*** Scene: scene1 ... a pseudoClass MASTER
+//*** Scene: scene1Master ... a pseudoClass MASTER
 //************************************************************************************
 
-const scene1 = new Scene({
-  id: 'scene1',
+const scene1Master = new Scene({
+  id: 'Scene1',
   comps: [
     Valve1.createSmartObject({id: 'myValve1', x:  20, y:  20}),
     Valve2.createSmartObject({id: 'myValve2', x: 150, y:  40}),
@@ -29,11 +29,11 @@ const scene1 = new Scene({
 
 
 //************************************************************************************
-//*** Scene: scene2 ... a pseudoClass MASTER
+//*** Scene: scene2Master ... a pseudoClass MASTER
 //************************************************************************************
 
-const scene2 = new Scene({
-  id: 'scene2',
+const scene2Master = new Scene({
+  id: 'Scene2',
   comps: [
     Valve1.createSmartObject({id: 'myValve1', x:  20, y:  20}),
     Valve2.createSmartObject({id: 'myValve2', x: 150, y:  40}),
@@ -45,11 +45,11 @@ const scene2 = new Scene({
 //*** Collage: collage1
 //**********************************************************
 
-// create a pseudoClass INSTANCE of type scene1 (to live in our collage)
-//const scene1ClassRef = pkgManager.getClassRef('sceneView1', 'scene1'); // NORMALLY HOW DONE - HOWEVER we don't have a pkg yet, BECAUSE this is the self-referencing pkg we are creating
-const scene1ClassRef = new SmartClassRef(scene1, 'DUMMY-PKG-NAME');      // DO THIS INSTEAD ... NOTE: this DUMMY-PKG-NAME is NOT propagated into any persistence!
-const scene1Copy     = scene1ClassRef.createSmartObject({
-  id: 'scene1Copy',
+// create a pseudoClass INSTANCE of type Scene1 (to live in our collage)
+//const scene1ClassRef = pkgManager.getClassRef('com.astx.KONVA', 'Scene1'); // NORMALLY HOW DONE, HOWEVER we don't have the self-referencing pkg yet (we are creating it)!
+const scene1ClassRef = new SmartClassRef(scene1Master, 'DUMMY-PKG-NAME');    // WORK-AROUND (NOTE: this DUMMY-PKG-NAME is NOT propagated into any persistence)!
+const scene1Instance = scene1ClassRef.createSmartObject({
+  id: 'Scene1',
   // comps: [ // KOOL: do NOT need comps ... they are created (cloned) from the scene1 pseudoClass!
   //          new Valve1({id: 'myValve1'}),
   //          new Valve2({id: 'myValve2'}),
@@ -59,11 +59,11 @@ const scene1Copy     = scene1ClassRef.createSmartObject({
   y:0,
 });
 
-// create a pseudoClass INSTANCE of type scene2 (to live in our collage)
-//const scene2ClassRef = pkgManager.getClassRef('sceneView2', 'scene2'); // NORMALLY HOW DONE - HOWEVER we don't have a pkg yet, BECAUSE this is the self-referencing pkg we are creating
-const scene2ClassRef = new SmartClassRef(scene2, 'DUMMY-PKG-NAME');      // DO THIS INSTEAD ... NOTE: this DUMMY-PKG-NAME is NOT propagated into any persistence!
-const scene2Copy     = scene2ClassRef.createSmartObject({
-  id: 'scene2Copy',
+// create a pseudoClass INSTANCE of type Scene2 (to live in our collage)
+//const scene2ClassRef = pkgManager.getClassRef('com.astx.KONVA', 'Scene2'); // NORMALLY HOW DONE, HOWEVER we don't have the self-referencing pkg yet (we are creating it)!
+const scene2ClassRef = new SmartClassRef(scene2Master, 'DUMMY-PKG-NAME');    // WORK-AROUND (NOTE: this DUMMY-PKG-NAME is NOT propagated into any persistence)!
+const scene2Instance = scene2ClassRef.createSmartObject({
+  id: 'Scene2',
   // comps: [ // KOOL: do NOT need comps ... they are created (cloned) from the scene2 pseudoClass!
   //   new Valve1({id: 'myValve1'}),
   //   new Valve2({id: 'myValve2'}),
@@ -74,7 +74,7 @@ const scene2Copy     = scene2ClassRef.createSmartObject({
 });
 
 // our Collage
-const collage1 = new Collage({id: 'collage1', name: 'Collage 1', scenes: [scene1Copy, scene2Copy]});
+const collage1 = new Collage({id: 'collage1', name: 'Collage 1', scenes: [scene1Instance, scene2Instance]});
 
 
 //******************************************************************************
@@ -87,10 +87,10 @@ const konvaSandboxSmartPkg = new SmartPkg({
   entries: [
     {
       scenes: [
-        scene1,
+        scene1Master,
         { // ... nested sub-entries mixed in with our tabs
           "More Depth": [
-            scene2,
+            scene2Master,
           ],
         },
       ],
