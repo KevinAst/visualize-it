@@ -41,9 +41,12 @@ export default class SmartClassRef {
    * @param {classRef} classRef - the class on which behalf we operate
    * (either a real class or a pseudoClass).
    *
-   * @param {string} pkgId - the package ID this class belongs to.
+   * @param {string} [pkgId='UNKNOWN-PKG-ID'] - the package ID this
+   * class belongs to.  This item can be omitted (defaulting to
+   * 'UNKNOWN-PKG-ID') as a temporary stopgap measure, where the pkgId
+   * is NOT retained in a persistent source.
    */
-  constructor(classRef, pkgId) {
+  constructor(classRef, pkgId='UNKNOWN-PKG-ID') {
 
     // validate parameters
     const check = verify.prefix('SmartClassRef() constructor parameter violation: ');

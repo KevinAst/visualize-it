@@ -54,14 +54,14 @@ const scene2Master = new Scene({
 //         const scene1ClassRef = pkgManager.getClassRef('com.astx.KONVA', 'Scene1');
 //
 //       HOWEVER, this is NOT possible in this case, because we are creating this
-//       self-referencing pkg yet (i.e. it doesn't exist yet)!
+//       self-referencing pkg yet (i.e. the pkg doesn't exist yet)!
 //
-//       THEREFORE, as a work-around we create a temporary classRef as follows
-//       (NOTE: The 'DUMMY-PKG-NAME' is NOT propagated into any persistence):
+//       THEREFORE, as a work-around we create a temporary classRef, who's
+//       'UNKNOWN-PKG-ID' is NOT retained in a persistent source ... for example:
 //
-//         const scene1ClassRef = new SmartClassRef(scene1Master, 'DUMMY-PKG-NAME');
+//         const scene1ClassRef = new SmartClassRef(scene1Master);
 
-const scene1ClassRef = new SmartClassRef(scene1Master, 'DUMMY-PKG-NAME');
+const scene1ClassRef = new SmartClassRef(scene1Master);
 const scene1Instance = scene1ClassRef.createSmartObject({
   id: 'Scene1',
   // comps: [ // KOOL: do NOT need comps ... they are created (cloned) from the scene1 pseudoClass!
@@ -73,7 +73,7 @@ const scene1Instance = scene1ClassRef.createSmartObject({
   y:0,
 });
 
-const scene2ClassRef = new SmartClassRef(scene2Master, 'DUMMY-PKG-NAME');
+const scene2ClassRef = new SmartClassRef(scene2Master);
 const scene2Instance = scene2ClassRef.createSmartObject({
   id: 'Scene2',
   // comps: [ // KOOL: do NOT need comps ... they are created (cloned) from the scene2 pseudoClass!
