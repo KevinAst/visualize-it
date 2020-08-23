@@ -147,8 +147,8 @@ export default class SmartPkg extends SmartModel {
    * (i.e. the package ID).  Because this must be fully unique
    * across all other in-memory packages, it is recommended to use a
    * "java like" package name (ex: com.astx.acme).
-   * @param {string} [name=id] - The SmartPkg name.
-   * @param {Object} [entries] - the optional entries held in self (see class notes).
+   * @param {string} [name=id] - The SmartPkg name (for human consumption).
+   * @param {Object} [entries] - the optional entries held in self (see class notes). ??$$ entries NOW: treeDirRoot = newPkgTreeDir({name='/'}) ... DEFAULT an empty directory ?? treeNode (PkgTreeDir/PkgTreeEntry)
    */
   constructor({id, name, entries={}, ...unknownArgs}={}) {
     super({id, name});
@@ -158,7 +158,7 @@ export default class SmartPkg extends SmartModel {
 
     // ... id/name validated by base class
 
-    // ... entries
+    // ... entries ??$$ now check for PkgTreeDir ? WITH JavaDoc ? DEFAULT to `new PkgTreeDir()` ... an empty directory
     check(entries,                                  'entries is required');
     check(isPlainObject(entries)||isArray(entries), 'entries must be a plain object or an array');
 
@@ -172,6 +172,8 @@ export default class SmartPkg extends SmartModel {
     // ... hook into the standard SmartModel.constructorConfig()
     //     so this will be accomplished in pseudo construction too!
     // ?? DO THIS -and- call it in our pseudo construction
+
+    // ??$$ CURRENT RETROFIT POINT ????????????????????????????????????????????????????????????????????????????????
 
     // initialize our catalogs
     this.initializeCatalogs(this.entries);
@@ -261,7 +263,7 @@ export default class SmartPkg extends SmartModel {
    * An internal method that recurses through self's entries,
    * initializing our two catalogs.
    *
-   * @param {Object} entry - the current entry node being processed.
+   * @param {Object} entry - the current entry node being processed. ??$$ NOW PkgTree (either PkgTreeDir or PkgTreeEntry)
    */
   initializeCatalogs(entry) {
 
@@ -276,6 +278,22 @@ export default class SmartPkg extends SmartModel {
       this.entriesContainCode = false; // ... start out assuming NO code
     }
 
+    // ??$$ CURRENT RETROFIT POINT ????????????????????????????????????????????????????????????????????????????????
+    // ??$$ NEW: greatly simplify this by using PkgTree API
+    // ??$$ comment out till we are good-to-go
+    // for directories, recurse into each node
+    //? if (entry.isDir()) {
+    //?   const dirEntries = entry.getChildren();
+    //?   dirEntries.forEach( (entry) => this.initializeCatalogs(entry) );
+    //? }
+    //? // for entries, ??
+    //? else if (entry.isEntry()) {
+    //?   const smartPallet = entry.getEntry(); // ... Scene/Collage/CompRef
+    //?   // ?? what do we do with EACH ????????????????????????????????????????????????????????????????????????????????
+    //? }
+
+
+    // ??$$ OLD: very convoluted
     // recurse over entry
     // ... for plain objects, each member is a directory node
     if (isPlainObject(entry)) {
@@ -290,6 +308,7 @@ export default class SmartPkg extends SmartModel {
     else if (isArray(entry)) {
       entry.forEach( (arrItem) => {
 
+        // ??$$ RETRO POINT ????????????????????????????????????????????????????????????????????????????????
         // normally this is a smartObj
         if (isSmartObject(arrItem)) {
           const smartObj = arrItem;
@@ -353,8 +372,13 @@ export default class SmartPkg extends SmartModel {
    * (registering self's package ID)!
    */
   adornContainedClasses() {
-    Object.values(this._classRefCatalog).forEach( (clazz) => {
-      // ?? what do we do if this clazz is already registered to some other package?
+    Object.values(this._classRefCatalog).forEach( (clazz) => { // clazz can be 1. smartObj (a PseudoClassMaster), or 2. a raw class
+      // AI: ?? what do we do if this clazz is already registered to some other package?
+      // ??$$ Yikes, _classRefCatalog references two types: 1. smartObj (a PseudoClassMaster), or 2. a raw class
+      //      ... in other words clazz is either:           1. smartObj (a PseudoClassMaster), or 2. a raw class
+      //      ... in both cases, we append meta data onto it: .smartClassRef
+      //      ... it seems like it would be better to just use SmartClassRef directly in the catalog?
+      //          ?? we would have to alter this to adjust SmartClassRef.pkgId on the fly (now that it is part of self's SmartPkg)
       clazz.smartClassRef = new SmartClassRef(clazz, this.getPkgId());
     });
   }
@@ -486,6 +510,7 @@ export default class SmartPkg extends SmartModel {
             const resolvedObj = SmartModel.fromSmartJSON(jsonEntry); // ... no need for extraClassResolver (pseudoClass Masters resolve via core classes)
 
             // adorn the .smartClassRef early (normally done by SmartPkg at the end of it's construction)
+            // ??$$ Yikes another quirk ... SmartClassRef is NOT serializable (because it is NOT a SmartModel derivation)
             resolvedObj.smartClassRef = new SmartClassRef(resolvedObj, pkgIdBeingResolved);
 
             // catalog in pseudoClassMasters
