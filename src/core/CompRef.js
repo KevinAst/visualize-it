@@ -42,7 +42,7 @@ export default class CompRef extends SmartPallet {
     checkUnknownArgs(check, unknownArgs, arguments);
 
     // retain derivation-specific parameters in self
-    // this.compClassRef = compClassRef; // ... currently no need for this
+    // this.compClassRef = compClassRef; // ... currently no need for this (except eventually for persistence - see: getEncodingProps())
 
 
     //***
@@ -82,11 +82,17 @@ export default class CompRef extends SmartPallet {
 
   // support persistance by encoding needed props of self
   getEncodingProps() { 
-    // AI: currently class-based CompRef are NOT persisted
-    //     ... hard-coded assumption (as of now) found in SmartPkg.canPersist()
-    //     ... we will have to deal with persistence once we introduce resource-based DynamicComp pseudoClass
-    //     ... SOOO, technically this method is NEVER executed 
-    //         it would not work with compClassRef
+    // AI: currently class-based CompRefs are NOT persisted
+    //     - this is a hard-coded assumption (as of now) found in SmartPkg.canPersist()
+    //     - technically, CompRef is NOT capable of persistence
+    //       * even though it has defined getEncodingProps() (i.e. this method)
+    //       * BECAUSE our compClassRef member (a SmartClassRef type) is NOT even a SmartModel
+    //         CURRENTLY, compClassRef will ALWAYS represent raw class (with code)
+    //         ... i.e. smartClassRef.isClass() === true
+    //     - we will have to deal with persistence once we introduce resource-based DynamicComp pseudoClass
+    //       ... i.e. smartClassRef.isPseudoClass() === true
+    //     - SOOO, technically this method is NEVER executed (again, it would not work with compClassRef)
+    //     - CONSIDER: it may be possible to implement the needed methods (locally) when persistence is needed
     return [...super.getEncodingProps(), ...['compClassRef']];
   }
 

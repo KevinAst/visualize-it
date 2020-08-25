@@ -7,7 +7,6 @@
 </script>
 
 <script>
- import {pkgEntry2Tree}      from './PkgTree';
  import {TabControllerPkgEntry, 
          preregisterTab,
          activateTab}        from '../pkgEntryTabs';
@@ -18,19 +17,19 @@
 
 
  // component params
- export let pkg;                 // the SmartPkg entry point (for public consumption) ... INTERNALLY morphed into PkgTree
+ export let pkg;                 // the SmartPkg entry point (for public consumption) ... for internal recursive usage this is a PkgTree
  export let accumTreeId = '';    // INTERNAL: accumulative ID throughout tree
 
  // maintain our primary control indicators
- let top = true; // ist this the top-level
+ let top = true; // is this the top-level
  let pkgTree;    // our PkgTree (entries)
  if (isPkg(pkg)) { // ... top-level entry point (a SmartPkg)
-   pkgTree     = pkgEntry2Tree(pkg);
+   pkgTree     = pkg.rootDir;
    top         = true;
-   accumTreeId = pkg.getPkgId();    // force out top accumTreeId to be our pkg id
+   accumTreeId = pkg.getPkgId();    // force our top accumTreeId to be our pkg id
    // console.log(`xx <ViewPkgTree> for ${pkg.getPkgName()}:\n`, {pkgTree});
  }
- else { // ... subordinate levels (PkgTree entries)
+ else { // ... subordinate levels within internal recursive usage (PkgTree entries)
    pkgTree      = pkg;
    top          = false;
    accumTreeId += ` - ${pkgTree.getName()}`;

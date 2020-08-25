@@ -1,6 +1,8 @@
-import verify      from '../util/verify';
+import SmartClassRef  from './SmartClassRef';
+import verify         from '../util/verify';
 import {isString,
-        isPkg}     from '../util/typeCheck';
+        isClass,
+        isPkg}        from '../util/typeCheck';
 
 /*-------------------------------------------------------------------------------
    
@@ -42,11 +44,45 @@ class PkgManager {
    * Create a PkgManager.
    */
   constructor() {
+    // carve out our systemClassCatalog
+    this.systemClassCatalog = {
+      // [className]: SmartClassRef
+    };
     // carve out our pkgCatalog
     this.pkgCatalog = {
       // [pkgId]: smartPkg,
       // ...
     };
+  }
+
+  /**
+   * Internal method to register the supplied class as a system class.
+   *
+   * All system classes have an implied pkgId of 'core'.
+   *
+   * Only persistent concrete classes need be registered, because the
+   * 'core' pkgId is retained in the persistent file to map back to
+   * the appropriate class during the rehydration process.
+   *
+   * @param {class} clazz - the system class to register.
+   */
+  registerSystemClass(clazz) {
+
+    // validate parameters
+    const check = verify.prefix(`${this.constructor.unmangledName}.registerSystemClass() parameter violation: `);
+
+    // ... clazz
+    check(clazz,          'clazz is required');
+    check(isClass(clazz), 'clazz must be a class');
+
+    // maintain our systemClassCatalog
+    const smartClassRef                = new SmartClassRef(clazz, systemPkgId);
+    const clazzName                    = smartClassRef.getClassName();
+    this.systemClassCatalog[clazzName] = smartClassRef;
+
+    // adorn meta information to the class
+    // ... same heuristics as found in SmartPkg.adornContainedClasses()
+    clazz.smartClassRef = smartClassRef;
   }
 
 
@@ -88,6 +124,7 @@ class PkgManager {
 
     // maintain our package catalog
     const pkgId = smartPkg.getPkgId();
+    check(pkgId !== systemPkgId, `a smartPkg was supplied with a pkgId of '${systemPkgId}' which is reserved for system classes`);
     // console.log(`xx PkgManager.registerPkg() registering smartPkg(${pkgId}): `, smartPkg);
     if (this.pkgCatalog[pkgId]) { // verify smartPkg is not already loaded
       throw new Error(`***ERROR*** ${this.constructor.unmangledName}.registerPkg() pkgId: ${pkgId} is already registered :-(`)
@@ -140,6 +177,23 @@ class PkgManager {
     check(className,           'className is required');
     check(isString(className), 'className must be a string');
 
+    // ***
+    // *** resolve system classes (takes precedence)
+    // ***
+
+    if (pkgId === systemPkgId) {
+      const systemClassRef = this.systemClassCatalog[className];
+      if (!systemClassRef) { // this is an unexpected condition
+        throw new Error(`***ERROR*** PkgManager.getClassRef(pkgId:${pkgId}, className:${className}) class NOT registered :-(`);
+      }
+      return systemClassRef;
+    }
+
+
+    // ***
+    // *** otherwise, resolve from one of our registered packages
+    // ***
+
     // resolve the package containing the class
     const smartPkg = this.pkgCatalog[pkgId];
     if (!smartPkg) { // this is an expected condition (communicate to user via defineUserMsg())
@@ -149,7 +203,7 @@ class PkgManager {
     
     // resolve the classRef
     const classRef = smartPkg.getClassRef(className);
-    if (!classRef) { // this is more of an unexpected condition
+    if (!classRef) { // this is an unexpected condition
       throw new Error(`***ERROR*** PkgManager.getClassRef(pkgId:${pkgId}, className:${className}) class NOT in package :-(`);
     }
     return classRef;
@@ -191,6 +245,11 @@ class PkgManager {
 
 }
 PkgManager.unmangledName = 'PkgManager';
+
+
+// the implied pkgId for all system classes
+const systemPkgId = 'core';
+
 
 // expose our single pkgManager utility ... AI: singleton code smell
 const pkgManager = new PkgManager();

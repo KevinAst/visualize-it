@@ -1,12 +1,13 @@
 import SmartModel        from './SmartModel';
 import SmartClassRef     from './SmartClassRef';
 import PseudoClass       from './PseudoClass';
+import SmartPallet       from './SmartPallet';
 import {isPlainObject,
-        isSmartObject,
-        isArray,
-        isClass}         from '../util/typeCheck';
+        isString,
+        isArray}         from '../util/typeCheck';
 import verify            from '../util/verify';
 import checkUnknownArgs  from '../util/checkUnknownArgs';
+
 // import {changeManager}   from 'features/xtra'; AI: future svelte integration
 
 /**
@@ -60,80 +61,22 @@ import checkUnknownArgs  from '../util/checkUnknownArgs';
  *   - SO IN SUMMARY: the distinction between "classRef" and "object instance":
  *     * "instances" ALWAYS belong to the "self-contained" package
  *     * "instances" can be created from types that belong to either self's package or "other" packages
- *
- * ??$$ TODO: RESTRUCTURE THIS with Dir root (a PkgTree derivation)
- * SmartPkg entries are defined in an object structure (with depth)
- * that represents the visual hierarchy by which they are promoted.
- *   - entries utilize an object structure (with depth)
- *   - any client-defined structure is supported (i.e. a collection of
- *     whatever with arbitrary nesting of named nodes)
- *   - named nodes (contained in plain objects) represent a logical directory
- *     * where the name is a displayed human readable node
- *     * and can be nested (supporting sub-structure depth)
- *   - arrays represent resource items (or nested named nodes)
- *     * entries can be:
- *       1. smartObject to view/use
- *          ```
- *          can be:
- *          - Classes ... SingleValve, TwoWayValve, etc. (NOT SUPPORTED BY RESOURCE-BASED PKG)
- *          - SmartModel instance obj ... Collage
- *          - SmartModel pseudoClass
- *            * pseudoClass Master ...... DynamicComp, Scene, 
- *            * pseudoClass INSTANCE .... comp instances IN Scene -or- scene instances in Collage
- *          ```
- *       2. plain object representing nested sub-entries mixed into the
- *          entries array
- *
- * Here is a sample `entries`:
- * ```js
- * entries: {
- *   components: {
- *     valves: [
- *       // ... example of class (i.e. a class function) ... NOT supported by a resource-based pkg
- *       SingleValve,
- *       TwoWayValve,
- *
- *       // ... example of Pseudo Class MASTER (a DynamicComp(), dynamically editable)
- *       DynamicComp({withPseudoClassName, andOthers}),
- *     ],
- *     pumps: [
- *       PowerPump,
- *       { // ... nested sub-entries mixed into the entries array
- *         "Pumps Cat 2": [
- *           SubPump1,
- *           SubPump2,
- *         ],
- *       },
- *       SumpPump,
- *     ],
- *   },
- *   scenes: [
- *     // ... a pseudoClass MASTER (can be edited: the comps add/remove/position/transform)
- *     Scene(...comps),
- *     Scene(...comps),
- *     ...
- *   ],
- *   collages: [
- *     // ... collage instance that holds scene instances (pseudoClass INSTANCEs)
- *     //      - VERY TRUE: scene instances will hold their unique x/y offsets
- *     //      - Collage MUST validate that scene instances are used
- *     //        ?? TODO: make this so (even though it is tightly controlled, wouldn't hurt to validate it)
- *     //      - IMPORTANT: to resolve this, MUST FIRST resolve Scene pseudoClass MASTER
- *     //        ... because it is referenced in the same pkg!
- *     Collage(...scenes)
- *     Collage(...scenes)
- *     ...
- *   ],
- * }
- * ```
+ * 
+ * SmartPkg entries are held in a directory structure (with depth),
+ * representing a visual hierarchy by which they are promoted for
+ * human consumption.  This is defined through the PkgTree class, with
+ * directories (a PkgTreeDir derivation) and entries (a PkgTreeEntry
+ * derivation). Please refer to `src/sandbox` for some samples:
+ *  - generalComps.js
+ *  - konvaSandboxSmartPkg.js
  *
  * SmartPkg entries are promoted through two internal catalogs,
- * providing easy access independent of the visual hierarchy (i.e. the
- * visual structure with depth).  The two catalogs are:
+ * providing easy access independent of the visual directory.
+ * The two catalogs are:
  * 
  * ```
- *  + getClassRef(className): SmartClassRef ... used by pkgManager
- *  + getPkgEntry(entryId):   entry         ... used by ?? suspect needed for pseudoClass modification sync in other PkgEntries
+ *  + getClassRef(className): SmartClassRef ... used by pkgManager in it's low-level promotion of class definitions
+ *  + getPkgEntry(entryId):   entry         ... not currently used - suspect may be needed for pseudoClass modification sync in other PkgEntries
  * ```
  */
 export default class SmartPkg extends SmartModel {
@@ -148,9 +91,10 @@ export default class SmartPkg extends SmartModel {
    * across all other in-memory packages, it is recommended to use a
    * "java like" package name (ex: com.astx.acme).
    * @param {string} [name=id] - The SmartPkg name (for human consumption).
-   * @param {Object} [entries] - the optional entries held in self (see class notes). ??$$ entries NOW: treeDirRoot = newPkgTreeDir({name='/'}) ... DEFAULT an empty directory ?? treeNode (PkgTreeDir/PkgTreeEntry)
+   * @param {PkgTreeDir} [rootDir=emptyDir] - the optional root
+   * directory containing the entries of this SmartPkg.
    */
-  constructor({id, name, entries={}, ...unknownArgs}={}) {
+  constructor({id, name, rootDir=new PkgTreeDir({name:'/'}), ...unknownArgs}={}) {
     super({id, name});
 
     // validate SmartPkg() constructor parameters
@@ -158,32 +102,32 @@ export default class SmartPkg extends SmartModel {
 
     // ... id/name validated by base class
 
-    // ... entries ??$$ now check for PkgTreeDir ? WITH JavaDoc ? DEFAULT to `new PkgTreeDir()` ... an empty directory
-    check(entries,                                  'entries is required');
-    check(isPlainObject(entries)||isArray(entries), 'entries must be a plain object or an array');
+    // ... rootDir
+    check(rootDir,                       'rootDir is required');
+    check(rootDir instanceof PkgTreeDir, 'rootDir must be a PkgTreeDir');
 
     // ... unknown arguments
     checkUnknownArgs(check, unknownArgs, arguments);
 
     // retain derivation-specific parameters in self
-    this.entries = entries;
+    this.rootDir = rootDir;
 
     // remaining logic
     // ... hook into the standard SmartModel.constructorConfig()
     //     so this will be accomplished in pseudo construction too!
     // ?? DO THIS -and- call it in our pseudo construction
 
-    // ??$$ CURRENT RETROFIT POINT ????????????????????????????????????????????????????????????????????????????????
-
     // initialize our catalogs
-    this.initializeCatalogs(this.entries);
+    this.initializeCatalogs(this.rootDir);
 
     // introduce the value-added meta API to all our classes (including package registration)
     this.adornContainedClasses();
 
     // mark our top-level entries as PkgEntries
+    // -and- maintain the SmartPkg parentage of our pkgEntries
     Object.values(this._entryCatalog).forEach( (entry) => {
       entry.markAsPkgEntry(); // ... internally markAsPkgEntry() will register them to changeManager
+      entry.setParent(this);
     });
 
     // reset the baseline crc throughout our containment tree
@@ -197,7 +141,7 @@ export default class SmartPkg extends SmartModel {
 
   // support persistance by encoding needed props of self
   getEncodingProps() {
-    return [...super.getEncodingProps(), ...['entries']];
+    return [...super.getEncodingProps(), ...['rootDir']];
   }
 
   /**
@@ -239,6 +183,16 @@ export default class SmartPkg extends SmartModel {
   }
 
   /**
+   * Set self's pkgResourcePath (see notes in getPkgResourcePath()).
+   *
+   * @param {PkgResourcePath} pkgResourcePath - the resource path
+   * where self is persisted.
+   */
+  setPkgResourcePath(pkgResourcePath) {
+    this.pkgResourcePath = pkgResourcePath;
+  }
+
+  /**
    * Return an indicator as to whether this package can be persisted.
    * 
    * NOTE: Packages that contain code cannot be persisted.
@@ -250,27 +204,20 @@ export default class SmartPkg extends SmartModel {
   }
 
   /**
-   * Set self's pkgResourcePath (see notes in getPkgResourcePath()).
-   *
-   * @param {PkgResourcePath} pkgResourcePath - the resource path
-   * where self is persisted.
-   */
-  setPkgResourcePath(pkgResourcePath) {
-    this.pkgResourcePath = pkgResourcePath;
-  }
-
-  /**
    * An internal method that recurses through self's entries,
    * initializing our two catalogs.
    *
-   * @param {Object} entry - the current entry node being processed. ??$$ NOW PkgTree (either PkgTreeDir or PkgTreeEntry)
+   * @param {PkgTree} treeNode - the current node in our directory
+   * being processed.
+   *
+   * @private
    */
-  initializeCatalogs(entry) {
+  initializeCatalogs(treeNode) {
 
     // reset our catalogs on the top-level invocation
-    if (entry === this.entries) {
-      this._classRefCatalog = {};
-      this._entryCatalog    = {};
+    if (treeNode === this.rootDir) {
+      this._classRefCatalog = {}; // key: className,   value: smartObj (a PseudoClassMaster) -OR- a raw class
+      this._entryCatalog    = {}; // key: smartObj.id, value: smartObj
 
       // prime our indicator as to whether our content contains code
       // ... used in determining if this package can be persisted
@@ -278,107 +225,64 @@ export default class SmartPkg extends SmartModel {
       this.entriesContainCode = false; // ... start out assuming NO code
     }
 
-    // ??$$ CURRENT RETROFIT POINT ????????????????????????????????????????????????????????????????????????????????
-    // ??$$ NEW: greatly simplify this by using PkgTree API
-    // ??$$ comment out till we are good-to-go
-    // for directories, recurse into each node
-    //? if (entry.isDir()) {
-    //?   const dirEntries = entry.getChildren();
-    //?   dirEntries.forEach( (entry) => this.initializeCatalogs(entry) );
-    //? }
-    //? // for entries, ??
-    //? else if (entry.isEntry()) {
-    //?   const smartPallet = entry.getEntry(); // ... Scene/Collage/CompRef
-    //?   // ?? what do we do with EACH ????????????????????????????????????????????????????????????????????????????????
-    //? }
+    // for PkgTreeDirs, recurse into each node
+    if (treeNode.isDir()) {
+      const dirEntries = treeNode.getChildren();
+      dirEntries.forEach( (subNode) => this.initializeCatalogs(subNode) );
+    }
+
+    // for PkgTreeEntries, catalog them (covering BOTH entries and classes)
+    else if (treeNode.isEntry()) {
+      const smartPallet = treeNode.getEntry(); // ... Scene/Collage/CompRef
+
+      // ***
+      // *** catalog entries
+      // ***
+
+      this._entryCatalog[smartPallet.getId()] = smartPallet;
 
 
-    // ??$$ OLD: very convoluted
-    // recurse over entry
-    // ... for plain objects, each member is a directory node
-    if (isPlainObject(entry)) {
-      // pass through through all directory nodes (object members),
-      // ... and recurse into each
-      for (const dirName in entry) {
-        const dirContent = entry[dirName];
-        this.initializeCatalogs(dirContent);
+      // ***
+      // *** catalog classes
+      // ***
+  
+      // both pseudo classes
+      if (PseudoClass.isPseudoClassMaster(smartPallet)) { // ex: Scene (master)
+        const pseudoClass = smartPallet;
+
+        const className = PseudoClass.getClassName(pseudoClass);
+        this._classRefCatalog[className] = pseudoClass;
       }
-    }
-    // ... for array entry,
-    else if (isArray(entry)) {
-      entry.forEach( (arrItem) => {
 
-        // ??$$ RETRO POINT ????????????????????????????????????????????????????????????????????????????????
-        // normally this is a smartObj
-        if (isSmartObject(arrItem)) {
-          const smartObj = arrItem;
+      // and real classes
+      else if (smartPallet.getCompInstance) { // isA CompRef
+        // components are their own proprietary class ... AI: must account for DynamicComp (once implemented)
+        const comp      = smartPallet.getCompInstance();
+        const realClass = comp.constructor;
 
-          // catalog any pseudoClasses in our _classRefCatalog
-          if (PseudoClass.isPseudoClassMaster(smartObj)) {
-            const className = PseudoClass.getClassName(smartObj);
-            this._classRefCatalog[className] = smartObj;
-          }
+        // mark our package as containing code
+        this.entriesContainCode = true;
 
-          // catalog all entries in our _entryCatalog
-          this._entryCatalog[smartObj.id] = smartObj; // ??!! should entries contain real classes too (they do contain pseudo classes)
-
-          // maintain our parentage
-          smartObj.setParent(this);
-        }
-
-        // can be a real class reference
-        else if (isClass(arrItem)) { // ??!! specific to real class
-          const realClass = arrItem;
-
-          // mark our package as containing code
-          this.entriesContainCode = true;
-
-          // catalog classes in our _classRefCatalog
-          const className = PseudoClass.getClassName(realClass);
-          this._classRefCatalog[className] = realClass;
-
-          // AI: most likely we need to register SOMETHING from a class in our this._entryCatalog (as is done for PseudoClassMaster above)
-        }
-
-        // can be a nested sub-directory (mixed in with our tab activation entries)
-        else if (isPlainObject(arrItem)) {
-          this.initializeCatalogs(arrItem);
-        }
-
-        // other items are NOT supported (should not happen - defensive only)
-        else {
-          const errMsg = '***ERROR*** SmartPkg.initializeCatalogs() found UNSUPPORTED array entry ... must be a smartObj or class or plain nested directory object ... see logs for entry';
-          console.error(errMsg, {arrItem});
-          throw new Error(errMsg);
-        }
-      });
-    }
-
-    // ... other entries are NOT supported (should not happen - defensive only)
-    else {
-      const errMsg = '***ERROR*** SmartPkg.initializeCatalogs() found UNSUPPORTED entry ... must be a plain directory object or an array of smartObjs ... see logs for entry';
-      console.error(errMsg, {entry});
-      throw new Error(errMsg);
+        // catalog classes in our _classRefCatalog
+        const className = PseudoClass.getClassName(realClass);
+        this._classRefCatalog[className] = realClass;
+      }
     }
   }
 
-
   /**
-   * Introduce the `.smartClassRef` on all our classes, providing
+   * An internal method that introduces the `.smartClassRef` on all our classes, providing
    * value-added utility that unifies the meta API for both real
    * classes and pseudoClasses.
    *
-   * It also ties this package to the each class for the first time
+   * This process ties self's package to the each class for the first time
    * (registering self's package ID)!
+   *
+   * @private
    */
   adornContainedClasses() {
     Object.values(this._classRefCatalog).forEach( (clazz) => { // clazz can be 1. smartObj (a PseudoClassMaster), or 2. a raw class
       // AI: ?? what do we do if this clazz is already registered to some other package?
-      // ??$$ Yikes, _classRefCatalog references two types: 1. smartObj (a PseudoClassMaster), or 2. a raw class
-      //      ... in other words clazz is either:           1. smartObj (a PseudoClassMaster), or 2. a raw class
-      //      ... in both cases, we append meta data onto it: .smartClassRef
-      //      ... it seems like it would be better to just use SmartClassRef directly in the catalog?
-      //          ?? we would have to alter this to adjust SmartClassRef.pkgId on the fly (now that it is part of self's SmartPkg)
       clazz.smartClassRef = new SmartClassRef(clazz, this.getPkgId());
     });
   }
@@ -414,10 +318,8 @@ export default class SmartPkg extends SmartModel {
    * Return the entry matching the supplied `entryId` (undefined for
    * not-found).
    *
-   * NOTE: This method is a key aspect that integrates with the
-   *       visuals (displayed in the tab manager).
-   *       HOWEVER however it is currently not needed.
-   *       ... as of 2/16/2020, this method NOT being used.
+   * NOTE: Currently (as of 8/25/2020(, this method NOT being used.
+   *       >>> suspect may be needed for pseudoClass modification sync in other PkgEntries
    *
    * @param {string} entryId - the entry ID of the entry to return.
    *
@@ -425,6 +327,20 @@ export default class SmartPkg extends SmartModel {
    * `undefined` for not-found.
    */
   getPkgEntry(entryId) {
+    // NOTE: To avoid name clash with SmartModel.getPkgEntry(), 
+    //       an unrelated method to ours:
+    //       - we redirect to it based on the distinct param signature!!
+    //       - I really wanted to use this "getPkgEntry" in both cases
+    //       - This is analogous to "Static Polymorphism" in Java/C++,
+    //         where the entire method signature is employed in it's
+    //         polymorphic behavior :-)
+    //       - NOTE: I do NOT believe this is required, due to the natural
+    //               invocation pattern however, we do it for good measure.
+    if (arguments.length === 0) {
+      return super.getPkgEntry();
+    }
+
+    // this methods real implementation :-)
     return this._entryCatalog[entryId];
   }
 
@@ -449,10 +365,9 @@ export default class SmartPkg extends SmartModel {
    *       KEY: After researching the possibility of "generically"
    *            including this logic in `SmartModel.fromSmartJSON()`,
    *            it is felt that the logic better belongs here!  It
-   *            contains specific logic around SmartPkg objects.  For
-   *            example it traverses the `entries` structure of a
-   *            SmartPkg (see: `resolvePseudoClassMasters(smartJSON.entries)`
-   *            below).
+   *            contains specific logic around SmartPkg objects.
+   *            TODO: Migrate SmartPkg.fromSmartJSON(smartJSON) into the standard SmartModel processing
+   *                  I no longer think the statement (above) is true
    * 
    * @param {JSON} smartJSON - the smartJSON structure representing
    * the SmartPkg object to rehydrate.
@@ -492,91 +407,50 @@ export default class SmartPkg extends SmartModel {
     const pkgIdBeingResolved = smartJSON.id;
 
     // our recursive function that performs the pre-processing
-    function resolvePseudoClassMasters(jsonEntry) {
+    function resolvePseudoClassMasters(jsonPkgTree) { // ?? future name: preprocessSelfPseudoClassMasters -OR- just keep the same
 
-      // entry is a plain JSON object
-      if (isPlainObject(jsonEntry)) {
+      // recurse directories (PkgTreeDir)
+      if (jsonPkgTree.smartType === 'PkgTreeDir') {
+        jsonPkgTree.entries.forEach( (jsonSubEntry) => resolvePseudoClassMasters(jsonSubEntry));
+      }
 
-        // entry is a smartObject
-        if (jsonEntry.smartType) {
+      // process directory entries (PkgTreeEntry)
+      else if (jsonPkgTree.smartType === 'PkgTreeEntry') {
 
-          // hydrate our pseudoClass MASTERs early
-          // ... IMPORTANT: this is the reason we are pre-processing!
-          // ... NOTE: All our pseudoClass MASTER will appear in the root of any entries directory!
-          //           In other words, no need to drill any further deep!
-          if (jsonEntry.isPseudoClassMaster) {
+        // process jsonPkgTree.entry (SmartPallet)
+        const jsonSmartPallet = jsonPkgTree.entry;
 
-            // morph into a real object
-            const resolvedObj = SmartModel.fromSmartJSON(jsonEntry); // ... no need for extraClassResolver (pseudoClass Masters resolve via core classes)
+        // hydrate our pseudoClass MASTERs early
+        // ... IMPORTANT: this is the reason we are pre-processing!
+        // ... NOTE: pseudoClass MASTERs are never nested,
+        //           so there is NO NEED to drill any further deep!
+        if (jsonSmartPallet.isPseudoClassMaster) {
 
-            // adorn the .smartClassRef early (normally done by SmartPkg at the end of it's construction)
-            // ??$$ Yikes another quirk ... SmartClassRef is NOT serializable (because it is NOT a SmartModel derivation)
-            resolvedObj.smartClassRef = new SmartClassRef(resolvedObj, pkgIdBeingResolved);
+          // morph into a real object
+          // ... no need for extraClassResolver (pseudoClass Masters resolve via core classes)
+          const resolvedObj = SmartModel.fromSmartJSON(jsonSmartPallet);
 
-            // catalog in pseudoClassMasters
-            pseudoClassMasters[resolvedObj.id] = resolvedObj;
+          // adorn the .smartClassRef early (normally done by SmartPkg at the end of it's construction)
+          // ... NOTE: SmartClassRef is NOT serializable (because it is NOT a SmartModel derivation)
+          resolvedObj.smartClassRef = new SmartClassRef(resolvedObj, pkgIdBeingResolved);
 
+          // catalog in pseudoClassMasters
+          pseudoClassMasters[resolvedObj.id] = resolvedObj;
 
-            // pass it through
-            // ... see note on "mutate smartJSON with real objects" (above)
-            return resolvedObj;
-          }
-          
-          // pass ALL OTHER smartObjects through (JSON as-is)
-          // ... things like:
-          //     - pseudoClass INSTANCEs
-          //     - other SmartClasses (should NEVER happen in our entries structure
-          // ... this will be processed in PHASE-2
-          else {
-            return jsonEntry;
-          }
-        }
-
-        // entry is a plain JSON object
-        else {
-          // recursively pass through through all object members
-          for (const key in jsonEntry) {
-            const oldVal = jsonEntry[key];
-            const newVal = resolvePseudoClassMasters(oldVal);
-            jsonEntry[key] = newVal; // potential mutation
-          }
-          return jsonEntry;
+          // for now we mutate our JSON string with the resolved object (soon to be fixed)
+          jsonPkgTree.entry = resolvedObj
         }
       }
 
-      // entry is an array
-      else if (isArray(jsonEntry)) {
-        // recursively pass through through all array items
-        for (let i=0; i<jsonEntry.length; i++) {
-          const oldVal = jsonEntry[i];
-          const newVal = resolvePseudoClassMasters(oldVal);
-          jsonEntry[i] = newVal; // potential mutation
-        }
-        return jsonEntry;
-      }
-
-      // entry is a JavaScript class
-      // ... should NOT find this in resource-based pkgs (simply defensive)
-      else if (isClass(jsonEntry)) {
-        // pass it through
-        console.warn('SmartPkg.fromSmartJSON(smartJson).resolvePseudoClassMasters(jsonEntry) PHASE-1: NOT expecting to pass through (class) ... ', {jsonEntry, smartJSON});
-        return jsonEntry;
-
-      }
-
-      // handle anything else
-      // ... primitives
-      // ... should NOT happen within our entries structure
+      // unexpected jsonPkgTree
+      // ... defensive only (should never happen)
       else {
-        // pass it through
-        console.warn('SmartPkg.fromSmartJSON(smartJson).resolvePseudoClassMasters(jsonEntry) PHASE-1: NOT expecting to pass through (primitive) ... ', {jsonEntry, smartJSON});
-        return jsonEntry;
+        console.warn('SmartPkg.fromSmartJSON(smartJson).resolvePseudoClassMasters(jsonPkgTree) PHASE-1: UNEXPECTED JSON NODE (expecting a PkgTree derivation) ... ', {jsonPkgTree, smartJSON});
       }
-
     }
 
     // resolve the pseudoClass MASTER definitions (within the smartJSON)
-    resolvePseudoClassMasters(smartJSON.entries);
+    resolvePseudoClassMasters(smartJSON.rootDir);
     
 
     //***
@@ -595,6 +469,7 @@ export default class SmartPkg extends SmartModel {
     }
 
     // use the normal SmartModel.fromSmartJSON() to do this work
+    // ... this uses our extraClassResolver (built above)
     // ... this passes through any objects that are already hydrated in our smartJSON
     try {
       const hydratedObj = SmartModel.fromSmartJSON(smartJSON, extraClassResolver);
@@ -608,3 +483,182 @@ export default class SmartPkg extends SmartModel {
 
 }
 SmartPkg.unmangledName = 'SmartPkg';
+
+
+
+/**
+ * A tree-based structure cataloging entries and directories (with
+ * depth) of a SmartPkg.
+ */
+class PkgTree extends SmartModel {
+
+  /**
+   * Self's PkgTree name, visualized in UI.
+   * NOTE: Technically this API is promoted by SmartModel, and will work (since
+   *       the correct name is promoted to SmartModel), HOWEVER this implementation 
+   *       is MORE explicit!
+   * @returns {string} the PkgTree node name (for human consumption).
+   */
+  getName() {
+    throw new Error(`***ERROR*** PkgTree interface-violation: ${this.diagClassName()}.getName() is an abstract method that MUST BE implemented!`);
+  }
+
+  /**
+   * The children of self (for Dir nodes).
+   * @returns {PkgTree[] | undefined} the children of self's Dir node (undefined for Entry node).
+   */
+  getChildren() {
+    return undefined; // default implementation is: NO children
+  }
+
+  /**
+   * Self's entry (for Entry nodes).
+   * @returns {SmartPallet | undefined} self's Entry node (undefined for Dir nodes).
+   */
+  getEntry() {
+    return undefined; // default implementation is: NO entry
+  }
+
+  /**
+   * Indicator as to whether self is a PkgTree Dir node (i.e. a PkgTreeDir).
+   * @returns {boolean} true: PkgTreeDir, false: PkgTreeEntry
+   */
+  isDir() {
+    return this.getChildren() ? true : false;
+  }
+
+  /**
+   * Indicator as to whether self is a PkgTree Entry node (i.e. a PkgTreeEntry).
+   * @returns {boolean} true: PkgTreeEntry, false: PkgTreeDir
+   */
+  isEntry() {
+    return !this.isDir();
+  }
+}
+PkgTree.unmangledName = 'PkgTree';
+
+
+
+/**
+ * A PkgTree derivation modeling named directories.
+ */
+export class PkgTreeDir extends PkgTree { // ... a directory of PkgTree entries (PkgTree[])
+
+  /**
+   * Create a PkgTreeDir.
+   *
+   * **Please Note** this constructor uses named parameters.
+   *
+   * @param {string} name - the name of this directory (for human consumption).
+   * @param {PkgTree[]} [entries] - the optional entries of this directory.
+   */
+  constructor({name, entries=[], ...unknownArgs}={}) {
+    super({id: name, name});
+
+    // validate parameters
+    const check = verify.prefix(`${this.diagClassName()}(name:'${name}') constructor parameter violation: `);
+    // ... name
+    check(name,             'name is required');
+    check(isString(name),   'name must be a string');
+    // ... entries
+    check(isArray(entries), 'entries must be an array (when supplied)');
+    entries.forEach((entry) => check(entry instanceof PkgTree, 'entries must be a PkgTree[] array'));
+    // ... unknown arguments
+    checkUnknownArgs(check, unknownArgs, arguments);
+
+    // retain parameters in self
+    this.name    = name;
+    this.entries = entries;
+  }
+
+  // support persistance by encoding needed props of self
+  getEncodingProps() {
+    // because our id is derived from the supplied name, we do not want our base class encoding
+    // NO:
+//  return [...super.getEncodingProps(), ...['name', 'entries']];
+    // YES:
+    return ['name', 'entries'];
+  }
+
+  /**
+   * Self's PkgTree name, visualized in UI.
+   * NOTE: Technically this API is promoted by SmartModel, and will work (since
+   *       the correct name is promoted to SmartModel), HOWEVER this implementation 
+   *       is MORE explicit!
+   * @returns {string} the PkgTree node name (for human consumption).
+   */
+  getName() {
+    return this.name;
+  }
+
+  /**
+   * The children of self (for Dir nodes).
+   * @returns {PkgTree[] | undefined} the children of self's Dir node (undefined for Entry node).
+   */
+  getChildren() {
+    return this.entries;
+  }
+}
+PkgTreeDir.unmangledName = 'PkgTreeDir';
+
+
+
+/**
+ * A PkgTree derivation modeling concrete entries (SmartPallet entries
+ * that are in turn PkgEntries).
+ */
+export class PkgTreeEntry extends PkgTree {
+
+  /**
+   * Create a PkgTreeEntry.
+   *
+   * **Please Note** this constructor uses named parameters.
+   *
+   * @param {SmartPallet} entry - the SmartPallet promoted as self's entry.
+   */
+  constructor({entry, ...unknownArgs}={}) {
+    // id/name coded defensively (for invalid entry param: will error out in check below)
+    const id   = entry.getId   ? `Wrapping SmartPallet: ${entry.getId()}`   : 'INVALID: NOT wrapping a SmartPallet';
+    const name = entry.getName ? `Wrapping SmartPallet: ${entry.getName()}` : 'INVALID: NOT wrapping a SmartPallet';
+    super({id, name});
+
+    // validate parameters
+    const check = verify.prefix(`${this.diagClassName()} constructor parameter violation: `);
+    check(entry,                         'entry is required');
+    check(entry instanceof SmartPallet,  'entry must be a SmartPallet');
+    // ... unknown arguments
+    checkUnknownArgs(check, unknownArgs, arguments);
+
+    // retain parameters in self
+    this.entry = entry;
+  }
+
+  // support persistance by encoding needed props of self
+  getEncodingProps() {
+    // because our id/name is derived from the supplied SmartPallet entry, we do not want our base class encoding
+    // NO:
+//  return [...super.getEncodingProps(), ...['entry']];
+    // YES:
+    return ['entry'];
+  }
+
+  /**
+   * Self's PkgTree name, visualized in UI.
+   * NOTE: Technically this API is promoted by SmartModel, and will work (since
+   *       the correct name is promoted to SmartModel), HOWEVER this implementation 
+   *       is MORE explicit!
+   * @returns {string} the PkgTree node name (for human consumption).
+   */
+  getName() {
+    return this.entry.getName();
+  }
+
+  /**
+   * Self's entry (for Entry nodes).
+   * @returns {SmartPallet | undefined} self's Entry node (undefined for Dir nodes).
+   */
+  getEntry() {
+    return this.entry;
+  }
+}
+PkgTreeEntry.unmangledName = 'PkgTreeEntry';

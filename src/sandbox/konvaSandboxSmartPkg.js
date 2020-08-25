@@ -1,7 +1,9 @@
 import Collage        from '../core/Collage';
 import Scene          from '../core/Scene';
 import SmartClassRef  from '../core/SmartClassRef';
-import SmartPkg       from '../core/SmartPkg';
+import SmartPkg,
+       {PkgTreeDir,
+        PkgTreeEntry} from '../core/SmartPkg';
 import pkgManager     from '../core/pkgManager';
 import {replaceAll}   from '../util/strUtil';
 import {createLogger} from '../util/logger';
@@ -95,23 +97,29 @@ const collage1 = new Collage({id: 'collage1', name: 'Collage 1', scenes: [scene1
 const konvaSandboxSmartPkg = new SmartPkg({
   id:   'com.astx.KONVA',
   name: 'Konva Sandbox I',
-  entries: [
-    {
-      scenes: [
-        scene1Master,
-        { // ... nested sub-entries mixed in with our tabs
-          "More Depth": [
-            scene2Master,
-          ],
-        },
-      ],
-    },
-    {
-      collages: [
-        collage1,
-      ],
-    },
-  ]
+  rootDir: new PkgTreeDir({
+    name: '/',
+    entries: [
+      new PkgTreeDir({
+        name: 'scenes',
+        entries: [
+          new PkgTreeEntry({entry: scene1Master}),
+          new PkgTreeDir({
+            name: 'More Depth',
+            entries: [
+              new PkgTreeEntry({entry: scene2Master}),
+            ],
+          }),
+        ],
+      }),
+      new PkgTreeDir({
+        name: 'collages',
+        entries: [
+          new PkgTreeEntry({entry: collage1}),
+        ],
+      }),
+    ],
+  }),
 });
 
 pkgManager.registerPkg(konvaSandboxSmartPkg);

@@ -1,7 +1,11 @@
 import Konva          from 'konva';
 import SmartComp      from '../core/SmartComp';
-import SmartPkg       from '../core/SmartPkg';
+import SmartPkg,
+       {PkgTreeDir,
+        PkgTreeEntry} from '../core/SmartPkg';
 import pkgManager     from '../core/pkgManager';
+import CompRef        from '../core/CompRef';
+import SmartClassRef  from '../core/SmartClassRef';
 
 class Valve1 extends SmartComp {
 
@@ -109,17 +113,25 @@ Valve3.unmangledName = 'Valve3';
 
 // our sandbox code-based component package
 // ... registered in our sandbox feature appInit()
+const class2CompPkgTreeEntry = (clazz) => new PkgTreeEntry({entry: new CompRef({compClassRef: new SmartClassRef(clazz)})});
 const generalCompsPkg = new SmartPkg({
   id:   'generalComps',
   name: 'SandBox Comps',
-  entries: {
-    "Class Comps": [
-      Valve1,
-      Valve2,
-      Valve3,
+  rootDir: new PkgTreeDir({
+    name: '/',
+    entries: [
+      new PkgTreeDir({
+        name: 'Class Comps',
+        entries: [
+          class2CompPkgTreeEntry(Valve1),
+          class2CompPkgTreeEntry(Valve2),
+          class2CompPkgTreeEntry(Valve3),
+        ],
+      }),
     ],
-  },
+  }),
 });
+
 
 // register these components, supporting persistent file resolution
 pkgManager.registerPkg(generalCompsPkg);
