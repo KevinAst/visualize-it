@@ -96,7 +96,7 @@ export async function openPkg(pkgResourcePath) {
 
   // resolve the json to a SmartPkg
   // ... any error is auto adorned with .defineAttemptingToMsg()
-  const pkg = SmartModel.fromSmartJSON(smartJSON); // ??$$ WAS SmartPkg.fromSmartJSON
+  const pkg = SmartModel.fromSmartJSON(smartJSON);
 
   // retain the pkgResourcePath
   pkg.setPkgResourcePath(fileHandle);
