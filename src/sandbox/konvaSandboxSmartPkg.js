@@ -1,4 +1,5 @@
 import Collage        from '../core/Collage';
+import SmartModel     from '../core/SmartModel';
 import Scene          from '../core/Scene';
 import SmartClassRef  from '../core/SmartClassRef';
 import SmartPkg,
@@ -177,5 +178,5 @@ jsonStr = replaceAll(jsonStr,          // pkgName
 log(`PERSISTENT TEST: HERE is the "pretty" jsonStr (after id changes):\n`, jsonStr);
 
 // rehydrate the JSON back to a SmartPkg object
-const rehydratedSmartPkg = SmartPkg.fromSmartJSON(JSON.parse(jsonStr));
+const rehydratedSmartPkg = SmartModel.fromSmartJSON(JSON.parse(jsonStr));
 log(`PERSISTENT TEST: HERE is the RE-HYDRATED smartPkg:\n`, {rehydratedSmartPkg});

@@ -8,6 +8,7 @@ import pkgManager           from './pkgManager';
 import PseudoClass          from './PseudoClass';
 import DispMode             from './DispMode';
 import createTypeRefHandler from './createTypeRefHandler';
+import SmartClassRef        from './SmartClassRef';
 
 import crc                  from '../util/crc';
 import {toast}              from '../util/ui/notify';
@@ -1190,7 +1191,7 @@ export default class SmartModel {
     };
 
     // demark the pseudoClass MASTERs in our JSON, so they can be hydrated early
-    // ... see SmartPkg.fromSmartJSON()
+    // ... see SmartModel.fromSmartJSON()
     if (PseudoClass.isPseudoClassMaster(this)) {
       myJSON.isPseudoClassMaster = true;
     }
@@ -1278,82 +1279,228 @@ export default class SmartModel {
    * @param {JSON} smartJSON - the smartJSON structure representing
    * the object(s) to create.
    *
-   * @param {function} [extraClassResolver] - an optional
-   * function to supplement the standard class resolver, used in
-   * hydrating self-referencing pseudoClasses found in SmartPkg (ex:
-   * collage referencing scene instances).
-   *
    * @returns {smartObject} a newly instantiated class-based object
    * from the supplied smartJSON.
    *
    * @throws {Error} an Error is thrown when the process could not
    * successfully complete.
    */
-  static fromSmartJSON(smartJSON, extraClassResolver) {
+  static fromSmartJSON(smartJSON) {
 
-    // NOTE: We do NOT validate any characteristic of our supplied smartJSON,
-    //       because the way in which this algorithm is invoked (recursively),
-    //       it can truly be ANY type of data!
-    //       As an example, a sub elm of JSON could be a number or a string.
+    // validate supplied parameters
+    const check = verify.prefix('SmartModel.fromSmartJSON(smartJSON) parameter violation: ');
+    // ... smartJSON
+    check(smartJSON,                     'smartJSON is required');
+    check(isPlainObject(smartJSON),      'smartJSON must be a JSON structure');
+    check(isString(smartJSON.smartType), 'smartJSON must be a JSON structure for a SmartObject (a SmartModel derivation)');
 
-    // handle NO smartJSON
-    // ... simply pass it through (null, undefined, etc. ... even false is OK :-)
-    if (!smartJSON) {
+    // ***
+    // *** Preliminary Setup
+    // ***
+
+    // the pkgId being resolved (defined when hydrating a top-level SmartPkg)
+    let pkgIdBeingResolved = null;
+
+    // our catalogs of preresolved objects - pseudoClassMasters
+    // ... objects in these catalogs are implicitly part of the pkg: pkgIdBeingResolved
+
+    // preresolvedObjects: optimize hydrateObject() so it doesn't have to resolve preresolved objects twice
+    //   KEY              VALUE                         
+    //   ===============  ==============================
+    //   jsonFragmentObj  smartObj (a pseudoClassMaster)
+    const preresolvedObjects = new Map();
+
+    // preresolvedPseudoClassMasters: supplements resolveClassRefFromSmartJSON() for self-referencing pseudoClasses
+    //   KEY              VALUE                         
+    //   ===============  ==============================
+    //   className        smartObj (a pseudoClassMaster)  
+    const preresolvedPseudoClassMasters = new Map();
+
+
+    // a convenience function that resolves the classRef of the supplied smartJSON
+    // - combining the standard external pkgManager class resolver
+    // - with the self-referencing pseudoClasses of the pkg being resolved
+    // RETURN: classRef (a SmartClassRef)
+    // THROW:  Error when the class was not resolved
+    function resolveClassRefFromSmartJSON(smartJSON) {
+
+      // glean our pkgId and className from the supplied smartJSON
+      const pkgId     = smartJSON.smartPkg;
+      const className = smartJSON.smartType;
+
+      // preresolvedPseudoClassMasters catalog takes precedence
+      // ... objects in this catalog are implicitly part of the pkg: pkgIdBeingResolved
+      //     SO the request must match this pkg
+      if (pkgId === pkgIdBeingResolved) {
+        const pseudoClassMaster = preresolvedPseudoClassMasters.get(className);
+        if (pseudoClassMaster) { // ... found it
+          // NOTE: the .smartClassRef dereference is the same thing that is done in
+          //       SmartPkg.getClassRef(className)
+          //       via: pkgManager.getClassRef(pkgId, className)
+          return pseudoClassMaster.smartClassRef;
+        }
+      }
+
+      // fallback to the standard external pkgManager class resolver
+      try {
+        return pkgManager.getClassRef(pkgId, className);
+      }
+      catch (err) {
+        // supplement errors with logs and an "attempting to" directive
+        console.log(`***ERROR*** SmartModel.fromSmartJSON() could not resolve pkgId: ${pkgId} / className: ${className} ` +
+                    `... smartJSON: ${JSON.stringify(smartJSON, null, 2)}`);
+        throw err.defineAttemptingToMsg('hydrate smartObj (see logs for smartJson)');
+      }
+    }
+
+
+    // ***
+    // *** PHASE-1: Preresolve any pseudoClass MASTER definitions
+    // ***          ... in support of self-referencing pseudoClasses
+    // ***              ex: a collage referencing self-contained scene instances
+    // ***
+
+    // PHASE-1 is only executed when we are hydrating SmartPkg objects
+    // ... this is the only place where there can be self-referencing pseudoClasses
+    if (smartJSON.smartType === 'SmartPkg') {
+
+      // retain the pkgId being resolved
+      // NOTE: for SmartPkg JSON, the top-level id IS the package ID
+      //       ... see: SmartPkg.getPkgId()
+      pkgIdBeingResolved = smartJSON.id;
+
+      // recursively preresolve our pseudoClass MASTER definitions
+      preresolvePseudoClassMasters(smartJSON.rootDir);
+    }
+
+    // our recursive function that preresolves the pseudoClass MASTERs
+    // UPDATES: preresolvedObjects/preresolvedPseudoClassMasters catalogs
+    function preresolvePseudoClassMasters(jsonPkgTree) {
+
+      // recurse directories (PkgTreeDir)
+      if (jsonPkgTree.smartType === 'PkgTreeDir') {
+        jsonPkgTree.entries.forEach( (jsonSubEntry) => preresolvePseudoClassMasters(jsonSubEntry));
+      }
+
+      // process directory entries (PkgTreeEntry)
+      else if (jsonPkgTree.smartType === 'PkgTreeEntry') {
+
+        // process jsonPkgTree.entry (SmartPallet)
+        const jsonSmartPallet = jsonPkgTree.entry;
+
+        // hydrate our pseudoClass MASTERs early
+        // ... IMPORTANT: this is the reason we are pre-processing!
+        // ... NOTE: pseudoClass MASTERs are never nested,
+        //           so there is NO NEED to drill any further deep!
+        if (jsonSmartPallet.isPseudoClassMaster) {
+
+          // morph into a real object
+          const resolvedObj = hydrateObject(jsonSmartPallet);
+
+          // adorn the .smartClassRef early (normally done by SmartPkg at the end of it's construction)
+          // NOTE: SmartClassRef is NOT serializable (because it is NOT a SmartModel derivation)
+          resolvedObj.smartClassRef = new SmartClassRef(resolvedObj, pkgIdBeingResolved);
+
+          // catalog this pseudoClassMaster
+          // ... optimize hydrateObject() so it doesn't have to resolve preresolved objects twice
+          preresolvedObjects.set(jsonSmartPallet, resolvedObj);
+          // ... supplements resolveClassRefFromSmartJSON() for self-referencing pseudoClasses
+          //     NOTE: for pseudoClassMasters, the id IS the className
+          preresolvedPseudoClassMasters.set(resolvedObj.getId(),  resolvedObj);
+        }
+      }
+
+      // unexpected jsonPkgTree
+      // ... defensive only (should never happen)
+      else {
+        console.warn('SmartModel.fromSmartJSON(smartJson).preresolvePseudoClassMasters(jsonPkgTree) PHASE-1: UNEXPECTED JSON NODE (expecting a PkgTree derivation) ... ', {jsonPkgTree, smartJSON});
+      }
+    }
+
+
+    // ***
+    // *** PHASE-2: Fully hydrate the entire object
+    // *** 
+
+    // top-level invocation, resolving the requested object
+    // ... THIS IS IT (the primary return from SmartModel.fromSmartJSON(smartJSON))
+    return hydrateObject(smartJSON);
+
+    // our recursive function that fully resolves the requested object
+    // RETURNS: the class-based object representing the supplied smartJSON
+    function hydrateObject(smartJSON) {
+
+      // handle objects that have been pre-resolved in PHASE-1
+      // ... strictly an optimization (we COULD re-hydrate it a second time)
+      const preresolvedObject = preresolvedObjects.get(smartJSON);
+      if (preresolvedObject) {
+        return preresolvedObject;
+      }
+
+      // handle NO smartJSON
+      // ... simply pass it through (null, undefined, etc. ... even false is OK :-)
+      else if (!smartJSON) {
+        return smartJSON;
+      }
+
+      // handle arrays ... simply recursively decode all array items
+      else if (Array.isArray(smartJSON)) {
+        return smartJSON.map( item => hydrateObject(item) );
+      }
+
+      // handle JSON objects
+      // ... two types (see below)
+      else if (isPlainObject(smartJSON)) {
+
+        // handle smartObjs (class-based object derivations of SmartModel)
+        if (smartJSON.smartType) {
+
+          // define our namedProps to feed into our constructor (from smartJSON),
+          // recursively resolving each ref into real class-based objects (as needed)
+          const namedProps = {};
+          for (const key in smartJSON) {
+            const val = smartJSON[key];
+
+            // bypass selected keywords that are NOT part of the constructor namedProps
+            if (key === 'smartType' || key === 'smartPkg' || key === 'isPseudoClassMaster') { // type info is for decoding only
+              continue;
+            }
+
+            // recursively resolve each val into a real class-based object
+            namedProps[key] = hydrateObject(val);
+          }
+
+          // determine the classRef (could be a real class or a pseudoClass)
+          const classRef = resolveClassRefFromSmartJSON(smartJSON);
+
+          // instantiate a real class-based object using our value-added constructor
+          // that handles BOTH real classes and pseudoClasses
+          if (!classRef.createSmartObject) {
+            debugger;
+          }
+          return classRef.createSmartObject(namedProps);
+        }
+
+        // handle plain NON class-based objects
+        // ... simply decode each item recursively
+        //     NOTE: This is a hold-over to the OLD SmartPkg.entries (which was a free-formed structure)
+        //           TECHNICALLY, it is NOT needed
+        //           HOWEVER, it doesn't hurt to keep it
+        else {
+          const plainObj = Object.entries(smartJSON).reduce( (accum, [subName, subRef]) => {
+            accum[subName] = hydrateObject(subRef) ;
+            return accum;
+          }, {} );
+          return plainObj;
+        }
+      }
+      
+      // all other types are assumed to be immutable primitives, and simply passed through :-)
+      // ... string, number, etc.
       return smartJSON;
     }
 
-    // handle arrays ... simply recursively decode all array items
-    else if (Array.isArray(smartJSON)) {
-      return smartJSON.map( item => SmartModel.fromSmartJSON(item, extraClassResolver) );
-    }
-
-    // handle JSON objects
-    // ... two types (see below)
-    else if (isPlainObject(smartJSON)) {
-
-      // handle smartObjs (class-based object derivations of SmartModel)
-      if (smartJSON.smartType) {
-
-        // define our namedProps to feed into our constructor (from smartJSON),
-        // recursively resolving each ref into real class-based objects (as needed)
-        const namedProps = {};
-        for (const key in smartJSON) {
-          const val = smartJSON[key];
-
-          // bypass selected keywords that are NOT part of the constructor namedProps
-          if (key === 'smartType' || key === 'smartPkg' || key === 'isPseudoClassMaster') { // type info is for decoding only
-            continue;
-          }
-
-          // recursively resolve each val into a real class-based object
-          namedProps[key] = SmartModel.fromSmartJSON(val, extraClassResolver);
-        }
-
-        // determine the classRef (could be a real class or a pseudoClass)
-        const classRef = getClassRefFromSmartJSON(smartJSON, extraClassResolver);
-
-        // instantiate a real class-based object using our value-added constructor
-        // that handles BOTH real classes and pseudoClasses
-        return classRef.createSmartObject(namedProps);
-      }
-
-      // handle plain NON class-based objects
-      // ... simply decode each item recursively
-      else {
-        const plainObj = Object.entries(smartJSON).reduce( (accum, [subName, subRef]) => {
-          accum[subName] = SmartModel.fromSmartJSON(subRef, extraClassResolver) ;
-          return accum;
-        }, {} );
-        return plainObj;
-      }
-    }
-    
-    // all other types are assumed to be immutable primitives, and simply passed through :-)
-    // ... string, number, etc.
-    // ... ALSO passes through class-based objects that are pre-hydrated
-    //     USED in SmartPkg.fromSmartJSON(smartJSON) with it's 2-phase hydration
-    return smartJSON;
-  }
+  } // end of ... SmartModel.fromSmartJSON(smartJSON)
 
 
   /**
@@ -1553,51 +1700,8 @@ SmartModel.unmangledName = 'SmartModel';
 
 
 //******************************************************************************
-//*** Internal Helper Functions
+//*** Internal Helpers
 //******************************************************************************
-
-/**
- * Return the classRef of the supplied smartJSON.
- *
- * @param {JSON} smartJSON - the smartJSON to interpret.
- *
- * @param {function} [extraClassResolver] - an optional
- * function to supplement the standard class resolver, used in
- * hydrating self-referencing pseudoClasses found in SmartPkg (ex:
- * collage referencing scene instances).
- *
- * @returns {SmartClassRef} the classRef of the supplied smartJSON
- *
- * @throws {Error} an Error is thrown when the class was not resolved.
- */
-function getClassRefFromSmartJSON(smartJSON, extraClassResolver) {
-
-  // glean our pkgId and className
-  const pkgId     = smartJSON.smartPkg;
-  const className = smartJSON.smartType;
-
-  // resolve our classRef
-  let classRef = null;
-
-  // ... use extraClassResolver (when supplied)
-  if (extraClassResolver) {
-    classRef = extraClassResolver(pkgId, className);
-    if (classRef) {
-      return classRef;
-    }
-  }
-
-  // ... use standard pkgManager class resolver
-  try {
-    classRef = pkgManager.getClassRef(pkgId, className);
-  }
-  catch (err) {
-    console.log(`***ERROR*** SmartModel.fromSmartJSON() could not resolve pkgId: ${pkgId} / className: ${className} 
-... smartJSON: ${JSON.stringify(smartJSON, null, 2)}`);
-    throw err.defineAttemptingToMsg('hydrate smartObj (see logs for smartJson)');
-  }
-  return classRef;
-}
 
 /**
  * A static cache of all `createTypeRefHandler()` functions.  These

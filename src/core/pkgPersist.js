@@ -1,3 +1,4 @@
+import SmartModel  from './SmartModel';
 import SmartPkg    from './SmartPkg';
 import pkgManager  from './pkgManager';
 import verify      from '../util/verify';
@@ -94,8 +95,8 @@ export async function openPkg(pkgResourcePath) {
   }
 
   // resolve the json to a SmartPkg
-  // ... this auto adorns .defineAttemptingToMsg()
-  const pkg = SmartPkg.fromSmartJSON(smartJSON);
+  // ... any error is auto adorned with .defineAttemptingToMsg()
+  const pkg = SmartModel.fromSmartJSON(smartJSON); // ??$$ WAS SmartPkg.fromSmartJSON
 
   // retain the pkgResourcePath
   pkg.setPkgResourcePath(fileHandle);
