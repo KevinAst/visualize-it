@@ -2,12 +2,11 @@ import SmartModel        from './SmartModel';
 import SmartClassRef     from './SmartClassRef';
 import PseudoClass       from './PseudoClass';
 import SmartPallet       from './SmartPallet';
+import {ChangeManager}   from '../changeManager';
 import {isString,
         isArray}         from '../util/typeCheck';
 import verify            from '../util/verify';
 import checkUnknownArgs  from '../util/checkUnknownArgs';
-
-// import {changeManager}   from 'features/xtra'; AI: future svelte integration
 
 /**
  * SmartPkg models visualize-it packages.
@@ -129,11 +128,12 @@ export default class SmartPkg extends SmartModel {
       entry.setParent(this);
     });
 
+    // register self (EPkg/SmartPkg) to changeManager
+    // this maintains our this.changeManager linkage
+    new ChangeManager(this);
+
     // reset the baseline crc throughout our containment tree
     this.resetBaseCrc();
-
-    // register self's (SmartPkg) state to changeManager
-//? changeManager.registerEPkg(this);
 
     // console.log(`xx HERE IS A SmartPkg: `, this);
   }

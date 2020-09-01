@@ -2,7 +2,6 @@ import SmartPallet       from './SmartPallet';
 import Scene             from './Scene';
 import verify            from '../util/verify.js';
 import checkUnknownArgs  from '../util/checkUnknownArgs';
-// import {changeManager}   from 'features/xtra'; ?? AI: future svelte integration
 
 /**
  * Collage is a SmartPallet derivation in which multiple Scenes are displayed/visualized.
@@ -104,19 +103,20 @@ export default class Collage extends SmartPallet {
         this.containingKonvaStage.draw();
       }
 
-//?   // apply our change
-//?   changeManager.applyChange({
-//?     changeFn(redo) {
-//?       const scene = syncSmartObject(newLoc);
-//?       redo && syncKonva(newLoc);
-//?       return scene;
-//?     },
-//?     undoFn() {
-//?       const scene = syncSmartObject(oldLoc);
-//?       syncKonva(oldLoc);
-//?       return scene;
-//?     }
-//?   });
+      // apply our change
+      // ... should be able to OMIT `.getPkgEntry()` node (below) BECAUSE this Collage should always be a PkgEntry
+      this.getPkgEntry().changeManager.applyChange({
+        changeFn(redo) {
+          const scene = syncSmartObject(newLoc);
+          redo && syncKonva(newLoc);
+          return scene;
+        },
+        undoFn() {
+          const scene = syncSmartObject(oldLoc);
+          syncKonva(oldLoc);
+          return scene;
+        }
+      });
 
     });
   }

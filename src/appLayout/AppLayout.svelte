@@ -56,8 +56,15 @@
  import {PkgEntryTabs, 
          activeTab}  from '../pkgEntryTabs';
 
+ // maintain our reflexive in-sync label qualifier
+ // ... for PkgEntries, we utilize it's changeManager reflexive store
+ //     NOTE: getTabContext() isA PkgEntry ONLY for TabControllerPkgEntry type
+ //           ... otherwize the .changeManager will be undefined (which works for us)
+ $: changeManager = $activeTab    ? $activeTab.getTabContext().changeManager : null;
+ $: inSyncQual    = changeManager ? $changeManager.inSyncLabelQualifier      : '';
+
  // App Title ... either "Visualize It" or the Pkg Name of the active tab
- $: appTitle = $activeTab ? $activeTab.getTabQualifyingDesc() : 'Visualize It';
+ $: appTitle = $activeTab ? $activeTab.getTabQualifyingDesc() + inSyncQual : 'Visualize It';
 
  // maintain our external bindings (once <AppLayout> is mounted)
  let leftNavComp; // ... maintained by `bind:this` (see below)

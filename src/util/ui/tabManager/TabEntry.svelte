@@ -18,6 +18,15 @@
  const tabId   = tab.getTabId();
  const tabName = tab.getTabName();
 
+ // maintain our reflexive in-sync label qualifier
+ // ... for TabContext of TabControllerPkgEntry, the context is a PkgEntry.
+ //     ... in this case we utilize it's changeManager reflexive store
+ //     ... otherwize the .changeManager will be undefined (which works for us)
+ // ... AI: inappropriate coupling with knowledge of visualize-it app within this generic utility
+ const changeManager = tab.getTabContext().changeManager;
+ $: inSyncQual = changeManager ? $changeManager.inSyncLabelQualifier : '';
+ $: tabLabel   = tabName + inSyncQual;
+
  let contextMenu;
 
  // maintain our dynamic css classes
@@ -36,7 +45,7 @@
      on:contextmenu|preventDefault={() => contextMenu.setOpen(true)}>
 
   <!-- our tab label -->
-  {tabName}
+  {tabLabel}
 
   <!-- close tab control -->
   <Icon name="cancel_presentation"

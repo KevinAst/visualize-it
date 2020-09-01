@@ -10,11 +10,10 @@ import DispMode             from './DispMode';
 import createTypeRefHandler from './createTypeRefHandler';
 import SmartClassRef        from './SmartClassRef';
 
+import {ChangeManager}      from '../changeManager';
+
 import crc                  from '../util/crc';
 import {toast}              from '../util/ui/notify';
-
-// AI: future svelte integration
-// import changeManager     from 'features/common/changeManager/changeManager'; // AI: pull from horses mouth (rather than 'features/xtra') to avoid circular import in core/Scene.js ... ReferenceError: Cannot access 'SmartPallet' before initialization
 
 /**
  * SmartModel is the abstract top-level base class of the visualize-it
@@ -454,22 +453,18 @@ export default class SmartModel {
       handleClass: (classRef) => {},
     });
 
-    // retain self's prior baseline crc
-    const old_baseCrc = this._baseCrc;
-
     // trickle this request down through our containment tree, driven by self's instance properties
     this.encodingPropsForEach( (propName, propValue, defaultValue) => resetBaseCrcRefHandler(propValue) );
 
     // reset self's new baseline crc
-    // ... this is done AFTER our lower-level subordinate objects
+    // ... this is done AFTER our lower-level subordinate objects (in the recursive routine above)
     //     - probably NOT necessary, because normally these CRCs are adjusted from the "ground up"
     //     - HOWEVER, it doesn't hurt (more of a defensive measure)
-    const new_baseCrc = this._baseCrc = this.getCrc();
+    this._baseCrc = this.getCrc();
 
-    // retain baseCrc state changes for ePkgs (when baseCrc changes)
-    const baseCrcChanged = old_baseCrc !== new_baseCrc;
-    if (this.isaEPkg() && baseCrcChanged) {
-//?   changeManager.ePkgChanged(this);
+    // synchronize self's ChangeMonitor reflective store
+    if (this.isaEPkg()) { // ... only for EPkg entries (same as ... `if (this.changeManager) {`)
+      this.changeManager.syncMonitoredChange();
     }
   }
 
@@ -801,8 +796,9 @@ export default class SmartModel {
     // mark self as a PkgEntry
     this._pkgEntry = true;
 
-    // ALSO: maintain changeManager state
-//? changeManager.registerEPkg(this);
+    // ALSO: register self (PkgEntry) to changeManager
+    // this maintains our this.changeManager linkage
+    new ChangeManager(this);
   }
 
   /**
@@ -941,7 +937,7 @@ export default class SmartModel {
    *  - size
    *  - crc
    *
-   * The `trickleUpChange()` when any change occurs
+   * The `trickleUpChange()` should be invoked when any change occurs:
    *  - centrally by `changeManger.applyChange()`
    *  - also during an initial mount (replacing "approximation" size
    *    with "exact" size) ... see: `SmartView.mount()`
@@ -987,16 +983,12 @@ export default class SmartModel {
     //***
 
     // re-calculate self's crc
-    const oldCrc = this._crc;
-    this._crc    = undefined;     // clear the cached _crc
-    const newCrc = this.getCrc(); // ... allowing getCrc() to recalculate it
-
-    // retain crc state changes for ePkgs (when crc changes)
-    const crcChanged = oldCrc !== newCrc;
-    // console.log(`xx trickleUpChange on obj: ${this.diagClassName()} for CRC old: ${oldCrc} / new: ${newCrc} ... isaEPkg(): ${this.isaEPkg()} / crcChanged: ${crcChanged}`);
-    if (this.isaEPkg() && crcChanged) {
-      // console.log(`xx YES YES YES self is an EPkg who's CRC CHANGED ... issuing changeManager.ePkgChanged()`);
-//?   changeManager.ePkgChanged(this);
+    // AI: CONSIDER: making this a method: this.resetCrc();
+    this._crc = undefined;   // clear the cached _crc, allowing getCrc() to recalculate it
+    
+    // synchronize self's ChangeMonitor reflective store
+    if (this.isaEPkg()) { // ... only for EPkg entries (same as ... `if (this.changeManager) {`)
+      this.changeManager.syncMonitoredChange();
     }
 
     //***

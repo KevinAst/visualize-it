@@ -35,8 +35,13 @@
    accumTreeId += ` - ${pkgTree.getName()}`;
  }
  
+ // maintain our reflexive in-sync label qualifier
+ // ... for PkgEntries, we utilize it's changeManager reflexive store
+ const changeManager = pkgTree.isEntry() ? pkgTree.getEntry().changeManager : null;
+ $: inSyncLabelQual = changeManager ? $changeManager.inSyncLabelQualifier : '';
+
  // decompose self's tree node
- const label    = pkgTree.getName();
+ $:    label    = pkgTree.getName() + inSyncLabelQual;
  const children = pkgTree.getChildren();
 
  // maintain expansion state

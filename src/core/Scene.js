@@ -6,7 +6,6 @@ import {ancestorOfLayer,
 import verify               from '../util/verify';
 import checkUnknownArgs     from '../util/checkUnknownArgs';
 import {isNumber, isEqual}  from '../util/typeCheck';
-// import {changeManager}   from 'features/xtra'; AI: future svelte integration
 
 /**
  * Scene is a SmartPallet derivation that models a single Scene to be
@@ -187,7 +186,8 @@ export default class Scene extends SmartPallet {
       }
 
       // apply our change
-      changeManager.applyChange({
+      // ... should be able to OMIT `.getPkgEntry()` node (below) BECAUSE this Scene should always be a PkgEntry
+      this.getPkgEntry().changeManager.applyChange({
         changeFn(redo) {
           const comp = syncSmartObject(newLoc);
           redo && syncKonva(newLoc);
@@ -300,7 +300,8 @@ export default class Scene extends SmartPallet {
         }
 
         // apply our change
-        changeManager.applyChange({
+        // ... should be able to OMIT `.getPkgEntry()` node (below) BECAUSE this Scene should always be a PkgEntry
+        this.getPkgEntry().changeManager.applyChange({
           changeFn(redo) {
             const comp = syncSmartObject(newTrans);
             redo && syncKonva(newTrans);
