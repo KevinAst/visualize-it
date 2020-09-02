@@ -31,7 +31,7 @@
 
    /* general characteristics: */
    box-sizing: border-box; /* VERY KOOL: account for border/padding in specified width/height */
-   padding:    16px;       /* nicety */
+   padding:    4px;        /* nicety */
 
    background-color: #ececec;            /* THEME: $mdc-theme-background NOT (just a little darker) */
    border:           2px solid #26a69a;  /* THEME: $mdc-theme-primary */
