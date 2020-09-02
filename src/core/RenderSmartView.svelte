@@ -28,4 +28,4 @@
 
 <div bind:this={divContainer}
      {...$$restProps}
-     style="backgroundColor: gray; width: {width}; height: {height}; border: 1px solid black;"/>
+     style="background-color: LightGray; width: {width}px; height: {height}px; border: 1px solid black;"/>
