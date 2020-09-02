@@ -1,10 +1,10 @@
 import {writable, get}  from 'svelte/store';
 import UndoRedoMgr      from './UndoRedoMgr';
-import verify           from '../util/verify';
 import applyChange      from './applyChange';
-import checkUnknownArgs from '../util/checkUnknownArgs';
+import verify           from '../../util/verify';
+import checkUnknownArgs from '../../util/checkUnknownArgs';
 import {isEPkg,
-        isFunction}     from '../util/typeCheck';
+        isFunction}     from '../../util/typeCheck';
 
 /**
  * ChangeManager is a reactive custom store that manages and monitors

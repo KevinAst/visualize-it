@@ -2,7 +2,7 @@ import SmartModel        from './SmartModel';
 import SmartClassRef     from './SmartClassRef';
 import PseudoClass       from './PseudoClass';
 import SmartPallet       from './SmartPallet';
-import {ChangeManager}   from '../changeManager';
+import {ChangeManager}   from './changeManager';
 import {isString,
         isArray}         from '../util/typeCheck';
 import verify            from '../util/verify';

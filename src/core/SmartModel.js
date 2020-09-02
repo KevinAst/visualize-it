@@ -10,7 +10,7 @@ import DispMode             from './DispMode';
 import createTypeRefHandler from './createTypeRefHandler';
 import SmartClassRef        from './SmartClassRef';
 
-import {ChangeManager}      from '../changeManager';
+import {ChangeManager}      from './changeManager';
 
 import crc                  from '../util/crc';
 import {toast}              from '../util/ui/notify';

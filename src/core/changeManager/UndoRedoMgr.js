@@ -1,5 +1,5 @@
 import applyChange  from './applyChange';
-import verify       from '../util/verify';
+import verify       from '../../util/verify';
 
 /**
  * UndoRedo is an internal class that manages undo/redo operations for
