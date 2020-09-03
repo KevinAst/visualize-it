@@ -3,11 +3,10 @@
                        // ... depends on import of https://fonts.googleapis.com/icon?family=Material+Icons
  export let size = ''; // optional one-off size override ('1.4rem', '80%', 'small', etc.)
                        // ... NOTE: globally override via "material-icons" css class, ex:
-                       //           <style>
+                       //           KEY: In this context, it is TRUELY GLOBAL, so be careful
                        //             * :global(.material-icons) {
                        //	              font-size: 1.4rem;
                        //             }
-                       //           </style>
 
  // provide optional one-off size override
  let style = size ? `font-size: ${size}` : '';

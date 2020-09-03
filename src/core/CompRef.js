@@ -1,6 +1,7 @@
 import SmartPallet          from './SmartPallet';
 import Scene                from './Scene';
 import SmartClassRef        from './SmartClassRef';
+import DispMode             from './DispMode';
 import {containerSizeFudge} from './konvaUtil';
 
 import verify               from '../util/verify';
@@ -94,6 +95,42 @@ export default class CompRef extends SmartPallet {
     //     - SOOO, technically this method is NEVER executed (again, it would not work with compClassRef)
     //     - CONSIDER: it may be possible to implement the needed methods (locally) when persistence is needed
     return [...super.getEncodingProps(), ...['compClassRef']];
+  }
+
+  /**
+   * Return an indicator as to whether self supports the supplied `dispMode`.
+   *
+   * @param {DispMode} dispMode - the display mode to evaluate.
+   *
+   * @throws {boolean} true: can handle, false: not supported.
+   */
+  canHandleDispMode(dispMode) {
+    return dispMode !== DispMode.edit; // by default, SmartComps cannot be edited
+  }
+
+  /**
+   * Enable self's "view" DispMode (used in top-level objects targeted by a tab).
+   *
+   * NOTE: this is also invoked prior to other display modes, as a neutral reset :-)
+   */
+  enableViewMode() {
+    // clear everything from any of the other DispModes
+    // ... sequentially follow each item in the "other" DispModes
+    // L8TR: do something when edit/animate is supported
+  }
+
+  /**
+   * Enable self's "edit" DispMode (used in top-level objects targeted by a tab).
+   */
+  enableEditMode() {
+    // L8TR: do something when we support edit of DynamicComp
+  }
+
+  /**
+   * Enable self's "animate" DispMode (used in top-level objects targeted by a tab).
+   */
+  enableAnimateMode() {
+    // L8TR: do something when animate is supported
   }
 
   

@@ -3,7 +3,7 @@ import SmartModel        from './SmartModel';
 import verify            from '../util/verify';
 import checkUnknownArgs  from '../util/checkUnknownArgs';
 import {isNumber}        from '../util/typeCheck';
-import DispMode          from './DispMode';
+import DispMode          from './DispMode';  // AI:  suspect now in CompRef only
 
 /**
  * SmartComp is the abstract base class for all visualize-it
@@ -82,34 +82,38 @@ export default class SmartComp extends SmartModel {
    *
    * @throws {boolean} true: can handle, false: not supported.
    */
-  canHandleDispMode(dispMode) {
-    return dispMode !== DispMode.edit; // by default, SmartComps cannot be edited
-  }
+  // AI: suspect now in CompRef only
+  //? canHandleDispMode(dispMode) {
+  //?   return dispMode !== DispMode.edit; // by default, SmartComps cannot be edited
+  //? }
 
   /**
    * Enable self's "view" DispMode (used in top-level objects targeted by a tab).
    *
    * NOTE: this is also invoked prior to other display modes, as a neutral reset :-)
    */
-  enableViewMode() {
-    // clear everything from any of the other DispModes
-    // ... sequentially follow each item in the "other" DispModes
-    // L8TR: do something when edit/animate is supported
-  }
+  // AI: suspect now in CompRef only
+  //? enableViewMode() {
+  //?   // clear everything from any of the other DispModes
+  //?   // ... sequentially follow each item in the "other" DispModes
+  //?   // L8TR: do something when edit/animate is supported
+  //? }
 
   /**
    * Enable self's "edit" DispMode (used in top-level objects targeted by a tab).
    */
-  enableEditMode() {
-    // L8TR: do something when we support edit of DynamicComp
-  }
+  // AI: suspect now in CompRef only
+  //? enableEditMode() {
+  //?   // L8TR: do something when we support edit of DynamicComp
+  //? }
 
   /**
    * Enable self's "animate" DispMode (used in top-level objects targeted by a tab).
    */
-  enableAnimateMode() {
-    // L8TR: do something when animate is supported
-  }
+  // AI: suspect now in CompRef only
+  //? enableAnimateMode() {
+  //?   // L8TR: do something when animate is supported
+  //? }
 
   /**
    * Mount the visuals of this component, binding the graphics to the

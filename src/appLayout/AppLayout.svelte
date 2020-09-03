@@ -51,6 +51,7 @@
  import Drawer, {AppContent} from '@smui/drawer';
  import TopAppBar, {Row, Section, Title as AppBarTitle} from '@smui/top-app-bar';
  import IconButton   from '@smui/icon-button';
+ import ToolBar      from './ToolBar.svelte';
  import {toast}      from '../util/ui/notify';
  import {onMount}    from 'svelte';
  import {PkgEntryTabs, 
@@ -87,17 +88,12 @@
   <!-- top-level page app-bar -->
   <div class="vit-page-app-bar">
   <TopAppBar variant="static" dense color="secondary">
-    <!-- ?? farm this out to some AppBar -->
     <Row>
       <Section>
         <IconButton class="material-icons" title="Toggle Left Nav Package View" on:click={toggleDrawer}>menu</IconButton>
         <AppBarTitle>{appTitle}</AppBarTitle>
       </Section>
-      <Section align="end" toolbar>
-        <IconButton class="material-icons" aria-label="Download">file_download</IconButton>
-        <IconButton class="material-icons" aria-label="Print this page">print</IconButton>
-        <IconButton class="material-icons" aria-label="Bookmark this page">bookmark</IconButton>
-      </Section>
+      <ToolBar/>
     </Row>
   </TopAppBar>
   </div>

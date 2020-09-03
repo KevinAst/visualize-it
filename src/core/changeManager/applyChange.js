@@ -1,3 +1,5 @@
+import {isSmartObject}  from '../../util/typeCheck';
+
 /**
  * Utility function that manages the details of any change (initial,
  * undo, or redo).

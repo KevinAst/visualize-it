@@ -95,7 +95,7 @@ export default class UndoRedoMgr {
   applyRedo() {
     // verify context ... we must have a redo available
     const check = verify.prefix('*** ERROR *** applyRedo(): ');
-    check(this.isUndoAvail(), `ePkgId: '${this.changeManager.ePkg.getEPkgId()}' DOES NOT currently have an "redo" operation available`);
+    check(this.isRedoAvail(), `ePkgId: '${this.changeManager.ePkg.getEPkgId()}' DOES NOT currently have an "redo" operation available`);
 
     // locate the redoFn
     this.cur++;
