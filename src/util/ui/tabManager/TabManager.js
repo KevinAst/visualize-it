@@ -42,9 +42,9 @@ export default class TabManager {
 
     // carve out our object state
     this.ctxName      = ctxName;        // a human interpretable name for self's context
-    this.tabs         = writable([]);   // reactive svlete store representing ALL visualized tabs: TabController[]
-    this.activeTab    = writable(null); // reactive svlete store representing the current active tab: TabController (null for NO tabs)
-    this.previewTab   = writable(null); // reactive svlete store representing the reusable preview tab (if any): TabController (null for none)
+    this.tabs         = writable([]);   // reactive svelte store representing ALL visualized tabs: TabController[]
+    this.activeTab    = writable(null); // reactive svelte store representing the current active tab: TabController (null for NO tabs)
+    this.previewTab   = writable(null); // reactive svelte store representing the reusable preview tab (if any): TabController (null for none)
     this.tabRegistry  = {};             // self's tab registry catalog: ObjectMap[key:tabId, value: TabController]
 
     // bind our methods to self's object, allowing them to be used as isolated functions
@@ -69,20 +69,20 @@ export default class TabManager {
   //****************************************************************************
 
   /**
-   * A reactive svlete store representing ALL visualized tabs.
+   * A reactive svelte store representing ALL visualized tabs.
    * @type {TabController[]}
    */
 //tabs; ... Svelte build cannot currently handle instance properties
 
   /**
-   * A reactive svlete store representing the current active tab (null
+   * A reactive svelte store representing the current active tab (null
    * for NO tabs).
    * @type {TabController}
    */
 //activeTab; ... Svelte build cannot currently handle instance properties
 
   /**
-   * A reactive svlete store representing the reusable preview tab (if
+   * A reactive svelte store representing the reusable preview tab (if
    * any) (null for none)
    * TODO: consider making private
    * @type {TabController}
@@ -201,7 +201,7 @@ export default class TabManager {
 
     // when the requested tab IS currently under our control
     if (_activeTab) {
-      // make the tab perminate (when requested), if it was previously a preview tab
+      // make the tab permanent (when requested), if it was previously a preview tab
       if (_activeTab === _previewTab && !preview) {
         _previewTab = null;
       }
@@ -209,7 +209,7 @@ export default class TabManager {
     }
     // when the requested tab is NOT currently under our control, setup a new tab
     else {
-      // locate tab from our registery
+      // locate tab from our registry
       _activeTab = this.getRegisteredTab(tabId);
       check(_activeTab, `tabId ${tabId} has NOT been pre-registered, so we cannot activate it :-(`);
 
