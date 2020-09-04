@@ -1,6 +1,7 @@
 import TabControllerPkgEntry  from './TabControllerPkgEntry';
 import pkgEntryTabManager     from './pkgEntryTabManager';
 import PkgEntryTabs           from './PkgEntryTabs.svelte';
+import                             './syncModelOnActiveTabChange';
 
 // extract public aspects out of our pkgEntryTabManager
 const {activeTab, preregisterTab, getRegisteredTab, activateTab, closeTab} = pkgEntryTabManager;
