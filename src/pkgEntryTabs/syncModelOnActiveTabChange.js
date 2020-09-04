@@ -3,7 +3,7 @@ import {isPkgEntry}       from '../util/typeCheck';
 import {createLogger}     from '../util/logger';
 
 // our internal diagnostic logger
-const log = createLogger('***DIAG*** ?? pkgEntryTabs/syncModelOnActiveTabChange ... ').enable(); // ?? disable this and remove questions
+const log = createLogger('***DIAG*** pkgEntryTabs/syncModelOnActiveTabChange ... ').disable();
 
 // the current active tab (null for NO tabs) ... a reactive svelte store of TabController
 const {activeTab} = pkgEntryTabManager;
