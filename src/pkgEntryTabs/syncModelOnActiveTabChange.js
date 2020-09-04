@@ -14,7 +14,7 @@ log('monitoring activeTab changes');
 activeTab.subscribe( ($activeTab) => {
 
   // resolve the pkgEntry from our activeTab (if any)
-  // ... rougue value (for NON PkgEntry activeTab)
+  // ... rouge value (for NON PkgEntry activeTab)
   // ... null (when no activeTab)
   const pkgEntry = $activeTab ? $activeTab.getTabContext() : null;
   // ... no-op for NON PkgEntry activeTab
@@ -66,9 +66,9 @@ activeTab.subscribe( ($activeTab) => {
     const view = pkgEntry.getView();
     const containingHtmlElm = view.containingHtmlElm;
     
-    // when view is aleady visable in a tab (i.e. mounted)
+    // when view is already visible in a tab (i.e. mounted)
     if (view.isMounted()) {
-      log(`    view was previously visable ... do: unmount/sync/mount!`);
+      log(`    view was previously visible ... do: unmount/sync/mount!`);
       // unmount the Konva visuals
       view.unmount();
 
@@ -84,7 +84,7 @@ activeTab.subscribe( ($activeTab) => {
     }
     // otherwise (not mounted)
     else {
-      log(`    view was NOT visable ... do: sync only!`);
+      log(`    view was NOT visible ... do: sync only!`);
       // the only thing we have to do is sync our object model
       pkgEntry.syncClassInstances();
     }
