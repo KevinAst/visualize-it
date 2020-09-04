@@ -100,6 +100,14 @@ export default class SmartView extends SmartModel {
    * @param {Size} newSize - the new size ... {width, height}.
    */
   bindSizeChanges(oldSize, newSize) {
+    console.log(`??!! SmartView.bindSizeChanges(oldSize, newSize) id: ${this.id} ... executing`);
+    if (!this.isMounted()) {
+      const msg = `??!! SmartView.bindSizeChanges(oldSize, newSize) id: ${this.id} ... CANNOT function - NOT mounted yet ... is there some race condition?`;
+      console.warn(msg + ' ... params: ', {oldSize, newSize});
+      alert(msg + ' ... see logs');
+      return;
+    }
+
     // sync size to our Konva.Stage
     this.konvaStage.size(newSize);
     this.konvaStage.draw();
@@ -121,6 +129,7 @@ export default class SmartView extends SmartModel {
    * (an HTML Element).
    */
   mount(containingHtmlElm) {
+    console.log(`??!! SmartView.mount(containingHtmlElm) id: ${this.id} ... executing`);
     log(`mounting SmartView id: ${this.id}`);
     
     // retain our containingHtmlElm
