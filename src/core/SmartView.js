@@ -7,7 +7,7 @@ import checkUnknownArgs  from '../util/checkUnknownArgs';
 import {createLogger}    from '../util/logger';
 
 // our internal diagnostic logger (normally disabled, but keep enabled for a while)
-const log = createLogger('***DIAG*** SmartView ... ').enable();
+const log = createLogger('***DIAG*** SmartView ... ').disable(); // !! consider enable()
 
 /**
  * SmartView is a viewport in which pallet(s) are displayed/visualized.
@@ -101,7 +101,7 @@ export default class SmartView extends SmartModel {
    */
   bindSizeChanges(oldSize, newSize) {
     log(`!! bindSizeChanges(oldSize, newSize) id: ${this.id} ... executing`);
-    if (!this.isMounted()) { // temporary check to prevent unexpected error (where this.konvaStage is NOT defined)
+    if (!this.isMounted()) { // !! temporary check to prevent unexpected error (where this.konvaStage is NOT defined)
       const msg = `!! SmartView.bindSizeChanges(oldSize, newSize) id: ${this.id} ... CANNOT function - NOT mounted yet ... is there some race condition?`;
       console.warn(msg + ' ... params: ', {oldSize, newSize});
       alert(msg + ' ... see logs');
@@ -146,6 +146,20 @@ export default class SmartView extends SmartModel {
     
     // mount our pallet into this stage
     this.pallet.mount(this.konvaStage);
+
+    // !! DIAGNOSTIC: must resolve rare/intermittent bug where 
+    //                SmartView.trickleUpChange()/SmartView.bindSizeChanges(oldSize, newSize)
+    //                encounters situation where SmartView is NOT mounted
+    //                when trickling up from pallet (initiated in next code section)
+    //    KEY: Since self has JUST BEEN MOUNTED (above),
+    //         the only way this can happen is if our pallet child 
+    //         does NOT reference self (the same SmartView)
+    if (this.pallet.viewParent !== this) {
+      const msg = `!! SmartView.mount() id: ${this.id} ... POTENTIAL CAUSE OF rare/intermittent SIZE RE-CALC bug (manifest in SmartView.bindSizeChanges()) ` +
+                  `... SmartView's SmartPallet child does NOT reference the same SmartView!!`;
+      console.warn(msg + ' ... params: ', {self_SmartView: this, pallet_viewParent: this.pallet.viewParent});
+      alert(msg + ' ... see logs'); // !! consider replacing with ... debugger
+    }
 
     // regenerate actual size, once mounting is complete
     // ... propagate this request into our pallet
