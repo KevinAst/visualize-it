@@ -4,8 +4,6 @@
  import Icon            from '../util/ui/Icon.svelte';
  import verify          from '../util/verify';
  import {isPkg}         from '../util/typeCheck';
- import {createLogger}  from '../util/logger';
- const  log = createLogger('***DIAG*** <ViewPkg> ... ').disable();
 
  import ViewPkgTree     from './ViewPkgTree.svelte';
 </script>
@@ -20,12 +18,16 @@
  check(pkg,        'pkg is required');
  check(isPkg(pkg), `pkg must be a SmartPkg ... NOT: ${pkg}`);
 
+ // maintain our reflexive in-sync label qualifier
+ const changeManager = pkg.changeManager;
+ $: inSyncQual       = $changeManager.inSyncLabelQualifier;
+
  let menu;
 </script>
 
 <!-- using activated strictly for it's coloring :-) -->
 <Item class="vit-drawer-item" activated>
-  <Text>{log(`rendering pkg: ${pkg.getPkgName()}`) || pkg.getPkgName()}</Text>
+  <Text>{pkg.getPkgName() + inSyncQual}</Text>
   <Meta>
     <Icon name="save"
           title="Save Package"
