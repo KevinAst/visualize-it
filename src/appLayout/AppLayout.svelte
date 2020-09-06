@@ -52,17 +52,21 @@
  import TopAppBar, {Row, Section, Title as AppBarTitle} from '@smui/top-app-bar';
  import IconButton   from '@smui/icon-button';
  import ToolBar      from './ToolBar.svelte';
+ import {isPkgEntry} from '../util/typeCheck';
  import {toast}      from '../util/ui/notify';
  import {onMount}    from 'svelte';
  import {PkgEntryTabs, 
          activeTab}  from '../pkgEntryTabs';
 
  // maintain our reflexive in-sync label qualifier
- // ... for PkgEntries, we utilize it's changeManager reflexive store
- //     NOTE: getTabContext() isA PkgEntry ONLY for TabControllerPkgEntry type
- //           ... otherwize the .changeManager will be undefined (which works for us)
- $: changeManager = $activeTab    ? $activeTab.getTabContext().changeManager : null;
- $: inSyncQual    = changeManager ? $changeManager.inSyncLabelQualifier      : '';
+ // ... because this is a SmartPkg label, 
+ //     we monitor the SmartPkg's changeManager (reflexive store)
+ //     derived from the ActivtTab's PkgEntry
+ // AI: Kinda bad we do "hand stands" for this label qualifier, 
+ //     where the SmartPkg label is abstracted directly in TabController.getTabQualifyingDesc()
+ $: pkgEntry      = $activeTab           ? $activeTab.getTabContext()          : null;
+ $: changeManager = isPkgEntry(pkgEntry) ? pkgEntry.getPkg().changeManager     : null;
+ $: inSyncQual    = changeManager        ? $changeManager.inSyncLabelQualifier : '';
 
  // App Title ... either "Visualize It" or the Pkg Name of the active tab
  $: appTitle = $activeTab ? $activeTab.getTabQualifyingDesc() + inSyncQual : 'Visualize It';
