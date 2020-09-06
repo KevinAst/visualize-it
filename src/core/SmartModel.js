@@ -382,6 +382,14 @@ export default class SmartModel {
   }
 
   /**
+   * Reset self's crc.
+   */
+  resetCrc() {
+    // by clearing _crc (the crc cached result), getCrc() will recalculate it on next request.
+    this._crc = undefined;
+  }
+
+  /**
    * Return an indicator as to whether self is "in sync" with it's
    * base version (i.e. the version saved on disk).
    *
@@ -667,7 +675,7 @@ export default class SmartModel {
 
       // patch in our re-synced newSelf within our containment tree (replacing self)
       // ... both to the "primary" containment tree
-      const parent = this.parent;
+      const parent = this.getParent();
       if (parent) {
         newSelf.parent = parent;               // ... back-reference
         parent.childRefChanged(this, newSelf); // ... forward-reference
@@ -982,9 +990,8 @@ export default class SmartModel {
     //*** manage crc changes
     //***
 
-    // re-calculate self's crc
-    // AI: CONSIDER: making this a method: this.resetCrc();
-    this._crc = undefined;   // clear the cached _crc, allowing getCrc() to recalculate it
+    // reset self's crc
+    this.resetCrc();
     
     // synchronize self's ChangeMonitor reflective store
     if (this.isaEPkg()) { // ... only for EPkg entries (same as ... `if (this.changeManager) {`)
@@ -996,7 +1003,7 @@ export default class SmartModel {
     //***
 
     // both to the "primary" containment tree
-    const parent = this.parent;
+    const parent = this.getParent();
     if (parent) {
       parent.trickleUpChange(sizeChanged);
     }
