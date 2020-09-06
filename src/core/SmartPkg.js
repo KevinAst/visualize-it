@@ -110,6 +110,9 @@ export default class SmartPkg extends SmartModel {
     // retain derivation-specific parameters in self
     this.rootDir = rootDir;
 
+    // maintain our parentage
+    this.rootDir.setParent(this);
+
     // remaining logic
     // ... hook into the standard SmartModel.constructorConfig()
     //     so this will be accomplished in pseudo construction too!
@@ -122,10 +125,8 @@ export default class SmartPkg extends SmartModel {
     this.adornContainedClasses();
 
     // mark our top-level entries as PkgEntries
-    // -and- maintain the SmartPkg parentage of our pkgEntries
     Object.values(this._entryCatalog).forEach( (entry) => {
       entry.markAsPkgEntry(); // ... internally markAsPkgEntry() will register them to changeManager
-      entry.setParent(this);
     });
 
     // register self (EPkg/SmartPkg) to changeManager
@@ -431,6 +432,9 @@ export class PkgTreeDir extends PkgTree { // ... a directory of PkgTree entries 
     // retain parameters in self
     this.name    = name;
     this.entries = entries;
+
+    // maintain our parentage
+    this.entries.forEach( (pkgTree) => pkgTree.setParent(this) );
   }
 
   // support persistance by encoding needed props of self
@@ -493,6 +497,9 @@ export class PkgTreeEntry extends PkgTree {
 
     // retain parameters in self
     this.entry = entry;
+
+    // maintain our parentage
+    this.entry.setParent(this);
   }
 
   // support persistance by encoding needed props of self
