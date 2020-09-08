@@ -47,6 +47,12 @@ export default class Collage extends SmartPallet {
     return [...super.getEncodingProps(), ...['scenes']];
   }
 
+  /**
+   * Promote the material icon "name" representing self's OO classification.
+   */
+  getIconName() {
+    return 'filter'; // ALSO CONSIDER: dynamic_feed
+  }
   
   /**
    * Enable self's "view" DispMode (used in top-level objects targeted by a tab).

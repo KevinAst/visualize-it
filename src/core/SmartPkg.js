@@ -145,6 +145,13 @@ export default class SmartPkg extends SmartModel {
   }
 
   /**
+   * Promote the material icon "name" representing self's OO classification.
+   */
+  getIconName() {
+    return 'bubble_chart';
+  }
+
+  /**
    * Return self's package ID (ex: 'com.astx.acme').
    */
   getPkgId() {

@@ -27,7 +27,8 @@
  //     ... in this case we utilize it's changeManager reflexive store
  //     ... otherwize the .changeManager will be undefined (which works for us)
  // ... AI: inappropriate coupling with knowledge of visualize-it app within this generic utility
- const changeManager = tab.getTabContext().changeManager;
+ const tabContext    = tab.getTabContext();
+ const changeManager = tabContext.changeManager;
  $: inSyncQual = changeManager ? $changeManager.inSyncLabelQualifier : '';
  $: tabLabel   = tabName + inSyncQual;
 
@@ -48,7 +49,11 @@
      on:dblclick={() => activateTab(tabId, /*preview*/false)}
      on:contextmenu|preventDefault={() => contextMenu.setOpen(true)}>
 
-  <!-- our tab label -->
+  <!-- classification icon -->
+  <Icon name="{tabContext.getIconName()}"
+        size="1.0rem"/>
+
+  <!-- tab label -->
   {tabLabel}
 
   <!-- close tab control -->

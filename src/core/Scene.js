@@ -119,6 +119,13 @@ export default class Scene extends SmartPallet {
 
     return [...super.getEncodingProps(), ...encodingProps];
   }      
+
+  /**
+   * Promote the material icon "name" representing self's OO classification.
+   */
+  getIconName() {
+    return 'photo'; // ALSO CONSIDER: crop_original
+  }
   
   /**
    * Enable self's "view" DispMode (used in top-level objects targeted by a tab).

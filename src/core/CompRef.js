@@ -98,6 +98,13 @@ export default class CompRef extends SmartPallet {
   }
 
   /**
+   * Promote the material icon "name" representing self's OO classification.
+   */
+  getIconName() {
+    return 'donut_small';
+  }
+
+  /**
    * Return an indicator as to whether self supports the supplied `dispMode`.
    *
    * @param {DispMode} dispMode - the display mode to evaluate.

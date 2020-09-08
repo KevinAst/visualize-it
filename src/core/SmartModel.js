@@ -90,6 +90,15 @@ export default class SmartModel {
   }
 
   /**
+   * Promote the material icon "name" representing self's OO classification.
+   *
+   * @returns {string} the material icon name for self.
+   */
+  getIconName() {
+    return 'not_listed_location'; // ... a big question mark
+  }
+
+  /**
    * Return an indicator as to whether self is a SmartObject (a
    * SmartModel derivation).
    *
