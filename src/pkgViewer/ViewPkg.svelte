@@ -27,6 +27,8 @@
 
 <!-- using activated strictly for it's coloring :-) -->
 <Item class="vit-drawer-item" activated>
+  <Icon name="{pkg.getIconName()}"
+        size="1.0rem"/>
   <Text>{pkg.getPkgName() + inSyncQual}</Text>
   <Meta>
     <Icon name="save"

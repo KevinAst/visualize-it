@@ -12,6 +12,7 @@
          activateTab}        from '../pkgEntryTabs';
  import {isPkg}              from '../util/typeCheck';
  import genDualClickHandler  from '../util/ui/genDualClickHandler';
+ import Icon                 from '../util/ui/Icon.svelte';
  import {slide}              from 'svelte/transition'; // visually animated transitions for tree node expansion/contraction
  import Ripple               from '@smui/ripple';
 
@@ -91,6 +92,10 @@
         <span on:click={displayEntry}
               class="mdc-typography--subtitle2">
           <span class="no-arrow-spacer"/>
+
+          <Icon name="{pkgTree.getEntry().getIconName()}"
+                size="1.0rem"/>
+
           {label}
         </span>
       {/if}
