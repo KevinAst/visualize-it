@@ -99,6 +99,23 @@ export default class TabController {
   }
 
   /**
+   * Optionally return an AppContextMenuComp that supplements the Tab's
+   * standard context menu.
+   *
+   * By default, no AppContextMenuComp is provided (i.e. returns null).
+   *
+   * @returns {AppContextMenuComp}} a Comp class that supplements the
+   * Tab's standard context menu (null for none).  
+   * 
+   * API: AppContextMenuComp(tab)
+   *      The component should accept a tab parameter (TabController)
+   *      for which it is operating on behalf of.
+   */
+  getAppContextMenu() {
+    return null;
+  }
+
+  /**
    * Return self's "real" class name, used for diagnostic purposes
    * (such as logs and errors).  The name is unmangled (even in
    * production builds).

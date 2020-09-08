@@ -18,6 +18,10 @@
  const tabId   = tab.getTabId();
  const tabName = tab.getTabName();
 
+ // the app-specific suplement to our popup context menu
+ // ... if any (null for none)
+ const AppContextMenu = tab.getAppContextMenu();
+
  // maintain our reflexive in-sync label qualifier
  // ... for TabContext of TabControllerPkgEntry, the context is a PkgEntry.
  //     ... in this case we utilize it's changeManager reflexive store
@@ -60,7 +64,10 @@
 <span>
   <Menu bind:this={contextMenu}>
     <List class="mdc-typography--subtitle2">
-      <Item on:SMUI:action={() => closeTab(tabId)}><Text>Close</Text></Item>
+
+      <svelte:component this={AppContextMenu} tab={tab}/>
+
+      <Item on:SMUI:action={() => closeTab(tabId)}><Text>Close Tab</Text></Item>
       <Item on:SMUI:action={() => closeOtherTabs(tabId)}><Text>Close Others</Text></Item>
       <Item on:SMUI:action={() => closeTabsToRight(tabId)}><Text>Close to the Right</Text></Item>
       <Item on:SMUI:action={() => closeAllTabs()}><Text>Close All</Text></Item>

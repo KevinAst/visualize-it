@@ -6,6 +6,7 @@ import {isPkgEntry}     from '../util/typeCheck';
 import SmartView        from '../core/SmartView';
 import RenderSmartView  from '../core/RenderSmartView.svelte'
 
+import PkgEntryTabsContextMenu  from './PkgEntryTabsContextMenu.svelte'
 
 /**
  * TabControllerPkgEntry is a concrete class that manages PkgEntry tabs
@@ -57,6 +58,14 @@ export default class TabControllerPkgEntry extends TabController {
    */
   getTabPanel() {
     return {Comp: RenderSmartView, props: {view: this.view}};
+  }
+
+  /**
+   * Expose our supplement to the Tab's popup context menu.
+   * By default, no AppContextMenuComp is provided (i.e. returns null).
+   */
+  getAppContextMenu() {
+    return PkgEntryTabsContextMenu; // <PkgEntryTabsContextMenu tab={tabContext}/>
   }
 
 }

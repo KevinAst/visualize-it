@@ -24,6 +24,8 @@ import {isEPkg,
  * 
  *    For details, please refer to the method JavaDocs (below)
  *    ```js
+ *    + changeDispMode(dispMode): void        - change self's PkgEntry to the supplied dispMode (view/edit/animate)
+ *
  *    + syncMonitoredChange(): void           - synchronize self's ChangeMonitor (store value), 
  *                                              due to a change that has just been made to self's ePkg.
  *
@@ -41,6 +43,8 @@ import {isEPkg,
  *    subscription or the auto-subscription `$` prefix):
  *
  *    ```js
+ *    + dispMode: DispMode enum - the current pkgEntry's DispMode (view/edit/animate)
+ *
  *    + inSync: boolean - is self's ePkg "in sync" with it's base version (saved on disk)
  *    + inSyncLabelQualifier: string - '': when inSync, ' **' when outOfSync
  *
@@ -89,6 +93,8 @@ export default class ChangeManager {
     
     // create our underlying base writable store
     this.baseStore = writable({ // *** initial ChangeMonitor store value ***
+      dispMode: this.ePkg.getDispMode(),
+
       inSync:               this.ePkg.isInSync(),
       inSyncLabelQualifier: genInSyncLabelQualifier(this.ePkg.isInSync()),
 
@@ -100,6 +106,33 @@ export default class ChangeManager {
     this.subscribe = this.baseStore.subscribe;
   }
 
+  /**
+   * Change self's PkgEntry to the supplied dispMode (view/edit/animate).
+   *
+   * NOTE: Technically, only PkgEntry objects utilize DispMode, however 
+   *       all SmartObjects have a dispMode (a bit of an overkill).
+   *
+   * @param {DispMode} dispMode - the display mode to set.
+   */
+  changeDispMode(dispMode) {
+    // validate parameters
+    // ... this is indirectly accomplished in the pkgEntry.setDispMode() invocation (below)
+
+    const pkgEntry = this.ePkg;
+
+    // apply the change (only when out-of-sync)
+    // NOTE: There are cases where we want to issue this
+    //       `pkgEntry.setDispMode()` EVEN when it has NOT changed
+    //       ... see: src/pkgEntryTabs/syncModelOnActiveTabChange.js
+    //       THIS is OK to do this, as we will NOT reflex unless it has
+    //       actually changed :-)
+    //       ... see: this.syncMonitoredChange()
+    // console.log(`xx ChangeManager.changeDispMode(${dispMode.enumKey}) ... applying change`);
+    pkgEntry.setDispMode(dispMode);
+
+    // update our reflexive monitor
+    this.syncMonitoredChange();
+  }
 
   /**
    * Synchronize self's ChangeMonitor (store value), due to a change
@@ -108,6 +141,7 @@ export default class ChangeManager {
   syncMonitoredChange() {
 
     // resolve the latest (most current) state that we are tracking
+    const dispMode  = this.ePkg.getDispMode();
     const inSync    = this.ePkg.isInSync();
     const inSyncLabelQualifier = genInSyncLabelQualifier(inSync); // ... derived from inSync
     const undoAvail = this.undoRedoMgr.isUndoAvail();
@@ -124,10 +158,11 @@ export default class ChangeManager {
     //           ONLY WAY AROUND THIS is to do a prelim fetch (see get() above)
     //             1. potential concurrent change conflicts (min chance of happening)
     //             2. a bit more overhead
-    if (inSync    !== monitorState.inSync    ||
+    if (dispMode  !== monitorState.dispMode  ||
+        inSync    !== monitorState.inSync    ||
         undoAvail !== monitorState.undoAvail ||
         redoAvail !== monitorState.redoAvail) {
-      this.baseStore.update( (state) => ({...state, inSync, inSyncLabelQualifier, undoAvail, redoAvail}) );
+      this.baseStore.update( (state) => ({...state, dispMode, inSync, inSyncLabelQualifier, undoAvail, redoAvail}) );
     }
   }
 

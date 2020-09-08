@@ -1028,9 +1028,15 @@ export default class SmartModel {
   /**
    * Set self's dispMode (maintained in top-level PkgEntry objects - visible in LeftNav and Tabs).
    *
+   * NOTE: This method should be considered to be private.  Instead,
+   *       use `changeManager.changeDispMode(dispMode)` in order to
+   *       insure the proper reflection is applied.
+   *
    * @param {DispMode} dispMode - the display mode to set.
    *
    * @throws {Error} an Error is thrown if the supplied dispMode is NOT supported.
+   *
+   * @private
    */
   setDispMode(dispMode) {
 

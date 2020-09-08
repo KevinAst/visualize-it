@@ -41,7 +41,7 @@ activeTab.subscribe( ($activeTab) => {
     //       HACK: timeout postponement for mount to occur
     setTimeout( () => {
       log(`activateTab: ${pkgEntry.getName()} - a NEW TAB CREATED ... SYNC Konva DispMode to match our object model!`);
-      pkgEntry.setDispMode( pkgEntry.getDispMode() );
+      pkgEntry.changeManager.changeDispMode( pkgEntry.getDispMode() );
     }, 10);
   }
 
@@ -80,7 +80,7 @@ activeTab.subscribe( ($activeTab) => {
 
       // re-establish our pkgEntry DispMode
       // ... this resets all our event handlers given the re-mount :-)
-      pkgEntry.setDispMode( pkgEntry.getDispMode() );
+      pkgEntry.changeManager.changeDispMode( pkgEntry.getDispMode() );
     }
     // otherwise (not mounted)
     else {

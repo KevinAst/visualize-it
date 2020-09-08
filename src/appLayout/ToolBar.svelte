@@ -11,14 +11,14 @@
  //               which is OK in this context (see sub-comments below)
  $: pkgEntry      = $activeTab    ? $activeTab.getTabContext() : null; // rougue value (when NON PkgEntry activeTab), null (when no activeTab)
  $: changeManager = pkgEntry      ? pkgEntry.changeManager     : null; // undefined (when NOT a PkgEntry type),       null (when no activeTab)
- $: dispMode      = changeManager ? pkgEntry.getDispMode()     : null;
+ $: dispMode      = changeManager ? $changeManager.dispMode    : null;
  $: undoAvail     = changeManager ? $changeManager.undoAvail   : false;
  $: redoAvail     = changeManager ? $changeManager.redoAvail   : false;
 
  $: selectedDispMode = dispMode;
  function handleDispModeChange() {
    // console.log(`xx handleDispModeChange(): ${selectedDispMode.enumKey}`);
-   pkgEntry.setDispMode(selectedDispMode);
+   changeManager.changeDispMode(selectedDispMode);
  }
  // AI: handleDispModeChange() reflexivity is WORKING correctly, however I'm not exactly sure how ... hmmmm
  //     ... all reflexivity is triggered as changed (activate logs below and see for yourself)
