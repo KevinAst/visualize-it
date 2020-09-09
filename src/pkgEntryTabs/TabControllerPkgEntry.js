@@ -31,7 +31,14 @@ export default class TabControllerPkgEntry extends TabController {
 
     // retain state specific to this derivation
     this.pkgEntry = pkgEntry;
-    this.view     = new SmartView({id: `view-${this.getTabId()}`, name: `view-${this.getTabName()}`, pallet: pkgEntry});
+    // ... re-use previously created SmartView instances
+    //     - would happen when multiple/duplicate registrations occur to a TabManager
+    //       ... in current code this does NOT happen (so this is defensive only)
+    //     - we cannot create duplicate SmartView objects (per pkgEntry)
+    //       ... because pkgEntry.viewParent will only reference the latest SmartView
+    //       ... causing integrity issues
+    //           ex: smartObject.trickleUpChange() CATASTROPHIC ERROR when it hits a rogue SmartView that is NOT mounted
+    this.view = pkgEntry.viewParent || new SmartView({id: `view-${this.getTabId()}`, name: `view-${this.getTabName()}`, pallet: pkgEntry});
   }
 
   /**

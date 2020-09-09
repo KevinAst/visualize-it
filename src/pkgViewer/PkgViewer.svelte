@@ -58,6 +58,8 @@
  import {isPkg}            from '../util/typeCheck';
  import {toast}            from '../util/ui/notify';
  import discloseError      from '../util/discloseError';
+ import {TabControllerPkgEntry,
+         preregisterTab}   from '../pkgEntryTabs';
 
  // the packages viewed by self: SmartPkg[]
  const pkgs = [];
@@ -65,14 +67,33 @@
  // add supplied pkg (SmartPkg) to self's view
  function viewPkg$comp(pkg) {
    // validate supplied parameters
-   const check = verify.prefix('viewPkg$comp(pkg) parameter violation: ');
+   const check = verify.prefix('viewPkg(pkg) parameter violation: ');
    // ... pkg
    check(pkg,        'pkg is required');
    check(isPkg(pkg), 'pkg must be a SmartPkg');
+   const dupPkg = pkgs.find( (p) => p.getPkgId() === pkg.getPkgId() );
+   check(!dupPkg, `pkg ${pkg.getPkgId()} has already been registered ... cannot view it multiple times`);
 
    // register the new pkg to self
    pkgs.push(pkg);
    pkgs = pkgs; // ... make responsive to Svelte
+
+   // pre-register pkg entries to our tabManager
+   preregisterTabs(pkg.rootDir);
+   // ... recursive routine kept here to be close (technically does NOT need to be an inner function)
+   function preregisterTabs(treeNode) {
+     // for PkgTreeDirs, recurse into each node
+     if (treeNode.isDir()) {
+       const dirEntries = treeNode.getChildren();
+       dirEntries.forEach( (subNode) => preregisterTabs(subNode) );
+     }
+     // for PkgTreeEntries, pre-register it's pkgEntry to our tabManager
+     else if (treeNode.isEntry()) {
+       const pkgEntry      = treeNode.getEntry(); // ... a SmartPallet (Scene/Collage/CompRef)
+       const tabController = new TabControllerPkgEntry(pkgEntry);
+       preregisterTab(tabController);
+     }
+   }
  }
 
  // maintain our external bindings (when <PkgViewer> is mounted)

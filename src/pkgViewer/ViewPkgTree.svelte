@@ -7,8 +7,7 @@
 </script>
 
 <script>
- import {TabControllerPkgEntry, 
-         preregisterTab,
+ import {getRegisteredTab,
          activateTab}        from '../pkgEntryTabs';
  import {isPkg}              from '../util/typeCheck';
  import genDualClickHandler  from '../util/ui/genDualClickHandler';
@@ -38,8 +37,9 @@
  
  // maintain our reflexive in-sync label qualifier
  // ... for PkgEntries, we utilize it's changeManager reflexive store
- const changeManager = pkgTree.isEntry() ? pkgTree.getEntry().changeManager : null;
- $: inSyncLabelQual = changeManager ? $changeManager.inSyncLabelQualifier : '';
+ const pkgEntry      = pkgTree.isEntry() ? pkgTree.getEntry()                  : null;
+ const changeManager = pkgEntry          ? pkgEntry.changeManager              : null;
+ $: inSyncLabelQual  = changeManager     ? $changeManager.inSyncLabelQualifier : '';
 
  // decompose self's tree node
  $:    label    = pkgTree.getName() + inSyncLabelQual;
@@ -54,12 +54,11 @@
    expanded = _expansionState[accumTreeId] = !expanded;
  };
 
- // pre-register our pkgEntries for tabs display
- let tabController = null;
- if (pkgTree.isEntry()) {
-   tabController = new TabControllerPkgEntry(pkgTree.getEntry());
-   preregisterTab(tabController);
- }
+ // locate the tabController pre-registered to this pkgEntry
+ // ... preregisterTab() occurs in PkgViewer.svelte
+ // ... NOTE: pkgEntry.getPkgEntryId() is the the tabId of a TabControllerPkgEntry object
+ const tabController = pkgEntry ? getRegisteredTab(pkgEntry.getPkgEntryId()) : null;
+
  const displayEntry = genDualClickHandler(
    () => activateTab(tabController.getTabId(), /*preview*/true),  // single-click
    () => activateTab(tabController.getTabId(), /*preview*/false), // double-click
@@ -93,7 +92,7 @@
               class="mdc-typography--subtitle2">
           <span class="no-arrow-spacer"/>
 
-          <Icon name="{pkgTree.getEntry().getIconName()}"
+          <Icon name="{pkgEntry.getIconName()}"
                 size="1.0rem"/>
 
           {label}
