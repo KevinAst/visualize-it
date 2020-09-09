@@ -31,6 +31,6 @@ import Tabs           from './Tabs.svelte';
  */
 export {
   TabController, // the abstract base class through which app-specific "tab payload types" are supported (via derivation)
-  TabManager,    // the dynamic tabs "manager" for a given context/visualizeation, containing both state (Svelte stores) and API 
+  TabManager,    // the dynamic tabs "manager" for a given context/visualization, containing both state (Svelte stores) and API 
   Tabs,          // the primary UI for the dynamic tabs (both the tabs and their content)
 };
