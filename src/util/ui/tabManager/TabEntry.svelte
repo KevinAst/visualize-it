@@ -1,3 +1,8 @@
+<script context="module">
+ const CLOSE = 'cancel_presentation';
+ const STALE = 'fiber_manual_record';
+</script>
+
 <script>
  import Icon from '../Icon.svelte';
  import Menu                          from '@smui/menu';
@@ -22,22 +27,55 @@
  // ... if any (null for none)
  const AppContextMenu = tab.getAppContextMenu();
 
- // maintain our reflexive in-sync label qualifier
- // ... for TabContext of TabControllerPkgEntry, the context is a PkgEntry.
- //     ... in this case we utilize it's changeManager reflexive store
- //     ... otherwize the .changeManager will be undefined (which works for us)
- // ... AI: inappropriate coupling with knowledge of visualize-it app within this generic utility
- const tabContext    = tab.getTabContext();
- const changeManager = tabContext.changeManager;
- $: inSyncQual = changeManager ? $changeManager.inSyncLabelQualifier : '';
- $: tabLabel   = tabName + inSyncQual;
-
- let contextMenu;
-
  // maintain our dynamic css classes
  $: classes = `tab-entry mdc-typography--subtitle2
                ${tab===$activeTab  ? 'active-tab'  : ''}
                ${tab===$previewTab ? 'preview-tab' : ''}`;
+
+ // maintain our closeIcon -and- staleness reflexive state
+ // ... for TabContext of TabControllerPkgEntry, the context is a PkgEntry.
+ //     ... in this case we utilize it's changeManager reflexive store
+ //     ... otherwize the .changeManager will be undefined
+ // ... AI: inappropriate coupling with knowledge of visualize-it app within this generic utility
+ const tabContext    = tab.getTabContext();
+ const changeManager = tabContext.changeManager; // undefined if tabContext is NOT PkgEntry
+
+ let closeIconName;
+ let closeIconVisible;
+ let tabHover       = false;
+ let closeIconHover = false;
+ let closeStyle     = '';
+ $: {
+   // by default, our close icon is only visible on active tabs
+   closeIconName    = CLOSE;
+   closeIconVisible = tab===$activeTab;
+   
+   // override: when resource is stale (i.e. needs saving) we replace our close icon with a STALE
+   //           and display it AT ALL TIMES
+   if (changeManager && !$changeManager.inSync) {
+     closeIconName    = STALE;
+     closeIconVisible = true;
+   }
+
+   // when mouse is hovered over our tab, show the closeIcon
+   if (tabHover) {
+     closeIconVisible = true;
+   }
+
+   // when mouse is hovered over the close icon, morph it into the "true close"
+   if (closeIconHover) {
+     closeIconName    = CLOSE;
+     closeIconVisible = true;
+   }
+
+   // maintain our close visibility via CSS styling
+   closeStyle = closeIconVisible ? '' : 'visibility: hidden;';
+   // console.log(`xx TabEntry (${tabId}) reflexing ... closeIconName: '${closeIconName}' ... closeIconVisible: ${closeIconVisible} ... closeStyle: "${closeStyle}"`);
+ }
+
+ // our popup contextMenu binding
+ let contextMenu;
+
 </script>
 
 
@@ -45,8 +83,10 @@
      double registration of click/dblclick WORKS (in this case),
      and is more responsive! -->
 <div class={classes}
-     on:click=   {() => activateTab(tabId, /*preview*/true)}
-     on:dblclick={() => activateTab(tabId, /*preview*/false)}
+     on:mouseover= {() => tabHover=true}
+     on:mouseout=  {() => tabHover=false}
+     on:click=     {() => activateTab(tabId, /*preview*/true)}
+     on:dblclick=  {() => activateTab(tabId, /*preview*/false)}
      on:contextmenu|preventDefault={() => contextMenu.setOpen(true)}>
 
   <!-- classification icon -->
@@ -54,13 +94,17 @@
         size="1.0rem"/>
 
   <!-- tab label -->
-  {tabLabel}
+  {tabName}
 
   <!-- close tab control -->
-  <Icon name="cancel_presentation"
-        size="1.0rem"
-        title="Close Tab"
-        on:click={(e)=> { e.stopPropagation(); closeTab(tabId); }}/>
+  <span on:mouseover= {() => closeIconHover=true}
+        on:mouseout=  {() => closeIconHover=false}>
+    <Icon name={closeIconName}
+          size="1.0rem"
+          style={closeStyle}
+          title="Close Tab"
+          on:click={(e)=> { e.stopPropagation(); closeTab(tabId); }}/>
+  </span>
 
 </div>
 
