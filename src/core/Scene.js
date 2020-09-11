@@ -237,7 +237,7 @@ export default class Scene extends SmartPallet {
       // create/manage new transformer
       var transformer = new Konva.Transformer();
       this.konvaSceneLayer.add(transformer);
-      transformer.attachTo(konvaComp);
+      transformer.nodes([konvaComp]);
       this.konvaSceneLayer.draw();
 
       // sync Konva changes to Object Model
