@@ -20,16 +20,22 @@
 
  // maintain our reflexive in-sync label qualifier
  const changeManager = pkg.changeManager;
- $: inSyncQual       = $changeManager.inSyncLabelQualifier;
+ $: inSyncIcon       = $changeManager.inSyncIcon();
+ $: pkgNameToolTip   = `Package: ${pkg.getPkgId()}` + ($changeManager.inSync ? '' : ' (modified - needs to be saved)');
 
  let menu;
 </script>
 
 <!-- using activated strictly for it's coloring :-) -->
-<Item class="vit-drawer-item" activated>
+<Item class="vit-drawer-item" activated title={pkgNameToolTip}>
   <Icon name="{pkg.getIconName()}"
         size="1.0rem"/>
-  <Text>{pkg.getPkgName() + inSyncQual}</Text>
+  <Text>
+    {pkg.getPkgName()}
+    <Icon name={inSyncIcon}
+          title="Package has been modified (needs to be saved) NOT SHOWING (qualified in pkgNameToolTip)"
+          size="1.0rem"/>
+  </Text>
   <Meta>
     <Icon name="save"
           title="Save Package"

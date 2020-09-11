@@ -46,7 +46,7 @@ import {isEPkg,
  *    + dispMode: DispMode enum - the current pkgEntry's DispMode (view/edit/animate)
  *
  *    + inSync: boolean - is self's ePkg "in sync" with it's base version (saved on disk)
- *    + inSyncLabelQualifier: string - '': when inSync, ' **' when outOfSync
+ *    + inSyncIcon(): string - name of icon to qualify "in sync" status ('NONE' for in-sync - can be fed directly into <Icon>)
  *
  *    + undoAvail: boolean - are undo operations available to self's ePkg
  *    + redoAvail: boolean - are redo operations available to self's ePkg
@@ -96,7 +96,9 @@ export default class ChangeManager {
       dispMode: this.ePkg.getDispMode(),
 
       inSync:               this.ePkg.isInSync(),
-      inSyncLabelQualifier: genInSyncLabelQualifier(this.ePkg.isInSync()),
+      inSyncIcon() {
+        return this.inSync ? 'NONE' : 'fiber_manual_record'; // a circle :-)
+      },
 
       undoAvail: this.undoRedoMgr.isUndoAvail(),
       redoAvail: this.undoRedoMgr.isRedoAvail(),
@@ -143,7 +145,6 @@ export default class ChangeManager {
     // resolve the latest (most current) state that we are tracking
     const dispMode  = this.ePkg.getDispMode();
     const inSync    = this.ePkg.isInSync();
-    const inSyncLabelQualifier = genInSyncLabelQualifier(inSync); // ... derived from inSync
     const undoAvail = this.undoRedoMgr.isUndoAvail();
     const redoAvail = this.undoRedoMgr.isRedoAvail();
 
@@ -162,7 +163,7 @@ export default class ChangeManager {
         inSync    !== monitorState.inSync    ||
         undoAvail !== monitorState.undoAvail ||
         redoAvail !== monitorState.redoAvail) {
-      this.baseStore.update( (state) => ({...state, dispMode, inSync, inSyncLabelQualifier, undoAvail, redoAvail}) );
+      this.baseStore.update( (state) => ({...state, dispMode, inSync, undoAvail, redoAvail}) );
     }
   }
 
@@ -267,10 +268,3 @@ export default class ChangeManager {
   }
 
 }
-
-
-//***
-//*** common helper functions
-//***
-
-const genInSyncLabelQualifier = (inSync) => inSync ? '' : ' **';

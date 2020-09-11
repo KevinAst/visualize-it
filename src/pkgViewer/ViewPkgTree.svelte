@@ -39,10 +39,19 @@
  // ... for PkgEntries, we utilize it's changeManager reflexive store
  const pkgEntry      = pkgTree.isEntry() ? pkgTree.getEntry()                  : null;
  const changeManager = pkgEntry          ? pkgEntry.changeManager              : null;
- $: inSyncLabelQual  = changeManager     ? $changeManager.inSyncLabelQualifier : '';
+ let inSyncIcon;
+ let pkgEntryToolTip;
+ $: if (changeManager && !$changeManager.inSync) {
+   inSyncIcon       = $changeManager.inSyncIcon();
+   pkgEntryToolTip += ' (modified - Package needs to be saved)';
+ }
+ else {
+   inSyncIcon      = 'NONE';
+   pkgEntryToolTip = pkgEntry ? `Package Entry: ${pkgEntry.getEPkgId()}` : '';
+ }
 
  // decompose self's tree node
- $:    label    = pkgTree.getName() + inSyncLabelQual;
+ $:    label    = pkgTree.getName();
  const children = pkgTree.getChildren();
 
  // maintain expansion state
@@ -89,6 +98,7 @@
         {/if}
       {:else}
         <span on:click={displayEntry}
+              title={pkgEntryToolTip}
               class="mdc-typography--subtitle2">
           <span class="no-arrow-spacer"/>
 
@@ -96,6 +106,10 @@
                 size="1.0rem"/>
 
           {label}
+
+          <Icon name={inSyncIcon}
+                size="1.0rem"/>
+
         </span>
       {/if}
     </li>

@@ -54,22 +54,23 @@
  import ToolBar      from './ToolBar.svelte';
  import {isPkgEntry} from '../util/typeCheck';
  import {toast}      from '../util/ui/notify';
+ import Icon         from '../util/ui/Icon.svelte';
  import {onMount}    from 'svelte';
  import {PkgEntryTabs, 
          activeTab}  from '../pkgEntryTabs';
 
- // maintain our reflexive in-sync label qualifier
- // ... because this is a SmartPkg label, 
- //     we monitor the SmartPkg's changeManager (reflexive store)
+ // maintain our reflexive App Title ... either "Visualize It" or the Pkg Name of the active tab
+ $: pkgEntry        = $activeTab           ? $activeTab.getTabContext()                 : null;
+ $: appTitle        = $activeTab           ? $activeTab.getTabQualifyingDesc()          : 'Visualize It';
+ $: titleToolTip    = isPkgEntry(pkgEntry) ? `Package: ${pkgEntry.getPkg().getPkgId()}` : '';
+ $: titleIcon       = isPkgEntry(pkgEntry) ? pkgEntry.getPkg().getIconName()            : 'NONE';
+ // ... for in-sync qualifiers, we monitor the SmartPkg's changeManager (reflexive store)
  //     derived from the ActivtTab's PkgEntry
- // AI: Kinda bad we do "hand stands" for this label qualifier, 
- //     where the SmartPkg label is abstracted directly in TabController.getTabQualifyingDesc()
- $: pkgEntry      = $activeTab           ? $activeTab.getTabContext()          : null;
- $: changeManager = isPkgEntry(pkgEntry) ? pkgEntry.getPkg().changeManager     : null;
- $: inSyncQual    = changeManager        ? $changeManager.inSyncLabelQualifier : '';
-
- // App Title ... either "Visualize It" or the Pkg Name of the active tab
- $: appTitle = $activeTab ? $activeTab.getTabQualifyingDesc() + inSyncQual : 'Visualize It';
+ $: changeManager   = isPkgEntry(pkgEntry) ? pkgEntry.getPkg().changeManager            : null;
+ $: inSyncTitleIcon = changeManager        ? $changeManager.inSyncIcon()                : 'NONE';
+ $: if (changeManager && !$changeManager.inSync) {
+   titleToolTip += ' (modified - needs to be saved)';
+ }
 
  // maintain our external bindings (once <AppLayout> is mounted)
  let leftNavComp; // ... maintained by `bind:this` (see below)
@@ -95,7 +96,13 @@
     <Row>
       <Section>
         <IconButton class="material-icons" title="Toggle Left Nav Package View" on:click={toggleDrawer}>menu</IconButton>
-        <AppBarTitle>{appTitle}</AppBarTitle>
+        <AppBarTitle title={titleToolTip}>
+          <Icon name={titleIcon}
+                size="1.0rem"/>
+          {appTitle}
+          <Icon name={inSyncTitleIcon}
+                size="1.0rem"/>
+        </AppBarTitle>
       </Section>
       <ToolBar/>
     </Row>
