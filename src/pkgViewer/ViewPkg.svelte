@@ -4,8 +4,43 @@
  import Icon            from '../util/ui/Icon.svelte';
  import verify          from '../util/verify';
  import {isPkg}         from '../util/typeCheck';
-
+ import {toast}         from '../util/ui/notify';
+ import {savePkg}       from '../core/pkgPersist';
+ import discloseError   from '../util/discloseError';
  import ViewPkgTree     from './ViewPkgTree.svelte';
+
+ /**
+  * Save the supplied SmartPkg to an external resource (ex: web or
+  * local file).
+  *
+  * @param {SmartPkg} pkg - the SmartPkg to save.
+  * @param {boolean} [saveAs=false] - true: save in a newly user
+  * selected file, false: save in the original pkg's `pkgResourcePath`.
+  */
+ async function handleSavePkg(pkg, saveAs=false) {
+   try {
+     // insure the package is a candidate for saving
+     if (!pkg.canPersist()) {
+       toast({msg: `The "${pkg.getPkgName()}" package cannot be saved ... it contains code, which cannot be persisted!`});
+       return;
+     }
+
+     // save the package
+     const result = await savePkg(pkg, saveAs);
+     if (result === 'UserCancel') {
+     }
+     else if (result === 'SaveNotNeeded') {
+       toast({msg: `The "${pkg.getName()}" package does NOT need to be saved ... you must first apply some changes`});
+     }
+     else {
+       toast({msg: `The "${pkg.getPkgName()}" package has been saved!`});
+     }
+   }
+   catch(err) {
+     // gracefully report unexpected conditions to user
+     discloseError({err, logIt:true});
+   }
+ }
 </script>
 
 <script>
@@ -39,7 +74,8 @@
   <Meta>
     <Icon name="save"
           title="Save Package"
-          on:click={() => alert('FUTURE: save package')}/>
+          on:click={() => handleSavePkg(pkg)}/>
+
     <Icon name="more_vert"
           title="Manage Package"
           on:click={() => menu.setOpen(true)}/>
@@ -49,8 +85,8 @@
 <span>
   <Menu bind:this={menu}>
     <List>
-      <Item on:SMUI:action={() => alert('FUTURE: Save')}><Text>Save {pkg.getPkgName()}</Text></Item>
-      <Item on:SMUI:action={() => alert('FUTURE: Save-As')}><Text>Save As ...</Text></Item>
+      <Item on:SMUI:action={() => handleSavePkg(pkg)}>      <Text>Save {pkg.getPkgName()}</Text></Item>
+      <Item on:SMUI:action={() => handleSavePkg(pkg, true)}><Text>Save As ...</Text></Item>
       <Separator/>
       <Item on:SMUI:action={() => alert('FUTURE: Rename')}><Text>Rename</Text></Item>
       <Separator/>

@@ -165,7 +165,7 @@ export async function savePkg(pkg, saveAs=false) {
   if (!fileHandle) {
     try {
       fileHandle = await window.chooseFileSystemEntries({
-        type: 'saveFile',
+        type: 'save-file',
         accepts: [{
           description: 'visualize-it file',
           extensions: ['vit'],
@@ -185,14 +185,27 @@ export async function savePkg(pkg, saveAs=false) {
 
   // write the file
   try {
-    // create a writer (request permission if necessary)
-    const writer = await fileHandle.createWriter();
-
-    // write the content
-    await writer.write(0, content);
-
-    // close the file and write the contents to disk
-    await writer.close();
+    // Taken FROM: NativeFile Text Editor Example:
+    //             https://github.com/GoogleChromeLabs/text-editor 
+    //             https://github.com/GoogleChromeLabs/text-editor/blob/main/src/inline-scripts/fs-helpers.js
+    // Support for Chrome 82 and earlier.
+    if (fileHandle.createWriter) {
+      // Create a writer (request permission if necessary).
+      const writer = await fileHandle.createWriter();
+      // Write the full length of the contents
+      await writer.write(0, content);
+      // Close the file and write the contents to disk
+      await writer.close();
+    }
+    // For Chrome 83 and later.
+    else {
+      // Create a FileSystemWritableFileStream to write to.
+      const writable = await fileHandle.createWritable();
+      // Write the contents of the file to the stream.
+      await writable.write(content);
+      // Close the file and write the contents to disk.
+      await writable.close();
+    }
   }
   catch(err) {
     // prune expected errors
