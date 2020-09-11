@@ -148,7 +148,7 @@ export default class SmartPkg extends SmartModel {
    * Promote the material icon "name" representing self's OO classification.
    */
   getIconName() {
-    return 'bubble_chart';
+    return 'bubble_chart'; // alternate: bubble_chart, group_work, color_lense (for some reason wider), dashboard, widgets, blur_circular, ballot
   }
 
   /**
