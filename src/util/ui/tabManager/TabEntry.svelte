@@ -33,28 +33,35 @@
                ${tab===$previewTab ? 'preview-tab' : ''}`;
 
  // maintain our closeIcon -and- staleness reflexive state
- // ... for TabContext of TabControllerPkgEntry, the context is a PkgEntry.
- //     ... in this case we utilize it's changeManager reflexive store
- //     ... otherwize the .changeManager will be undefined
- // ... AI: inappropriate coupling with knowledge of visualize-it app within this generic utility
+ // NOTE: This is patterned after VSCode tabs, and cleans up the clutter by:
+ //       - only displaying the closeIcon when it is active (or hovered over)
+ //       - re-uses the closeIcon with a stale indicator (for modified tab resources)
+ // NOTE: Regarding the TabContext usage:
+ //       - for TabControllerPkgEntry derivations, the context will be a PkgEntry
+ //         * in this case we utilize it's changeManager reflexive store
+ //         * otherwize the changeManager will be undefined
+ //       - AI: this is a slightly inappropriate coupling (app knowledge in this generic utility)
  const tabContext    = tab.getTabContext();
- const changeManager = tabContext.changeManager; // undefined if tabContext is NOT PkgEntry
+ const changeManager = tabContext.changeManager; // reflexive store ... undefined if tabContext is NOT PkgEntry (see NOTE above)
 
- let closeIconName;
- let closeIconVisible;
- let tabHover       = false;
- let closeIconHover = false;
- let closeStyle     = '';
+ let closeIconName;          // {string):  the icon name to use for our closeIcon control (reused for stale indicator)
+ let closeIconVisible;       // {boolean}: is the closeIcon control visable? (generally NOT when tab is not-active)
+ let closeIconStyle   = '';  // {string}:  the CSS styling used to make icon visable/hidden
+ let closeIconToolTip = '';  // {string}:  the closeIcon tooltip (changes to reflect modified resources)
+ let tabHover       = false; // {boolean}: is mouse hovered over the overall tab? (forces the tab to display the closeIcon control, even when non active)
+ let closeIconHover = false; // {boolean}: is mouse hovered over the closeIcon control? (forces a stale indicator to morph back into the actual close icon)
  $: {
    // by default, our close icon is only visible on active tabs
    closeIconName    = CLOSE;
    closeIconVisible = tab===$activeTab;
+   closeIconToolTip = 'Close Tab';
    
-   // override: when resource is stale (i.e. needs saving) we replace our close icon with a STALE
+   // override: when resource is stale (i.e. needs saving) we morph our close icon to STALE
    //           and display it AT ALL TIMES
    if (changeManager && !$changeManager.inSync) {
      closeIconName    = STALE;
      closeIconVisible = true;
+     closeIconToolTip = 'Close Modified Tab (resource is still held in package)';
    }
 
    // when mouse is hovered over our tab, show the closeIcon
@@ -69,8 +76,8 @@
    }
 
    // maintain our close visibility via CSS styling
-   closeStyle = closeIconVisible ? '' : 'visibility: hidden;';
-   // console.log(`xx TabEntry (${tabId}) reflexing ... closeIconName: '${closeIconName}' ... closeIconVisible: ${closeIconVisible} ... closeStyle: "${closeStyle}"`);
+   closeIconStyle = closeIconVisible ? '' : 'visibility: hidden;';
+   // console.log(`xx TabEntry (${tabId}) reflexing ... closeIconName: '${closeIconName}' ... closeIconVisible: ${closeIconVisible} ... closeIconStyle: "${closeIconStyle}"`);
  }
 
  // our popup contextMenu binding
@@ -101,8 +108,8 @@
         on:mouseout=  {() => closeIconHover=false}>
     <Icon name={closeIconName}
           size="1.0rem"
-          style={closeStyle}
-          title="Close Tab"
+          style={closeIconStyle}
+          title={closeIconToolTip}
           on:click={(e)=> { e.stopPropagation(); closeTab(tabId); }}/>
   </span>
 
