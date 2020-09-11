@@ -8,7 +8,6 @@ import SmartPkg,
 import pkgManager     from '../core/pkgManager';
 import {replaceAll}   from '../util/strUtil';
 import {createLogger} from '../util/logger';
-import                     './generalComps'; // unnamed import activating it's package registration
 
 const log = createLogger('***DIAG*** konvaSandboxSmartPkg ... ').disable(); // enable this to see JSON in logs
 
