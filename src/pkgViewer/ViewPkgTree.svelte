@@ -47,7 +47,7 @@
  }
  else {
    inSyncIcon      = 'NONE';
-   pkgEntryToolTip = pkgEntry ? `Package Entry: ${pkgEntry.getEPkgId()}` : '';
+   pkgEntryToolTip = pkgEntry ? `${pkgEntry.diagClassName()}: ${pkgEntry.getEPkgId()}` : '';
  }
 
  // decompose self's tree node
@@ -86,6 +86,7 @@
     <li>
       {#if children}
         <span class="mdc-typography--subtitle2 expander"
+              title="Directory (click to expand/contract)"
               on:click={toggleExpansion}
               use:Ripple={{ripple: true, color: 'surface', unbounded: false}}>
           <span class="arrow" class:arrowDown>&#x25b6</span>
@@ -97,9 +98,9 @@
           {/each}
         {/if}
       {:else}
-        <span on:click={displayEntry}
+        <span class="mdc-typography--subtitle2 pkg-entry"
               title={pkgEntryToolTip}
-              class="mdc-typography--subtitle2">
+              on:click={displayEntry}>
           <span class="no-arrow-spacer"/>
 
           <Icon name="{pkgEntry.getIconName()}"
@@ -131,6 +132,9 @@
    padding-left:    1.0rem;
  }
  .expander {
+   cursor:  pointer;
+ }
+ .pkg-entry{
    cursor:  pointer;
  }
  .arrow {
