@@ -1,8 +1,11 @@
 <script>
  import {Section}    from '@smui/top-app-bar';
  import IconButton   from '@smui/icon-button';
+ import Menu                          from '@smui/menu';
+ import List, {Item, Text, Separator} from '@smui/list';
  import {activeTab}  from '../pkgEntryTabs';
  import DispMode     from '../core/DispMode';
+ import {toast}      from '../util/ui/notify';
 
  // our reflection is based on the active tab's PkgEntry
  // ... for PkgEntries, we utilize it's changeManager reflexive store
@@ -35,11 +38,32 @@
  function handleRedo() {
    changeManager.applyRedo();
  }
+
+
+ //***
+ //*** global ToolBar items
+ //***
+
+ // our systemMenu binding
+ let systemMenu;
+
+ function handleAbout() {
+   // AI: figure out HOW to glean this info directly from our package.json
+   const name         = "visualize-it";
+   const version     = "0.1.0";
+   const description = "Your View into External Systems";
+   toast({msg: `${name}
+
+${description}
+
+version: ${version}`});
+ }
+
 </script>
 
 <Section align="end" toolbar>
 
-  <!-- items specific to activeTabs of PkgEntry types -->
+  <!-- ToolBar items specific to activeTabs of PkgEntry types -->
   {#if changeManager}
 
     <!-- DispMode -->
@@ -68,6 +92,20 @@
     {/if}
 
   {/if}
+
+  <!-- global ToolBar items -->
+  <span>
+    <IconButton class="material-icons"
+                title="System Info"
+                on:click={() => systemMenu.setOpen(true)}>account_circle</IconButton>
+    
+    <Menu bind:this={systemMenu} anchorCorner="BOTTOM_LEFT">
+      <List class="mdc-typography--subtitle2">
+        <Item on:SMUI:action={handleAbout}><Text>About ...</Text></Item>
+   <!-- <Separator/> -->
+      </List>
+    </Menu>
+  </span>
 
 </Section>
 
