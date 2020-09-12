@@ -213,9 +213,9 @@
  }
 
  /* vit-drawer (LeftNav) */
- /* AI: NOT really needed: currently all characteristics are coming from @smui <Drawer> */
+ /* AI: NOT used: currently all characteristics are coming from @smui <Drawer> */
  * :global(.vit-drawer) {
-   /* color: red; /* xx diagnostic */
+   color: red; /* xx diagnostic */
  }
 
  /* vit-drawer-app-content: everything MINUS vit-drawer */
