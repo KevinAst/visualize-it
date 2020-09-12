@@ -53,7 +53,11 @@
  check(pkg,        'pkg is required');
  check(isPkg(pkg), `pkg must be a SmartPkg ... NOT: ${pkg}`);
 
- // maintain our reflexive in-sync label qualifier
+ // maintain our reflexive expansion state
+ let expanded = true;
+ $: expandedIndicator = expanded ? '' : '...';
+
+ // maintain our reflexive in-sync qualifiers
  const changeManager = pkg.changeManager;
  $: inSyncIcon       = $changeManager.inSyncIcon();
  $: pkgNameToolTip   = `Package: ${pkg.getPkgId()}` + ($changeManager.inSync ? '' : ' (modified - needs to be saved)');
@@ -62,11 +66,15 @@
 </script>
 
 <!-- using activated strictly for it's coloring :-) -->
-<Item class="vit-drawer-item" activated title={pkgNameToolTip}>
+<Item class="vit-drawer-item"
+      activated
+      on:SMUI:action={() => expanded = !expanded}
+      title={pkgNameToolTip}>
   <Icon name="{pkg.getIconName()}"
         size="1.0rem"/>
   <Text>
     {pkg.getPkgName()}
+    {expandedIndicator}
     <Icon name={inSyncIcon}
           title="Package has been modified (needs to be saved) NOT SHOWING (qualified in pkgNameToolTip)"
           size="1.0rem"/>
@@ -74,11 +82,11 @@
   <Meta>
     <Icon name="save"
           title="Save Package"
-          on:click={() => handleSavePkg(pkg)}/>
+          on:click={(e) => {e.stopPropagation(); handleSavePkg(pkg);} }/>
 
     <Icon name="more_vert"
           title="Manage Package"
-          on:click={() => menu.setOpen(true)}/>
+          on:click={(e) => {e.stopPropagation(); menu.setOpen(true);} }/>
   </Meta>
 </Item>
 
@@ -95,7 +103,9 @@
   </Menu>
 </span>
 
-<ViewPkgTree {pkg}/>
+{#if expanded}
+  <ViewPkgTree {pkg}/>
+{/if}
 
 
 <style>
