@@ -26,7 +26,7 @@ export default function applyChange(check, ePkg, changeFn, redoIndicator=false) 
   const targetObj = changeFn(redoIndicator);
   check(isSmartObject(targetObj), 'the execution of app-specific change functions (registered to ChangeManager) ' +
                                   'MUST return a targetObj that is a SmartObject (type: SmartModel)');
-  // AI: following check assumes we are changing some pare of a PkgEntry - we may eventually use this for changes to SmartPkg too (such as it's name) ... not really sure
+  // AI: following check assumes we are changing some part of a PkgEntry - we may eventually use this for changes to SmartPkg too (such as it's name) ... not really sure
   check(ePkg === targetObj.getPkgEntry(), 'the execution of app-specific change functions (registered to ChangeManager) ' + 
                                           `MUST return a targetObj that has lineage in the '${ePkg.getEPkgId()}' EPkg (on who's behalf we are operating)`);
 
