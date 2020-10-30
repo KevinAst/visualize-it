@@ -2,6 +2,7 @@ import SmartPallet       from './SmartPallet';
 import Scene             from './Scene';
 import verify            from '../util/verify.js';
 import checkUnknownArgs  from '../util/checkUnknownArgs';
+import pkgManager        from './pkgManager';
 
 /**
  * Collage is a SmartPallet derivation in which multiple Scenes are displayed/visualized.
@@ -104,6 +105,10 @@ export default class Collage extends SmartPallet {
       }
       const syncKonva = (loc) => {
         const konvaObj = this.containingKonvaStage.findOne(`#${id}`);
+        console.log(`?? in re-position logic syncKonva: `, {id, konvaObj});
+        if (!konvaObj) { // ?? temp
+          debugger;
+        }
         konvaObj.x(loc.x);
         konvaObj.y(loc.y);
         this.containingKonvaStage.draw();
@@ -132,6 +137,132 @@ export default class Collage extends SmartPallet {
    */
   enableAnimateMode() {
     // yet to do
+  }
+
+  /**
+   * Is the content of the supplied DnD event pastable in self (i.e. a DnD target)
+   *
+   * @param {Event} e - the DnD event
+   *
+   * @returns {boolean} `true`: content of DnD event IS pastable, `false` otherwise
+   */
+  // ?? NEW DnD:
+  pastable(e) {
+    // Collage allows Scene objects to be pasted
+    return e.dataTransfer.types.includes('visualize-it/scene');
+  }
+
+  /**
+   * Perform the DnD paste operation of the supplied DnD event.
+   *
+   * @param {Event} e - the DnD event
+   */
+  // ?? NEW DnD:
+  paste(e) {
+    // ?? verify we are in edit mode
+
+    // reconstitute our copySrc from the DnD event
+    const type    = e.dataTransfer.types[0]; // ... our usage only uses one type
+    const copySrc = {
+      type,
+      key:  e.dataTransfer.getData(type),
+    };
+    console.log(`?? pasting: `, {copySrc, onto: this});
+
+    // NOTE: we know the supplied copySrc references a Scene pseudo class master (see pastable() method)
+
+    // helpers to service undo/redo
+    // IMPORTANT: all updates must be written in such a way that DOES NOT reference stale objects
+    //            - when using undo/redo (over the course of time) objects may be "swapped out" via the synchronization process
+    //            - SOLUTION: resolve all objects from the "id" string AT RUN-TIME!!
+    const [pkgId, className] = copySrc.key.split('/');
+    const sceneClassRef      = pkgManager.getClassRef(pkgId, className);
+    const sceneId            = `${className} copy ${Date.now()}`; // ... unique id (for now use current time)
+
+    //?? have to break this up
+    const syncKonva = () => {
+      const containingKonvaStage = this.containingKonvaStage;
+      this.unmount();
+      this.mount(containingKonvaStage);
+    }
+    
+    // ?? will this work in subsequent undo?
+    const selfCollage = this;
+
+    // apply our change
+    // ... should be able to OMIT `.getPkgEntry()` node (below) BECAUSE this Collage should always be a PkgEntry
+    this.getPkgEntry().changeManager.applyChange({
+      changeFn(redo) { // ... we do NOT use redo, because we must sync konva 100% of the time
+
+        console.log(`?? redo paste operation`);
+
+        // unmount konvo (Part I of the konva sync process)
+        const containingKonvaStage = selfCollage.containingKonvaStage;
+        selfCollage.unmount();
+
+        // ?? if work, modularize it
+        function relativeCoords(event) {
+          var bounds = event.target.getBoundingClientRect();
+          console.log(`bounds: `, {bounds});
+          var x = event.clientX - bounds.left;
+          var y = event.clientY - bounds.top;
+          return {x: x, y: y};
+        }
+
+        const coord = relativeCoords(e);
+        console.log(`?? let's set the x/y from event: `, {event: e, coord});
+        // change SmartObj model ... by adding the new scene
+        const newScene = sceneClassRef.createSmartObject({
+          id: sceneId,
+          x: coord.x, // ?? pull from event
+          y: coord.y,
+        });
+        selfCollage.addScene(newScene); // ?? this is NOT the correct `this`
+
+        // mount konvo (Part II of the konva sync process)
+        selfCollage.mount(containingKonvaStage);
+
+        // sync our Konva model ?? TRASH
+        //? syncKonva();
+
+        return newScene;
+      },
+
+      undoFn() {
+
+        console.log(`?? undo paste operation`);
+        // debugger; ?? 
+
+        // unmount konvo (Part I of the konva sync process)
+        const containingKonvaStage = selfCollage.containingKonvaStage;
+        selfCollage.unmount();
+
+        // change SmartObj model ... by removing the scene
+        selfCollage.removeScene(sceneId)
+
+        // mount konvo (Part II of the konva sync process)
+        selfCollage.mount(containingKonvaStage);
+
+        // sync our Konva model ?? TRASH
+        //? syncKonva();
+
+        return selfCollage; // ?? our collage has changed
+      }
+    });
+  }
+
+  // ?? NEW (reposition)
+  addScene(scene) {
+    this.scenes.push(scene);
+    scene.setParent(this);
+  }
+
+  // ?? NEW (reposition)
+  removeScene(sceneId) {
+    const indx = this.scenes.findIndex( (scene) => scene.id === sceneId);
+    if (indx > -1) {
+      this.scenes.splice(indx, 1);
+    }
   }
 
   /**

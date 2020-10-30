@@ -333,6 +333,20 @@ export default class Scene extends SmartPallet {
     // yet to do
   }
 
+
+  /**
+   * Provide indicator as to whether self can be copied to other sources (i.e. a DnD source)
+   *
+   * @returns {CopySrc} a CopySrc: {type, key} ... null when NOT copyable
+   */
+  // ?? NEW DnD:
+  copyable() {
+    return {
+      type: 'visualize-it/Scene'.toLowerCase(), // self represents a Scene ?? should this be programatic?
+      key:  this.getPkgEntryId(),               // ex: 'com.astx.ACME/scene1'
+    };
+  }
+
   
   /**
    * Verify self has been mounted.
