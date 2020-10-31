@@ -3,6 +3,8 @@ import Scene             from './Scene';
 import verify            from '../util/verify.js';
 import checkUnknownArgs  from '../util/checkUnknownArgs';
 import pkgManager        from './pkgManager';
+import DispMode          from './DispMode';
+import {toast}           from '../util/ui/notify';
 
 /**
  * Collage is a SmartPallet derivation in which multiple Scenes are displayed/visualized.
@@ -105,10 +107,6 @@ export default class Collage extends SmartPallet {
       }
       const syncKonva = (loc) => {
         const konvaObj = this.containingKonvaStage.findOne(`#${id}`);
-        console.log(`?? in re-position logic syncKonva: `, {id, konvaObj});
-        if (!konvaObj) { // ?? temp
-          debugger;
-        }
         konvaObj.x(loc.x);
         konvaObj.y(loc.y);
         this.containingKonvaStage.draw();
@@ -159,7 +157,11 @@ export default class Collage extends SmartPallet {
    */
   // ?? NEW DnD:
   paste(e) {
-    // ?? verify we are in edit mode
+    // verify we are in edit mode
+    if (this.getPkgEntry().getDispMode() !== DispMode.edit) {
+      toast({msg: 'Drops require package entry to be in edit mode.'});
+      return;
+    }
 
     // reconstitute our copySrc from the DnD event
     const type    = e.dataTransfer.types[0]; // ... our usage only uses one type
@@ -177,16 +179,19 @@ export default class Collage extends SmartPallet {
     //            - SOLUTION: resolve all objects from the "id" string AT RUN-TIME!!
     const [pkgId, className] = copySrc.key.split('/');
     const sceneClassRef      = pkgManager.getClassRef(pkgId, className);
-    const sceneId            = `${className} copy ${Date.now()}`; // ... unique id (for now use current time)
+    const sceneId            = `${className}-copy-${Date.now()}`; // ... unique id (for now use current time)
 
-    //?? have to break this up
+    // ?? have to break this up
+    //    ... ?? test again and see why?
+    //    ... ?? may prefer to fix that problem rather than break this out (too complex)
+    //    ... ?? also consider making this a SmartObject utility method ... say: remount() ... requires to be previously mounted ... would have to be implemented throughout major points in the hierarchy because of specifics
     const syncKonva = () => {
       const containingKonvaStage = this.containingKonvaStage;
       this.unmount();
       this.mount(containingKonvaStage);
     }
     
-    // ?? will this work in subsequent undo?
+    // ?? will this work in subsequent undo? ... I think so, because `this` is retained in the closure
     const selfCollage = this;
 
     // apply our change
@@ -200,7 +205,7 @@ export default class Collage extends SmartPallet {
         const containingKonvaStage = selfCollage.containingKonvaStage;
         selfCollage.unmount();
 
-        // ?? if work, modularize it
+        // ?? once we get this working, modularize it and make it a real utility
         function relativeCoords(event) {
           var bounds = event.target.getBoundingClientRect();
           console.log(`bounds: `, {bounds});
@@ -222,6 +227,13 @@ export default class Collage extends SmartPallet {
         // mount konvo (Part II of the konva sync process)
         selfCollage.mount(containingKonvaStage);
 
+        // ??$$ SPECIAL LOGIC
+        // re-establish our pkgEntry DispMode
+        // ... this resets all our event handlers given the re-mount :-)
+        // ... ?? this should be pkgEntry ... no need for this.getPkgEntry()
+        const pkgEntry = selfCollage.getPkgEntry();
+        pkgEntry.changeManager.changeDispMode( pkgEntry.getDispMode() );
+
         // sync our Konva model ?? TRASH
         //? syncKonva();
 
@@ -242,6 +254,13 @@ export default class Collage extends SmartPallet {
 
         // mount konvo (Part II of the konva sync process)
         selfCollage.mount(containingKonvaStage);
+
+        // ??$$ SPECIAL LOGIC
+        // re-establish our pkgEntry DispMode
+        // ... this resets all our event handlers given the re-mount :-)
+        // ... ?? this should be pkgEntry ... no need for this.getPkgEntry()
+        const pkgEntry = selfCollage.getPkgEntry();
+        pkgEntry.changeManager.changeDispMode( pkgEntry.getDispMode() );
 
         // sync our Konva model ?? TRASH
         //? syncKonva();
