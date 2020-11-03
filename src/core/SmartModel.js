@@ -396,6 +396,11 @@ export default class SmartModel {
   resetCrc() {
     // by clearing _crc (the crc cached result), getCrc() will recalculate it on next request.
     this._crc = undefined;
+
+    // synchronize self's ChangeMonitor reflective store
+    if (this.isaEPkg()) { // ... only for EPkg entries (same as ... `if (this.changeManager) {`)
+      this.changeManager.syncMonitoredChange();
+    }
   }
 
   /**
@@ -567,7 +572,7 @@ export default class SmartModel {
 
   /**
    * Return an indicator as to whether any of the classes that make up
-   * self (and it's containment tree) is out-of-sync with the latest
+   * self (and it's containment tree) are out-of-sync with the latest
    * class definitions.
    *
    * Class versioning can become out-of-sync when interactive edits
@@ -637,7 +642,7 @@ export default class SmartModel {
    * Currently this is accomplished by our single invoking agent:
    * `syncOutOfDateClasses()`
    * ... the tabManager logic module that is activated whenever a tab is changed
-   *     (src/features/common/tabManager/logic.js). ?? this is an obsolete reference
+   *     (src/pkgEntryTabs/syncModelOnActiveTabChange.js).
    */
   syncClassInstances() {
 
@@ -1001,11 +1006,6 @@ export default class SmartModel {
 
     // reset self's crc
     this.resetCrc();
-    
-    // synchronize self's ChangeMonitor reflective store
-    if (this.isaEPkg()) { // ... only for EPkg entries (same as ... `if (this.changeManager) {`)
-      this.changeManager.syncMonitoredChange();
-    }
 
     //***
     //*** trickle up change to higher level

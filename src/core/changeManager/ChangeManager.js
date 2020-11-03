@@ -24,10 +24,13 @@ import {isEPkg,
  * 
  *    For details, please refer to the method JavaDocs (below)
  *    ```js
- *    + changeDispMode(dispMode): void        - change self's PkgEntry to the supplied dispMode (view/edit/animate)
+ *    + changeDispMode(dispMode): void        - change the dispMode of self's PkgEntry (view/edit/animate)
  *
  *    + syncMonitoredChange(): void           - synchronize self's ChangeMonitor (store value), 
  *                                              due to a change that has just been made to self's ePkg.
+ *                                              ... as detected in CRC computations:
+ *                                                  - SmartObject.resetCrc(): void
+ *                                                  - SmartObject.resetBaseCrc(): void
  *
  *    + applyChange({changeFn, undoFn}): void - apply a change to our system, registering the change to our undo/redo stack,
  *                                              auto-syncing the parentage -and- our ChangeMonitor state.
