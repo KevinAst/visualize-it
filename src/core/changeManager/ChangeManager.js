@@ -15,6 +15,27 @@ import {isEPkg,
  * ChangeManager objects are retained in the corresponding EPkg
  * smartObject, as a convenient cataloging mechanism.
  *
+ * **Auto Synchronization**:
+ *
+ * ChangeManager greatly simplifies the change process by
+ * automatically applying the required synchronization to the:
+ *
+ *  - graphical representation (i.e. the Konva state)
+ *    ... app logic focuses on SmartObject changes,
+ *        and ChangeManager auto syncs the visual graphics
+ *
+ *  - SmartObject parentage
+ *    ... app logic merely changes a "focused" target object
+ *        and ChangeManager auto syncs it's parentage.
+ *        This is accomplished via SmartObject.trickleUpChange(),
+ *        propagating things like crc computations, and dynamic container size.
+ *
+ *  - ChangeMonitor state (see ChangeMonitor Object below)
+ *    ... of course self's reflective ChangeMonitor state is auto synced.
+ *        This is accomplished through the syncMonitoredChange() method,
+ *        invoked at the appropriate places.
+ *
+ *
  * **API**:
  *
  * There are two distinct APIs you should be aware of (as in all
@@ -27,19 +48,23 @@ import {isEPkg,
  *    + changeDispMode(dispMode): void        - change the dispMode of self's PkgEntry (view/edit/animate)
  *
  *    + syncMonitoredChange(): void           - synchronize self's ChangeMonitor (store value), 
- *                                              due to a change that has just been made to self's ePkg.
- *                                              ... as detected in CRC computations:
- *                                                  - SmartObject.resetCrc(): void
- *                                                  - SmartObject.resetBaseCrc(): void
+ *                                              due to a change that has just been made to self's ePkg
+ *                                              impacting items monitored by ChangeManger {dispMode, inSync, undoAvail, redoAvail},
+ *                                              for example:
+ *                                              * CRC computations (impacting: {inSync, undoAvail, redoAvail}):
+ *                                                - SmartObject.resetCrc():     void ... via SmartObject.trickleUpChange() driven by changeManager.applyChange()
+ *                                                - SmartObject.resetBaseCrc(): void ... via SmartPkg-constructor() and pkgPersist-savePkg()
+ *                                              * DispMode changes (impacting: {dispMode}):
+ *                                                - changeManager.changeDispMode(dispMode)
  *
  *    + applyChange({changeFn, undoFn}): void - apply a change to our system, registering the change to our undo/redo stack,
- *                                              auto-syncing the parentage -and- our ChangeMonitor state.
+ *                                              auto-syncing required state (see "Auto Synchronization" above).
  *
  *    + applyUndo(): void                     - apply an "undo" operation to the PkgEntry on whose behalf we are managing,
- *                                              auto-syncing the parentage -and- our ChangeMonitor state.
+ *                                              auto-syncing required state (see "Auto Synchronization" above).
  *
  *    + applyRedo(): void                     - apply an "redo" operation to the PkgEntry on whose behalf we are managing,
- *                                              auto-syncing the parentage -and- our ChangeMonitor state.
+ *                                              auto-syncing required state (see "Auto Synchronization" above).
  *    ```
  *
  * 2. ChangeMonitor Object (the store value, accessible via
@@ -107,7 +132,7 @@ export default class ChangeManager {
       redoAvail: this.undoRedoMgr.isRedoAvail(),
     });
     
-    // demark this object a svelte custom store
+    // demark this object as a svelte custom store
     this.subscribe = this.baseStore.subscribe;
   }
 
@@ -172,8 +197,8 @@ export default class ChangeManager {
 
   /**
    * Apply a change to our system, registering the change to our
-   * undo/redo stack, auto-syncing the parentage -and- our
-   * ChangeMonitor state.
+   * undo/redo stack, auto-syncing required state (see "Auto
+   * Synchronization" above).
    * 
    * - Changes are registered to the PkgEntry on whose behalf we
    *   manage/monitor (i.e. this.ePkg).  This must be consistent with
@@ -184,14 +209,9 @@ export default class ChangeManager {
    *   `changeFn()` / `undoFn()` is as follows:
    *   
    *   ```js
-   *   + changeFn(redoIndicator: <boolean>): targetObj
-   *   + undoFn(): targetObj
+   *   + changeFn(): targetObj
+   *   + undoFn():   targetObj
    *   ```
-   * 
-   * - The `redoIndicator` param is an indicator as to whether the invocation
-   *   is a **redo** operation, verses the initial execution.
-   *   Typically a redo requires more work (for example syncing
-   *   **both** the SmartObject and Konva realms).
    * 
    * - Both functions return the targetObj of the operation.  This is
    *   used to seed the synchronization of other parts of the model
@@ -206,11 +226,9 @@ export default class ChangeManager {
    *     active object.
    *
    * - Also, these change functions should only be concerned with the
-   *   modification of a given low-level object.  ChangeManager will
-   *   orchestrate additional detail to insure conformity.  For
-   *   example, the service will issue the `targetObj.trickleUpChange()`
-   *   which syncs the change to it parentage (synchronizing size and
-   *   crc, etc.).
+   *   modification of a given low-level SmartObject.  ChangeManager
+   *   will orchestrate additional detail to insure conformity (see
+   *   "Auto Synchronization" above).
    *
    * **Please Note** this service uses named parameters.
    * 
@@ -239,34 +257,28 @@ export default class ChangeManager {
     this.undoRedoMgr.registerOp(undoFn, changeFn);
 
     // apply the initial change
-    // NOTE: The change process auto-syncs our parentage -and- our ChangeMonitor state
-    //       (via the trickleUpChange() mechanism)
-    applyChange(check, this.ePkg, changeFn, false/*NOT a redo (rather our initial change)*/);
+    applyChange(check, this.ePkg, changeFn);
   }
 
 
   /**
    * Apply an "undo" operation to the PkgEntry on whose behalf we are
-   * managing, auto-syncing the parentage -and- our ChangeMonitor
-   * state.
+   * managing, auto-syncing required state (see "Auto Synchronization"
+   * above).
    */
   applyUndo() {
     // simply propagate request into our undoRedoMgr
-    // NOTE: This process auto-syncs our parentage -and- our ChangeMonitor state
-    //       (via the trickleUpChange() mechanism)
     this.undoRedoMgr.applyUndo();
   }
 
 
   /**
    * Apply an "redo" operation to the PkgEntry on whose behalf we are
-   * managing, auto-syncing the parentage -and- our ChangeMonitor
-   * state.
+   * managing, auto-syncing required state (see "Auto Synchronization"
+   * above).
    */
   applyRedo() {
     // simply propagate request into our undoRedoMgr
-    // NOTE: This process auto-syncs our parentage -and- our ChangeMonitor state
-    //       (via the trickleUpChange() mechanism)
     this.undoRedoMgr.applyRedo();
   }
 

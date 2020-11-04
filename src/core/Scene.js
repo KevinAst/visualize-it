@@ -179,31 +179,20 @@ export default class Scene extends SmartPallet {
         x: konvaObj.x(),
         y: konvaObj.y()
       };
-      const syncSmartObject = (loc) => {
+      const applySmartObjectChange = (loc) => {
         const comp = this.comps.find( (comp) => comp.id === id );
         comp.x = loc.x;
         comp.y = loc.y;
         return comp;
       }
-      const syncKonva = (loc) => {
-        const konvaObj = this.konvaSceneLayer.findOne(`#${id}`);
-        konvaObj.x(loc.x);
-        konvaObj.y(loc.y);
-        this.konvaSceneLayer.draw();
-      }
 
       // apply our change
-      // ... should be able to OMIT `.getPkgEntry()` node (below) BECAUSE this Scene should always be a PkgEntry
-      this.getPkgEntry().changeManager.applyChange({
-        changeFn(redo) {
-          const comp = syncSmartObject(newLoc);
-          redo && syncKonva(newLoc);
-          return comp;
+      this.changeManager.applyChange({
+        changeFn() {
+          return applySmartObjectChange(newLoc);
         },
         undoFn() {
-          const comp = syncSmartObject(oldLoc);
-          syncKonva(oldLoc);
-          return comp;
+          return applySmartObjectChange(oldLoc);
         }
       });
 
@@ -252,7 +241,6 @@ export default class Scene extends SmartPallet {
         //            ... KJB: I really don't like how Konva does selection in it's Transformer
         //     - KJB: WORK-AROUND: no-op when Konva/SmartObject have the same transformation
 
-
         // locate our component matching the target Konva.Group
         // ... we correlate the id's between Konva/SmartObject
         const konvaObj = e.target;
@@ -287,7 +275,7 @@ export default class Scene extends SmartPallet {
           return;
         }
 
-        const syncSmartObject = (trans) => {
+        const applySmartObjectChange = (trans) => {
           const comp    = this.comps.find( (comp) => comp.id === id );
           comp.x        = trans.x;
           comp.y        = trans.y;
@@ -296,28 +284,14 @@ export default class Scene extends SmartPallet {
           comp.scaleY   = trans.scaleY;
           return comp;
         }
-        const syncKonva = (trans) => {
-          const konvaObj = this.konvaSceneLayer.findOne(`#${id}`);
-          konvaObj.x(trans.x);
-          konvaObj.y(trans.y);
-          konvaObj.rotation(trans.rotation);
-          konvaObj.scaleX(trans.scaleX);
-          konvaObj.scaleY(trans.scaleY);
-          this.konvaSceneLayer.draw();
-        }
 
         // apply our change
-        // ... should be able to OMIT `.getPkgEntry()` node (below) BECAUSE this Scene should always be a PkgEntry
-        this.getPkgEntry().changeManager.applyChange({
-          changeFn(redo) {
-            const comp = syncSmartObject(newTrans);
-            redo && syncKonva(newTrans);
-            return comp;
+        this.changeManager.applyChange({
+          changeFn() {
+            return applySmartObjectChange(newTrans);
           },
           undoFn() {
-            const comp = syncSmartObject(oldTrans);
-            syncKonva(oldTrans);
-            return comp;
+            return applySmartObjectChange(oldTrans);
           }
         });
 

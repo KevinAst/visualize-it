@@ -99,31 +99,21 @@ export default class Collage extends SmartPallet {
         x: konvaObj.x(),
         y: konvaObj.y()
       };
-      const syncSmartObject = (loc) => {
+
+      const applySmartObjectChange = (loc) => {
         const scene = this.scenes.find( (scene) => scene.id === id );
         scene.x = loc.x;
         scene.y = loc.y;
         return scene;
       }
-      const syncKonva = (loc) => {
-        const konvaObj = this.containingKonvaStage.findOne(`#${id}`);
-        konvaObj.x(loc.x);
-        konvaObj.y(loc.y);
-        this.containingKonvaStage.draw();
-      }
 
       // apply our change
-      // ... should be able to OMIT `.getPkgEntry()` node (below) BECAUSE this Collage should always be a PkgEntry
-      this.getPkgEntry().changeManager.applyChange({
-        changeFn(redo) {
-          const scene = syncSmartObject(newLoc);
-          redo && syncKonva(newLoc);
-          return scene;
+      this.changeManager.applyChange({
+        changeFn() {
+          return applySmartObjectChange(newLoc);
         },
         undoFn() {
-          const scene = syncSmartObject(oldLoc);
-          syncKonva(oldLoc);
-          return scene;
+          return applySmartObjectChange(oldLoc);
         }
       });
 
@@ -169,7 +159,7 @@ export default class Collage extends SmartPallet {
       type,
       key:  e.dataTransfer.getData(type),
     };
-    console.log(`?? pasting: `, {copySrc, onto: this});
+    // console.log(`?? pasting: `, {copySrc, onto: this});
 
     // NOTE: we know the supplied copySrc references a Scene pseudo class master (see pastable() method)
 
@@ -180,30 +170,15 @@ export default class Collage extends SmartPallet {
     const [pkgId, className] = copySrc.key.split('/');
     const sceneClassRef      = pkgManager.getClassRef(pkgId, className);
     const sceneId            = `${className}-copy-${Date.now()}`; // ... unique id (for now use current time)
-
-    // ?? have to break this up
-    //    ... ?? test again and see why?
-    //    ... ?? may prefer to fix that problem rather than break this out (too complex)
-    //    ... ?? also consider making this a SmartObject utility method ... say: remount() ... requires to be previously mounted ... would have to be implemented throughout major points in the hierarchy because of specifics
-    const syncKonva = () => {
-      const containingKonvaStage = this.containingKonvaStage;
-      this.unmount();
-      this.mount(containingKonvaStage);
-    }
     
-    // ?? will this work in subsequent undo? ... I think so, because `this` is retained in the closure
+    // retain selfCollage `this` alias
+    // ... NOTE: `this` IS retained in our closure, 
+    //           HOWEVER unless changeFn() is an arrow function, it has a different `this` context
     const selfCollage = this;
 
     // apply our change
-    // ... should be able to OMIT `.getPkgEntry()` node (below) BECAUSE this Collage should always be a PkgEntry
-    this.getPkgEntry().changeManager.applyChange({
-      changeFn(redo) { // ... we do NOT use redo, because we must sync konva 100% of the time
-
-        console.log(`?? redo paste operation`);
-
-        // unmount konvo (Part I of the konva sync process)
-        const containingKonvaStage = selfCollage.containingKonvaStage;
-        selfCollage.unmount();
+    this.changeManager.applyChange({
+      changeFn() {
 
         // ?? once we get this working, modularize it and make it a real utility
         function relativeCoords(event) {
@@ -216,56 +191,23 @@ export default class Collage extends SmartPallet {
 
         const coord = relativeCoords(e);
         console.log(`?? let's set the x/y from event: `, {event: e, coord});
-        // change SmartObj model ... by adding the new scene
+
+        // add a new scene (from the DnD drop) to our collage
         const newScene = sceneClassRef.createSmartObject({
           id: sceneId,
-          x: coord.x, // ?? pull from event
-          y: coord.y,
+          x:  coord.x,
+          y:  coord.y,
         });
-        selfCollage.addScene(newScene); // ?? this is NOT the correct `this`
+        selfCollage.addScene(newScene);
 
-        // mount konvo (Part II of the konva sync process)
-        selfCollage.mount(containingKonvaStage);
-
-        // ??$$ SPECIAL LOGIC
-        // re-establish our pkgEntry DispMode
-        // ... this resets all our event handlers given the re-mount :-)
-        // ... ?? this should be pkgEntry ... no need for this.getPkgEntry()
-        const pkgEntry = selfCollage.getPkgEntry();
-        pkgEntry.changeManager.changeDispMode( pkgEntry.getDispMode() );
-
-        // sync our Konva model ?? TRASH
-        //? syncKonva();
-
-        return newScene;
+        return newScene; // promote the new scene as our change target
       },
 
       undoFn() {
+        // remove the scene from our collage
+        selfCollage.removeScene(sceneId);
 
-        console.log(`?? undo paste operation`);
-        // debugger; ?? 
-
-        // unmount konvo (Part I of the konva sync process)
-        const containingKonvaStage = selfCollage.containingKonvaStage;
-        selfCollage.unmount();
-
-        // change SmartObj model ... by removing the scene
-        selfCollage.removeScene(sceneId)
-
-        // mount konvo (Part II of the konva sync process)
-        selfCollage.mount(containingKonvaStage);
-
-        // ??$$ SPECIAL LOGIC
-        // re-establish our pkgEntry DispMode
-        // ... this resets all our event handlers given the re-mount :-)
-        // ... ?? this should be pkgEntry ... no need for this.getPkgEntry()
-        const pkgEntry = selfCollage.getPkgEntry();
-        pkgEntry.changeManager.changeDispMode( pkgEntry.getDispMode() );
-
-        // sync our Konva model ?? TRASH
-        //? syncKonva();
-
-        return selfCollage; // ?? our collage has changed
+        return selfCollage; // promote our collage as our change target
       }
     });
   }
