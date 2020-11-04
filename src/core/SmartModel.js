@@ -1,4 +1,3 @@
-/* eslint-disable react/no-is-mounted */ // isMount() usage is NOT react-based ?? should be able to nix this in svelte (ALSO LOOK FOR OTHERS)
 import verify               from '../util/verify';
 import {isString,
         isPlainObject,

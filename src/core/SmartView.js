@@ -1,4 +1,3 @@
-/* eslint-disable react/no-is-mounted */ // isMount() usage is NOT react-based
 import SmartModel        from './SmartModel';
 import SmartPallet       from './SmartPallet';
 import Konva             from 'konva';
