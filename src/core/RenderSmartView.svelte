@@ -24,9 +24,7 @@
    return () => view.unmount();
  });
 
- // ?? DnD: can access content via: view.pallet (a SmartPallet: Scene/Collage/CompRef)
-
- // allow drops based on polymorphic SmartObj.pastable()
+ // allow drops (of DnD) based on polymorphic SmartObj.pastable()
  //  - ?? GRRR: must implement BOTH dragenter/dragover BECAUSE have to override the default implementation (which prevents a drop)
  // ?? optimize this for enter/over (over required but use cached results of enter) 
  function allowDrops(e) {
@@ -36,26 +34,19 @@
 
    if (isAllowed) {
      e.preventDefault(); // allow drop (nullify default disallow behavior)
-     // console.log(`?? dropEffect BEFORE: ${e.dataTransfer.dropEffect}`);
+     // console.log(`xx dropEffect BEFORE: ${e.dataTransfer.dropEffect}`);
      e.dataTransfer.dropEffect = 'link'; // change cursor to reflect droppable
-     // console.log(`?? dropEffect AFTER: ${e.dataTransfer.dropEffect}`);
+     // console.log(`xx dropEffect AFTER: ${e.dataTransfer.dropEffect}`);
    }
  };
 
- // perform drops based on polymorphic SmartObj.paste()
+ // perform drops (of DnD) based on polymorphic SmartObj.paste()
  function handleDrop(e) {
    view.pallet.paste(e);
  };
 
- 
 </script>
 
-<!-- ?? DnD:
-     on:dragover|preventDefault={(e)=>undefined}
-
-     on:dragenter={allowDrops}
-     on:dragover={allowDrops}
- -->
 <div bind:this={divContainer}
      {...$$restProps}
      on:dragenter={allowDrops}

@@ -73,15 +73,14 @@
    () => activateTab(tabController.getTabId(), /*preview*/false), // double-click
  );
 
- // ?? new DnD stuff
- // allow drag, based on polymorphic SmartObj.copyable()
+ // support drag (of DnD), based on polymorphic SmartObj.copyable()
  const copySrc   = pkgEntry ? pkgEntry.copyable() : null;
  const draggable = copySrc  ? true : false;
  function handleDragStart(e) { // ... conditionally invokes when `draggable` is true
-   // console.log(`XX ViewPkgTree handleDragStart(): starting`);
+   // console.log(`xx ViewPkgTree handleDragStart(): starting`);
 
    // specify cursor effect that IS allowed
-   // ... later in dragenter/dragover events (via the dropEffect prop)
+   // ... used later in dragenter/dragover events (via the dropEffect prop)
 	 e.dataTransfer.effectAllowed = 'link';
 
    // pack the data for our drag operation
@@ -120,7 +119,6 @@
               on:click={displayEntry}>
           <span class="no-arrow-spacer"/>
 
-          <!-- ?? new DnD  -->
           <!-- DnD Container (is conditional - ex: Collages are NOT draggable)  -->
           <span {draggable}
                 on:dragstart={handleDragStart}>

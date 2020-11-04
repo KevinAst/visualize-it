@@ -56,7 +56,29 @@ export default class Collage extends SmartPallet {
   getIconName() {
     return 'filter'; // ALSO CONSIDER: dynamic_feed
   }
-  
+
+  /**
+   * Add the supplied scene to this collage.
+   *
+   * @param {Scene} scene - the scene to add.
+   */
+  addScene(scene) {
+    this.scenes.push(scene);
+    scene.setParent(this);
+  }
+
+  /**
+   * Remove self's scene as identified through the supplied sceneId.
+   *
+   * @param {string} sceneId - the id of the scene to remove.
+   */
+  removeScene(sceneId) {
+    const indx = this.scenes.findIndex( (scene) => scene.id === sceneId);
+    if (indx > -1) {
+      this.scenes.splice(indx, 1);
+    }
+  }
+
   /**
    * Enable self's "view" DispMode (used in top-level objects targeted by a tab).
    *
@@ -130,11 +152,12 @@ export default class Collage extends SmartPallet {
   /**
    * Is the content of the supplied DnD event pastable in self (i.e. a DnD target)
    *
+   * API: DnD
+   *
    * @param {Event} e - the DnD event
    *
    * @returns {boolean} `true`: content of DnD event IS pastable, `false` otherwise
    */
-  // ?? NEW DnD:
   pastable(e) {
     // Collage allows Scene objects to be pasted
     return e.dataTransfer.types.includes('visualize-it/scene');
@@ -143,9 +166,10 @@ export default class Collage extends SmartPallet {
   /**
    * Perform the DnD paste operation of the supplied DnD event.
    *
+   * API: DnD
+   *
    * @param {Event} e - the DnD event
    */
-  // ?? NEW DnD:
   paste(e) {
     // verify we are in edit mode
     if (this.getPkgEntry().getDispMode() !== DispMode.edit) {
@@ -159,7 +183,7 @@ export default class Collage extends SmartPallet {
       type,
       key:  e.dataTransfer.getData(type),
     };
-    // console.log(`?? pasting: `, {copySrc, onto: this});
+    // console.log(`xx pasting: `, {copySrc, onto: this});
 
     // NOTE: we know the supplied copySrc references a Scene pseudo class master (see pastable() method)
 
@@ -210,20 +234,6 @@ export default class Collage extends SmartPallet {
         return selfCollage; // promote our collage as our change target
       }
     });
-  }
-
-  // ?? NEW (reposition)
-  addScene(scene) {
-    this.scenes.push(scene);
-    scene.setParent(this);
-  }
-
-  // ?? NEW (reposition)
-  removeScene(sceneId) {
-    const indx = this.scenes.findIndex( (scene) => scene.id === sceneId);
-    if (indx > -1) {
-      this.scenes.splice(indx, 1);
-    }
   }
 
   /**

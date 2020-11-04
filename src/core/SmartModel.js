@@ -1126,9 +1126,10 @@ export default class SmartModel {
   /**
    * Provide indicator as to whether self can be copied to other sources (i.e. a DnD source)
    *
+   * API: DnD
+   *
    * @returns {CopySrc} a CopySrc: {type, key} ... null when NOT copyable
    */
-  // ?? NEW DnD:
   copyable() {
     return null; // ... by default, NOT copyable
   }
@@ -1136,11 +1137,12 @@ export default class SmartModel {
   /**
    * Is the content of the supplied DnD event pastable in self (i.e. a DnD target)
    *
+   * API: DnD
+   *
    * @param {Event} e - the DnD event
    *
    * @returns {boolean} `true`: content of DnD event IS pastable, `false` otherwise
    */
-  // ?? NEW DnD:
   pastable(e) {
     return false; // ... by default, NOT pastable
   }
@@ -1148,9 +1150,10 @@ export default class SmartModel {
   /**
    * Perform the DnD paste operation of the supplied DnD event.
    *
+   * API: DnD
+   *
    * @param {Event} e - the DnD event
    */
-  // ?? NEW DnD:
   paste(e) {
     throw new Error(`***ERROR*** SmartModel pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.paste() is an abstract method that MUST BE implemented!`);
   }

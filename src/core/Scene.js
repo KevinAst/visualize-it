@@ -311,12 +311,13 @@ export default class Scene extends SmartPallet {
   /**
    * Provide indicator as to whether self can be copied to other sources (i.e. a DnD source)
    *
+   * API: DnD
+   *
    * @returns {CopySrc} a CopySrc: {type, key} ... null when NOT copyable
    */
-  // ?? NEW DnD:
   copyable() {
     return {
-      type: 'visualize-it/Scene'.toLowerCase(), // self represents a Scene ?? should this be programatic?
+      type: 'visualize-it/Scene'.toLowerCase(), // self represents a Scene
       key:  this.getPkgEntryId(),               // ex: 'com.astx.ACME/scene1'
     };
   }
