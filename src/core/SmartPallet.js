@@ -47,5 +47,64 @@ export default class SmartPallet extends SmartModel {
     throw new Error(`***ERROR*** SmartPallet pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.bindSizeChanges() is an abstract method that MUST BE implemented!`);
   }
 
+  /**
+   * Translate the supplied DnD event's absolute page coordinates to
+   * canvas coordinates for self's SmartPallet.
+   *
+   * This algorithm considers things like page offsets and content
+   * scrolling.
+   *
+   * API: DnD
+   *
+   * @param {DnDEvent} event - the DnD event containing the absolute
+   * coordinates.
+   *
+   * @returns {Coord} the translated coordinate ... {x, y}.
+   */
+  dndCanvasCoord(event) {
+    // accumulate the page offsets and scrolling
+    // ... Unlike the konva-based canvas, our viewContainer has the parentage
+    //     we need to calculate offsets!
+    //     MORE DETAIL:
+    //     - The DnD event.target will be a canvas, however it has NO parentage
+    //       (something related to Konva).
+    //     - As a result, we calculate offsets from our viewContainer
+    //       (i.e. self's SmartPallet).
+    const viewContainer = this.getView().containingHtmlElm;
+    const offset        = accumDomCoordOffset(viewContainer);
+
+    // return the canvas coordinate
+    // ... a combination of the event's absolute x/y, adjusted by our offset
+    return {
+      x: event.clientX - offset.x,
+      y: event.clientY - offset.y,
+    };
+  }
+
 }
 SmartPallet.unmangledName = 'SmartPallet';
+
+
+// recursive helper function of dndCanvasCoord() method
+function accumDomCoordOffset(elm, offsetCoord={x:0, y:0}) {
+
+  // account for offsets
+  if (elm.offsetLeft)
+    offsetCoord.x += elm.offsetLeft;
+  if (elm.offsetTop)
+    offsetCoord.y += elm.offsetTop;
+
+  // account for scrolling
+  if (elm.scrollLeft)
+    offsetCoord.x -= elm.scrollLeft;
+  if (elm.scrollTop)
+    offsetCoord.y -= elm.scrollTop;
+
+  // recurse up parent chain
+  if (elm.parentNode) {
+    return accumDomCoordOffset(elm.parentNode, offsetCoord);
+  }
+
+  // that's all folks
+  return offsetCoord;
+}

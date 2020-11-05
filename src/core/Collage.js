@@ -204,23 +204,14 @@ export default class Collage extends SmartPallet {
     this.changeManager.applyChange({
       changeFn() {
 
-        // ?? once we get this working, modularize it and make it a real utility
-        function relativeCoords(event) {
-          var bounds = event.target.getBoundingClientRect();
-          console.log(`bounds: `, {bounds});
-          var x = event.clientX - bounds.left;
-          var y = event.clientY - bounds.top;
-          return {x: x, y: y};
-        }
-
-        const coord = relativeCoords(e);
-        console.log(`?? let's set the x/y from event: `, {event: e, coord});
+        // translate the DnD event's absolute page coordinates to canvas coordinates for our collage
+        const canvasCoord = selfCollage.dndCanvasCoord(e);
 
         // add a new scene (from the DnD drop) to our collage
         const newScene = sceneClassRef.createSmartObject({
           id: sceneId,
-          x:  coord.x,
-          y:  coord.y,
+          x:  canvasCoord.x,
+          y:  canvasCoord.y,
         });
         selfCollage.addScene(newScene);
 
