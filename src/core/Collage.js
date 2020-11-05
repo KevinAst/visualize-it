@@ -279,14 +279,14 @@ export default class Collage extends SmartPallet {
    *
    * @param {any} newRef - the new child to replace `oldRef`.
    */
-  childRefChanged(oldRef, newRef) {
+  changeChildRef(oldRef, newRef) {
     const indx = this.scenes.indexOf(oldRef);
     if (indx !== -1) {
-      // console.log(`xx Collage.childRefChanged() ... replacing indx: ${indx}\n`, {oldRef, newRef});
+      // console.log(`xx Collage.changeChildRef() ... replacing indx: ${indx}\n`, {oldRef, newRef});
       this.scenes[indx] = newRef;
     }
     else {
-      const msg = `***ERROR*** ${this.diagClassName()}.childRefChanged() [id:${this.id}]: could NOT find oldRef to replace (see logs for details)`;
+      const msg = `***ERROR*** ${this.diagClassName()}.changeChildRef() [id:${this.id}]: could NOT find oldRef to replace (see logs for details)`;
       console.error(msg+'\n', {oldRef, newRef});
       throw new Error(msg);
     }

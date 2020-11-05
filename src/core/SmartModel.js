@@ -531,8 +531,8 @@ export default class SmartModel {
    *
    * @param {any} newRef - the new child to replace `oldRef`.
    */
-  childRefChanged(oldRef, newRef) {
-    throw new Error(`***ERROR*** SmartModel pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.childRefChanged() is an abstract method that MUST BE implemented!`);
+  changeChildRef(oldRef, newRef) {
+    throw new Error(`***ERROR*** SmartModel pseudo-interface-violation [id:${this.id}]: ${this.diagClassName()}.changeChildRef() is an abstract method that MUST BE implemented!`);
   }
 
   /**
@@ -690,14 +690,14 @@ export default class SmartModel {
       // ... both to the "primary" containment tree
       const parent = this.getParent();
       if (parent) {
-        newSelf.parent = parent;               // ... back-reference
-        parent.childRefChanged(this, newSelf); // ... forward-reference
+        newSelf.parent = parent;              // ... back-reference
+        parent.changeChildRef(this, newSelf); // ... forward-reference
       }
       // ... and the "view" containment tree
       const viewParent = this.viewParent;
       if (viewParent) {
-        newSelf.viewParent = viewParent;           // ... back-reference
-        viewParent.childRefChanged(this, newSelf); // ... forward-reference
+        newSelf.viewParent = viewParent;          // ... back-reference
+        viewParent.changeChildRef(this, newSelf); // ... forward-reference
       }
 
       // short-circuit our process
