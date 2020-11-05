@@ -140,6 +140,19 @@ export default class CompRef extends SmartPallet {
     // L8TR: do something when animate is supported
   }
 
+  /**
+   * Provide indicator as to whether self can be copied to other sources (i.e. a DnD source)
+   *
+   * API: DnD
+   *
+   * @returns {CopySrc} a CopySrc: {type, key} ... null when NOT copyable
+   */
+  copyable() {
+    return {
+      type: 'visualize-it/SmartComp'.toLowerCase(), // self represents a SmartComp
+      key:  this.getPkgEntryId(),                   // ex: 'com.astx.ACME/valve1'
+    };
+  }
   
   /**
    * Mount the visuals of this compRef, binding the graphics to the

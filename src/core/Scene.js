@@ -6,6 +6,9 @@ import {ancestorOfLayer,
 import verify               from '../util/verify';
 import checkUnknownArgs     from '../util/checkUnknownArgs';
 import {isNumber, isEqual}  from '../util/typeCheck';
+import pkgManager           from './pkgManager';
+import DispMode             from './DispMode';
+import {toast}              from '../util/ui/notify';
 
 /**
  * Scene is a SmartPallet derivation that models a single Scene to be
@@ -125,6 +128,28 @@ export default class Scene extends SmartPallet {
    */
   getIconName() {
     return 'photo'; // ALSO CONSIDER: crop_original
+  }
+
+  /**
+   * Add the supplied comp to this scene.
+   *
+   * @param {SmartComp} comp - the comp to add.
+   */
+  addComp(comp) {
+    this.comps.push(comp);
+    comp.setParent(this);
+  }
+
+  /**
+   * Remove self's comp as identified through the supplied compId.
+   *
+   * @param {string} compId - the id of the comp to remove.
+   */
+  removeComp(compId) {
+    const indx = this.comps.findIndex( (comp) => comp.id === compId);
+    if (indx > -1) {
+      this.comps.splice(indx, 1);
+    }
   }
   
   /**
@@ -322,6 +347,82 @@ export default class Scene extends SmartPallet {
     };
   }
 
+  /**
+   * Is the content of the supplied DnD event pastable in self (i.e. a DnD target)
+   *
+   * API: DnD
+   *
+   * @param {Event} e - the DnD event
+   *
+   * @returns {boolean} `true`: content of DnD event IS pastable, `false` otherwise
+   */
+  pastable(e) {
+    // Scene allows SmartComp objects to be pasted
+    return e.dataTransfer.types.includes('visualize-it/smartcomp');
+  }
+
+  /**
+   * Perform the DnD paste operation of the supplied DnD event.
+   *
+   * API: DnD
+   *
+   * @param {Event} e - the DnD event
+   */
+  paste(e) {
+    // verify we are in edit mode
+    if (this.getPkgEntry().getDispMode() !== DispMode.edit) {
+      toast({msg: 'Drops require package entry to be in edit mode.'});
+      return;
+    }
+
+    // reconstitute our copySrc from the DnD event
+    const type    = e.dataTransfer.types[0]; // ... our usage only uses one type
+    const copySrc = {
+      type,
+      key:  e.dataTransfer.getData(type),
+    };
+    // console.log(`xx pasting: `, {copySrc, onto: this});
+
+    // NOTE: we know the supplied copySrc references a SmartComp class (see pastable() method)
+
+    // helpers to service undo/redo
+    // IMPORTANT: all updates must be written in such a way that DOES NOT reference stale objects
+    //            - when using undo/redo (over the course of time) objects may be "swapped out" via the synchronization process
+    //            - SOLUTION: resolve all objects from the "id" string AT RUN-TIME!!
+    const [pkgId, className] = copySrc.key.split('/');
+    const compClassRef       = pkgManager.getClassRef(pkgId, className);
+    const compId             = `${className}-copy-${Date.now()}`; // ... unique id (for now use current time)
+    
+    // retain selfScene `this` alias
+    // ... NOTE: `this` IS retained in our closure, 
+    //           HOWEVER unless changeFn() is an arrow function, it has a different `this` context
+    const selfScene = this;
+
+    // apply our change
+    this.changeManager.applyChange({
+      changeFn() {
+        // translate the DnD event's absolute page coordinates to canvas coordinates for our scene
+        const canvasCoord = selfScene.dndCanvasCoord(e);
+
+        // add a new comp (from the DnD drop) to our scene
+        const newComp = compClassRef.createSmartObject({
+          id: compId,
+          x:  canvasCoord.x,
+          y:  canvasCoord.y,
+        });
+        selfScene.addComp(newComp);
+
+        return newComp; // promote the new comp as our change target
+      },
+
+      undoFn() {
+        // remove the scene from our collage
+        selfScene.removeComp(compId);
+
+        return selfScene; // promote our scene as our change target
+      }
+    });
+  }
   
   /**
    * Verify self has been mounted.
