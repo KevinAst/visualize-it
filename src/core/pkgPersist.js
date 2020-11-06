@@ -31,9 +31,9 @@ export async function openPkg(pkgResourcePath) {
     check(pkgResourcePath===123, 'pkgResourcePath (when supplied) must be a YetUnknown'); // AI: future TEMPLATE
   }
   else { // ... for interactive file picker dialog
-    // insure we have access to the "Native File System API TRIAL"
-    if (!window.chooseFileSystemEntries) {
-      throw new Error('***ERROR*** openPkg() the "Native File System API TRIAL" is NOT available in this environment :-(')
+    // insure we have access to the "File System Access API"
+    if (!window.showOpenFilePicker) {
+      throw new Error('***ERROR*** openPkg() the "File System Access API" requires Chrome 86+')
         .defineAttemptingToMsg('use the interactive file picker dialog');
     }
   }
@@ -51,13 +51,15 @@ export async function openPkg(pkgResourcePath) {
   else {
     // select the fileHandle via an interactive file picker dialog
     try {
-      fileHandle = await window.chooseFileSystemEntries({
-        type: 'open-file',
-        accepts: [{
-          description: 'visualize-it file',
-          extensions: ['vit'],
-          mimeTypes: ['application/json'],
-        }],
+      [fileHandle] = await window.showOpenFilePicker({
+        types: [
+          {
+            description: 'visualize-it file',
+            accept: {
+              'application/json': ['.vit'],
+            },
+          },
+        ],
       });
     }
     catch(err) {
@@ -139,9 +141,9 @@ export async function savePkg(pkg, saveAs=false) {
     check(saveAs === true || saveAs === false, 'saveAs must be a boolean (when supplied)');
   }
 
-  // insure we have access to the "Native File System API TRIAL"
-  if (!window.chooseFileSystemEntries) {
-    throw new Error('***ERROR*** savePkg() the "Native File System API TRIAL" is NOT available in this environment :-(')
+  // insure we have access to the "File System Access API"
+  if (!window.showSaveFilePicker) {
+    throw new Error('***ERROR*** savePkg() the "File System Access API" requires Chrome 86+')
       .defineAttemptingToMsg('save a package to a local file system');
   }
 
@@ -164,13 +166,15 @@ export async function savePkg(pkg, saveAs=false) {
   //     (either there is no `pkg.pkgResourcePath`, or a `saveAs` operation was requested)
   if (!fileHandle) {
     try {
-      fileHandle = await window.chooseFileSystemEntries({
-        type: 'save-file',
-        accepts: [{
-          description: 'visualize-it file',
-          extensions: ['vit'],
-          mimeTypes: ['application/json'],
-        }],
+      fileHandle = await window.showSaveFilePicker({
+        types: [
+          {
+            description: 'visualize-it file',
+            accept: {
+              'application/json': ['.vit'],
+            },
+          },
+        ],
       });
     }
     catch (err) {
