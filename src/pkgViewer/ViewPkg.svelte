@@ -1,4 +1,4 @@
-<script context="module">
+<script>
  import List, {Item, Meta, Text, Separator} from '@smui/list';
  import Menu            from '@smui/menu';
  import Icon            from '../util/ui/Icon.svelte';
@@ -9,15 +9,33 @@
  import discloseError   from '../util/discloseError';
  import ViewPkgTree     from './ViewPkgTree.svelte';
 
+ // component parameters
+ export let pkg;
+
+ // validate supplied parameters
+ const check = verify.prefix('<ViewPkg> parameter violation: ');
+ // ... pkg
+ check(pkg,        'pkg is required');
+ check(isPkg(pkg), `pkg must be a SmartPkg ... NOT: ${pkg}`);
+
+ // maintain our reflexive expansion state
+ let expanded = true;
+ $: expandedIndicator = expanded ? '' : '...';
+
+ // maintain our reflexive in-sync qualifiers
+ const changeManager = pkg.changeManager;
+ $: inSyncIcon       = $changeManager.inSyncIcon();
+ $: pkgNameToolTip   = `Package: ${pkg.getPkgId()}` + ($changeManager.inSync ? '' : ' (modified - needs to be saved)');
+
+ let menu;
+
  /**
-  * Save the supplied SmartPkg to an external resource (ex: web or
-  * local file).
+  * Save our SmartPkg to an external resource (ex: web or local file).
   *
-  * @param {SmartPkg} pkg - the SmartPkg to save.
   * @param {boolean} [saveAs=false] - true: save in a newly user
   * selected file, false: save in the original pkg's `pkgResourcePath`.
   */
- async function handleSavePkg(pkg, saveAs=false) {
+ async function handleSavePkg(saveAs=false) {
    try {
      // insure the package is a candidate for saving
      if (!pkg.canPersist()) {
@@ -43,28 +61,6 @@
  }
 </script>
 
-<script>
- // component parameters
- export let pkg;
-
- // validate supplied parameters
- const check = verify.prefix('<ViewPkg> parameter violation: ');
- // ... pkg
- check(pkg,        'pkg is required');
- check(isPkg(pkg), `pkg must be a SmartPkg ... NOT: ${pkg}`);
-
- // maintain our reflexive expansion state
- let expanded = true;
- $: expandedIndicator = expanded ? '' : '...';
-
- // maintain our reflexive in-sync qualifiers
- const changeManager = pkg.changeManager;
- $: inSyncIcon       = $changeManager.inSyncIcon();
- $: pkgNameToolTip   = `Package: ${pkg.getPkgId()}` + ($changeManager.inSync ? '' : ' (modified - needs to be saved)');
-
- let menu;
-</script>
-
 <!-- using activated strictly for it's coloring :-) -->
 <Item class="vit-drawer-item"
       activated
@@ -82,7 +78,7 @@
   <Meta>
     <Icon name="save"
           title="Save Package"
-          on:click={(e) => {e.stopPropagation(); handleSavePkg(pkg);} }/>
+          on:click={(e) => {e.stopPropagation(); handleSavePkg();} }/>
 
     <Icon name="more_vert"
           title="Manage Package"
@@ -93,8 +89,8 @@
 <span>
   <Menu bind:this={menu}>
     <List>
-      <Item on:SMUI:action={() => handleSavePkg(pkg)}>      <Text>Save {pkg.getPkgName()}</Text></Item>
-      <Item on:SMUI:action={() => handleSavePkg(pkg, true)}><Text>Save As ...</Text></Item>
+      <Item on:SMUI:action={() => handleSavePkg()}>    <Text>Save {pkg.getPkgName()}</Text></Item>
+      <Item on:SMUI:action={() => handleSavePkg(true)}><Text>Save As ...</Text></Item>
       <Separator/>
       <Item on:SMUI:action={() => alert('FUTURE: Rename')}><Text>Rename</Text></Item>
       <Separator/>
