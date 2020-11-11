@@ -3,6 +3,7 @@ import SmartClassRef     from './SmartClassRef';
 import PseudoClass       from './PseudoClass';
 import SmartPallet       from './SmartPallet';
 import {ChangeManager}   from './changeManager';
+import DispMode          from './DispMode';
 import {isString,
         isArray}         from '../util/typeCheck';
 import verify            from '../util/verify';
@@ -208,6 +209,37 @@ export default class SmartPkg extends SmartModel {
    */
   canPersist() {
     return !this.entriesContainCode;
+  }
+
+  /**
+   * Return an indicator as to whether self supports the supplied `dispMode`.
+   *
+   * @param {DispMode} dispMode - the display mode to evaluate.
+   *
+   * @returns {boolean} true: can handle, false: not supported.
+   */
+  canHandleDispMode(dispMode) {
+    return dispMode !== DispMode.animate; // SmartPkg can be viewed and edited - NOT animated
+  }
+
+  /**
+   * Enable self's "view" DispMode (used in top-level objects targeted by a tab).
+   *
+   * NOTE: this is also invoked prior to other display modes, as a neutral reset :-)
+   */
+  enableViewMode() {
+    // nothing to do, other than to enable this abstract method
+    // ... unlike PkgEntry objects (that setup various event handlers)
+    // ... SmartPkg objects merely utilize the getDispMode()
+  }
+
+  /**
+   * Enable self's "edit" DispMode (used in top-level objects targeted by a tab).
+   */
+  enableEditMode() {
+    // nothing to do, other than to enable this abstract method
+    // ... unlike PkgEntry objects (that setup various event handlers)
+    // ... SmartPkg objects merely utilize the getDispMode()
   }
 
   /**
