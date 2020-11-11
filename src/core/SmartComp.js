@@ -80,7 +80,7 @@ export default class SmartComp extends SmartModel {
    *
    * @param {DispMode} dispMode - the display mode to evaluate.
    *
-   * @throws {boolean} true: can handle, false: not supported.
+   * @returns {boolean} true: can handle, false: not supported.
    */
   // AI: suspect now in CompRef only
   //? canHandleDispMode(dispMode) {

@@ -109,7 +109,7 @@ export default class CompRef extends SmartPallet {
    *
    * @param {DispMode} dispMode - the display mode to evaluate.
    *
-   * @throws {boolean} true: can handle, false: not supported.
+   * @returns {boolean} true: can handle, false: not supported.
    */
   canHandleDispMode(dispMode) {
     return dispMode !== DispMode.edit; // by default, SmartComps cannot be edited
