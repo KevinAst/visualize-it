@@ -1056,31 +1056,27 @@ export default class SmartModel {
 
     // ... insure self supports this setting
     check(this.canHandleDispMode(dispMode), `does NOT support ${dispMode} :-(`);
+    if (dispMode === DispMode.edit) {
+      const pkg = this.getPkg();
+      check(pkg.canPersist(), 
+            `The "${this.getName()}" resource (id: "${this.getId()}") cannot be edited ` + 
+            `... normally it can, however it belongs to the "${pkg.getPkgName()}" package which ` +
+            `contains code (therefore you would not be able to save your changes).`);
+    }
 
-    // perform the set operation
+    // retain the setting in self
     this.dispMode = dispMode;
 
-    // fully enable this DispMode in the object model
+    // fully enable the DispMode operation
     if (dispMode === DispMode.view) {
       this.enableViewMode();
     }
     else if (dispMode === DispMode.edit) {
-      // perform a pre-check to prevent edit mode when containing package cannot be persisted
-      // ... ex: when the package contains code
-      const pkg = this.getPkg();
-      if (!pkg.canPersist()) {
-        toast({msg: `The "${this.getName()}" resource cannot be edited ` + 
-                    `... normally it can, however it belongs to the "${pkg.getPkgName()}" package which ` +
-                    `contains code (therefore you would not be able to save your changes).`});
-        return;
-      }
-
-      // go forward with our normal edit enablement
-      this.enableViewMode(); // a neutral reset
+      this.enableViewMode(); // ... a neutral reset
       this.enableEditMode();
     }
     else if (dispMode === DispMode.animate) {
-      this.enableViewMode(); // a neutral reset
+      this.enableViewMode();    // ... a neutral reset
       this.enableAnimateMode();
     }
     else {
@@ -1093,7 +1089,7 @@ export default class SmartModel {
    *
    * @param {DispMode} dispMode - the display mode to evaluate.
    *
-   * @throws {boolean} true: can handle, false: not supported.
+   * @returns {boolean} true: can handle, false: not supported.
    */
   canHandleDispMode(dispMode) {
     return true;  // by default, base class assumes all DispModes are supported
