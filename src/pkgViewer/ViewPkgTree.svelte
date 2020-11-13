@@ -1,7 +1,6 @@
 <script context="module">
  // retain ModuleScoped expansion state for each tree node
  // ... so collapsing a parent doesn't loose expansion state of children :-)
- // ??$$ need a way to share expanded state to Edit component
  const _expansionState = {
    // accumTreeId: expanded <boolean>
  };
@@ -19,7 +18,11 @@
 
  // component params
  export let pkg;                 // the SmartPkg entry point (for public consumption) ... for internal recursive usage this is a PkgTree
+ export let inEditMode;          // true: edit package structure, false: package is read-only
  export let accumTreeId = '';    // INTERNAL: accumulative ID throughout tree
+
+ // our edit/view styling
+ $: style = inEditMode ? 'color: blue;' : '';
 
  // maintain our primary control indicators
  let top = true; // is this the top-level
@@ -96,7 +99,7 @@
 <!-- omit the top root directory node - a "/" (it is implied by our Package Header) -->
 {#if top && children}
   {#each children as child}
-    <svelte:self pkg={child} {accumTreeId}/>
+    <svelte:self pkg={child} {inEditMode} {accumTreeId}/>
   {/each}
 {:else}
   <ul class:top transition:slide="{{duration: 500}}">
@@ -104,6 +107,7 @@
       {#if children}
         <span class="mdc-typography--subtitle2 expander"
               title="Directory (click to expand/contract)"
+              {style}
               on:click={toggleExpansion}
               use:Ripple={{ripple: true, color: 'surface', unbounded: false}}>
           <span class="arrow" class:arrowDown>&#x25b6</span>
@@ -111,7 +115,7 @@
         </span>
         {#if expanded}
           {#each children as child}
-            <svelte:self pkg={child} {accumTreeId}/>
+            <svelte:self pkg={child} {inEditMode} {accumTreeId}/>
           {/each}
         {/if}
       {:else}
@@ -122,6 +126,7 @@
 
           <!-- DnD Container (is conditional - ex: Collages are NOT draggable)  -->
           <span {draggable}
+                {style}
                 on:dragstart={handleDragStart}>
 
             <Icon name="{pkgEntry.getIconName()}"
@@ -132,6 +137,7 @@
           </span>
 
           <Icon name={inSyncIcon}
+                {style}
                 size="1.0rem"/>
 
         </span>
