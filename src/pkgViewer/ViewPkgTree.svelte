@@ -1,6 +1,7 @@
 <script context="module">
  // retain ModuleScoped expansion state for each tree node
  // ... so collapsing a parent doesn't loose expansion state of children :-)
+ // ??$$ need a way to share expanded state to Edit component
  const _expansionState = {
    // accumTreeId: expanded <boolean>
  };

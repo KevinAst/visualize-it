@@ -6,6 +6,11 @@ import checkUnknownArgs from '../../util/checkUnknownArgs';
 import {isEPkg,
         isFunction}     from '../../util/typeCheck';
 
+// ??$$$ Change Manage should NOW fully support EPKG (both SmartPkg and PkgEntry) ... retrofit code (and variables throughout)
+//       DONE: may ONLY AFFECT: changeDispMode()
+//       ?? research all pkgentry comment/vars
+//       ?? fully implement through LeftNav "Edit Package Structure"
+
 /**
  * ChangeManager is a reactive custom store that manages and monitors
  * changes in an EPkg:
@@ -137,28 +142,26 @@ export default class ChangeManager {
   }
 
   /**
-   * Change self's PkgEntry to the supplied dispMode (view/edit/animate).
+   * Change self's EPkg to the supplied dispMode (view/edit/animate).
    *
-   * NOTE: Technically, only PkgEntry objects utilize DispMode, however 
+   * NOTE: Technically, only EPkg objects utilize DispMode, however 
    *       all SmartObjects have a dispMode (a bit of an overkill).
    *
    * @param {DispMode} dispMode - the display mode to set.
    */
   changeDispMode(dispMode) {
     // validate parameters
-    // ... this is indirectly accomplished in the pkgEntry.setDispMode() invocation (below)
-
-    const pkgEntry = this.ePkg;
+    // ... this is indirectly accomplished in the .setDispMode() invocation (below)
 
     // apply the change (only when out-of-sync)
-    // NOTE: There are cases where we want to issue this
+    // NOTE: There are cases where we want to issue a
     //       `pkgEntry.setDispMode()` EVEN when it has NOT changed
     //       ... see: src/pkgEntryTabs/syncModelOnActiveTabChange.js
     //       THIS is OK to do this, as we will NOT reflex unless it has
     //       actually changed :-)
     //       ... see: this.syncMonitoredChange()
     // console.log(`xx ChangeManager.changeDispMode(${dispMode.enumKey}) ... applying change`);
-    pkgEntry.setDispMode(dispMode);
+    this.ePkg.setDispMode(dispMode);
 
     // update our reflexive monitor
     this.syncMonitoredChange();
