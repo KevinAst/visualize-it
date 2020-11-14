@@ -357,8 +357,7 @@ export default class Scene extends SmartPallet {
    * @returns {boolean} `true`: content of DnD event IS pastable, `false` otherwise
    */
   pastable(e) {
-    // Scene allows SmartComp objects to be pasted
-    return e.dataTransfer.types.includes('visualize-it/smartcomp');
+    return e.dataTransfer.types.includes(DnDPastableType);
   }
 
   /**
@@ -378,8 +377,8 @@ export default class Scene extends SmartPallet {
     // reconstitute our copySrc from the DnD event
     const type    = e.dataTransfer.types[0]; // ... our usage only uses one type
     const copySrc = {
-      type,
-      key:  e.dataTransfer.getData(type),
+      type: DnDPastableType,
+      key:  e.dataTransfer.getData(DnDPastableType), // ... will exist based on `pastable(e)` (above)
     };
     // console.log(`xx pasting: `, {copySrc, onto: this});
 
@@ -561,3 +560,6 @@ export default class Scene extends SmartPallet {
 
 }
 Scene.unmangledName = 'Scene';
+
+// Scene allows SmartComp objects to be pasted
+const DnDPastableType = 'visualize-it/smartcomp';
