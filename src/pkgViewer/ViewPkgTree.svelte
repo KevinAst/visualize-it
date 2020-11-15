@@ -12,38 +12,22 @@
  import {isPkg}              from '../util/typeCheck';
  import genDualClickHandler  from '../util/ui/genDualClickHandler';
  import Icon                 from '../util/ui/Icon.svelte';
+ import DispMode             from '../core/DispMode';
  import {slide}              from 'svelte/transition'; // visually animated transitions for tree node expansion/contraction
 
+ // component props
+ export let pkgTree;  // the PkgTree to display (will recurse into any sub-structure)
 
- // component params ?? greatly simplify (with new PkgTree support) by passing in ONLY pkgTree (gleaning other things from this)
- export let pkg;                 // the SmartPkg entry point (for public consumption) ... for internal recursive usage this is a PkgTree
- export let inEditMode;          // true: edit package structure, false: package is read-only
- export let accumTreeId = '';    // INTERNAL: accumulative ID throughout tree ?? glean from PkgTree itself
-
- // our edit/view styling
- $: style = inEditMode ? 'color: blue;' : '';
-
- // maintain our primary control indicators
- let top = true; // is this the top-level
- let pkgTree;    // our PkgTree (entries)
- if (isPkg(pkg)) { // ... top-level entry point (a SmartPkg)
-   pkgTree     = pkg.rootDir;
-   top         = true;
-   accumTreeId = pkg.getPkgId();    // force our top accumTreeId to be our pkg id ?? glean from PkgTree itself
-   // console.log(`??$$ TEMP TEST: ViewPkgTree.svelte ROOT - NEW PkgTree.getPkgTreeId() ${accumTreeId === pkgTree.getPkgTreeId() ? 'GREAT: SAME' : 'BAD: DIFFERENT'}`);
-   // console.log(`xx <ViewPkgTree> for ${pkg.getPkgName()}:\n`, {pkgTree});
- }
- else { // ... subordinate levels within internal recursive usage (PkgTree entries)
-   pkgTree      = pkg;
-   top          = false;
-   accumTreeId += ` - ${pkgTree.getName()}`; // ?? glean from PkgTree itself
-   // console.log(`??$$ TEMP TEST ViewPkgTree.svelte INTR - NEW PkgTree.getPkgTreeId() ${accumTreeId === pkgTree.getPkgTreeId() ? 'GREAT: SAME' : 'BAD: DIFFERENT'}`);
- }
+ // our primary reflexive state
+ $: pkg         = pkgTree.getPkg();
+ $: inEditMode  = pkg.getDispMode() === DispMode.edit; // true: edit package structure, false: package is read-only
+ $: accumTreeId = pkgTree.getPkgTreeId();              // the accumulative pkgTreeId
+ $: style       = inEditMode ? 'color: blue;' : '';    // edit/view styling
  
  // maintain our reflexive in-sync label qualifier
  // ... for PkgEntries, we utilize it's changeManager reflexive store
- const pkgEntry      = pkgTree.isEntry() ? pkgTree.getEntry()                  : null;
- const changeManager = pkgEntry          ? pkgEntry.changeManager              : null;
+ const pkgEntry      = pkgTree.isEntry() ? pkgTree.getEntry()     : null;
+ const changeManager = pkgEntry          ? pkgEntry.changeManager : null;
  let inSyncIcon;
  let pkgEntryToolTip;
  $: if (changeManager && !$changeManager.inSync) {
@@ -56,14 +40,14 @@
  }
 
  // decompose self's tree node
- $:    label    = pkgTree.getName();
- const children = pkgTree.getChildren();
+ $: label    = pkgTree.getName();
+ $: children = pkgTree.getChildren();
 
  // maintain expansion state
  // ... initialize from any prior expansion state
  // ... default to NOT expanded (false) on first occurance
- let   expanded        = _expansionState[accumTreeId] || false;
- $:    arrowDown       = expanded;
+ $: expanded  = _expansionState[accumTreeId] || false;
+ $: arrowDown = expanded;
  const toggleExpansion = () => {
    expanded = _expansionState[accumTreeId] = !expanded;
  };
@@ -102,16 +86,11 @@
    if (copySrcPkgTree) {
      e.dataTransfer.setData(copySrcPkgTree.type, copySrcPkgTree.key);
    }
-   // ?? FOR ABOVE: HAVE FOLLOWING: ?? TRASH THIS COMMENT ONCE FULLY RETROFITTED
-   //    - pkgTree      PkgTree (is root '/' WHEN top===true)
-   //    - top          true, pkgTree is '/'
-   //    - accumTreeId  Ex: 'com.astx.KONVA2 - scenes - More Depth - Scene2' ?? suspect we need to maintain this within PkgTree
  };
 
  // allow DnD drops based on polymorphic PkgTree.pastable()
  // ... GRRR: Must implement BOTH dragenter/dragover BECAUSE have to override the default implementation (which prevents a drop).
  //           This is optimized by caching, since nothing changes (for us) in drag over.
- // ??$$ NEW
  let isAllowed = null;
  function allowDrops_enter(e) {
    isAllowed = pkgTree.pastable(e);
@@ -129,7 +108,6 @@
  }
 
  // perform DnD drop based on polymorphic PkgTree.paste()
- // ??$$ NEW
  function handleDrop(e) {
    // console.log(`xx handleDrop on: `, {pkgTree});
    pkgTree.paste(e);
@@ -139,9 +117,9 @@
 </script>
 
 <!-- omit the top root directory node - a "/" (it is implied by our Package Header) -->
-{#if top && children}
+{#if pkgTree.isRoot() && children}
   {#each children as child}
-    <svelte:self pkg={child} {inEditMode} {accumTreeId}/>
+    <svelte:self pkgTree={child}/>
   {/each}
 {:else}
   <ul class:top transition:slide="{{duration: 500}}">
@@ -162,7 +140,7 @@
         </span>
         {#if expanded}
           {#each children as child}
-            <svelte:self pkg={child} {inEditMode} {accumTreeId}/>
+            <svelte:self pkgTree={child}/>
           {/each}
         {/if}
       {:else}

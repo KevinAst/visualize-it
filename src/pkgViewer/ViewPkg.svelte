@@ -58,8 +58,8 @@
  }
 
  // our edit/view status ... a boolean
- $: inEditMode = pkg.getDispMode() === DispMode.edit;
- $: style = inEditMode ? 'color: blue;' : '';
+ $: inEditMode = pkg.getDispMode() === DispMode.edit; // true: edit package structure, false: package is read-only
+ $: style      = inEditMode ? 'color: blue;' : '';
 
  // edit the structure of our SmartPkg (EPkg name/id, add/remove PkgEntry, dir structure, etc.)
  // ... changes the visual rendering to accomidate edits
@@ -139,7 +139,7 @@
 </span>
 
 {#if expanded}
-  <ViewPkgTree {pkg} {inEditMode}/>
+  <ViewPkgTree pkgTree={pkg.rootDir}/>
 {/if}
 
 
