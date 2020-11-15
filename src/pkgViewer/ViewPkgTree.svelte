@@ -23,6 +23,7 @@
  $: inEditMode  = pkg.getDispMode() === DispMode.edit; // true: edit package structure, false: package is read-only
  $: accumTreeId = pkgTree.getPkgTreeId();              // the accumulative pkgTreeId
  $: style       = inEditMode ? 'color: blue;' : '';    // edit/view styling
+ $: top         = pkgTree.isRoot();
  
  // maintain our reflexive in-sync label qualifier
  // ... for PkgEntries, we utilize it's changeManager reflexive store
@@ -117,7 +118,7 @@
 </script>
 
 <!-- omit the top root directory node - a "/" (it is implied by our Package Header) -->
-{#if pkgTree.isRoot() && children}
+{#if top && children}
   {#each children as child}
     <svelte:self pkgTree={child}/>
   {/each}
