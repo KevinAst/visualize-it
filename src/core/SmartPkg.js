@@ -436,6 +436,101 @@ class PkgTree extends SmartModel {
   isEntry() {
     return !this.isDir();
   }
+
+  /**
+   * Provide indicator as to whether self can be copied to other sources (i.e. a DnD source)
+   *
+   * API: DnD
+   *
+   * @returns {CopySrc} a CopySrc: {type, key} ... null when NOT copyable
+   */
+  copyable() {
+    // ?? once REAL ??pkgId is supplied, TEST to insure only structure move within given package
+    return {
+      type: `${DnDPastableType}#??pkgId`.toLowerCase(), // self represents PkgTree instance of a specific Pkg (both PkgTreeDir/PkgTreeEntry handled consistently)
+      key:  '??this.getTreeId()',                       // specific node pkgTreeId - ex: 'com.astx.ACME - scenes - More Depth - Scene2' ?? new method in PkgTree
+    };
+  }
+
+  /**
+   * Is the content of the supplied DnD event pastable in self (i.e. a DnD target)
+   *
+   * API: DnD
+   *
+   * @param {Event} e - the DnD event
+   *
+   * @returns {boolean} `true`: content of DnD event IS pastable, `false` otherwise
+   */
+  pastable(e) {
+    // console.log(`xx PkgTree.pastable(e): `, {lookingFor: `${DnDPastableType}#??pkgId`.toLowerCase(), inTypes: e.dataTransfer.types});
+    return e.dataTransfer.types.includes(`${DnDPastableType}#??pkgId`.toLowerCase());
+  }
+
+  /**
+   * Perform the DnD paste operation of the supplied DnD event.
+   *
+   * API: DnD
+   *
+   * @param {Event} e - the DnD event
+   */
+  paste(e) {
+    //? ?? SUSPECT NOT NEEDED FOR US
+    //? // verify we are in edit mode
+    //? if (this.getPkgEntry().getDispMode() !== DispMode.edit) {
+    //?   toast({msg: 'Drops require package entry to be in edit mode.'});
+    //?   return;
+    //? }
+
+    // reconstitute our copySrc from the DnD event
+    const type    = `${DnDPastableType}#??pkgId`.toLowerCase()
+    const copySrc = {
+      type,
+      key: e.dataTransfer.getData(type), // ... will exist based on `pastable(e)` (above)
+    };
+    console.log(`?? xx pasting: `, {copySrc, onto: this});
+
+    //? // ?? RETROFIT ????????????????????????????????????????????????????????????????????????????????
+    //? // NOTE: we know the supplied copySrc references a SmartComp class (see pastable() method)
+    //? 
+    //? // helpers to service undo/redo
+    //? // IMPORTANT: all updates must be written in such a way that DOES NOT reference stale objects
+    //? //            - when using undo/redo (over the course of time) objects may be "swapped out" via the synchronization process
+    //? //            - SOLUTION: resolve all objects from the "id" string AT RUN-TIME!!
+    //? const [pkgId, className] = copySrc.key.split('/');
+    //? const compClassRef       = pkgManager.getClassRef(pkgId, className);
+    //? const compId             = `${className}-copy-${Date.now()}`; // ... unique id (for now use current time)
+    //? 
+    //? // retain selfScene `this` alias
+    //? // ... NOTE: `this` IS retained in our closure, 
+    //? //           HOWEVER unless changeFn() is an arrow function, it has a different `this` context
+    //? const selfScene = this;
+    //? 
+    //? // apply our change
+    //? this.changeManager.applyChange({
+    //?   changeFn() {
+    //?     // translate the DnD event's absolute page coordinates to canvas coordinates for our scene
+    //?     const canvasCoord = selfScene.dndCanvasCoord(e);
+    //? 
+    //?     // add a new comp (from the DnD drop) to our scene
+    //?     const newComp = compClassRef.createSmartObject({
+    //?       id: compId,
+    //?       x:  canvasCoord.x,
+    //?       y:  canvasCoord.y,
+    //?     });
+    //?     selfScene.addComp(newComp);
+    //? 
+    //?     return newComp; // promote the new comp as our change target
+    //?   },
+    //? 
+    //?   undoFn() {
+    //?     // remove the scene from our collage
+    //?     selfScene.removeComp(compId);
+    //? 
+    //?     return selfScene; // promote our scene as our change target
+    //?   }
+    //? });
+  }
+
 }
 PkgTree.unmangledName = 'PkgTree';
 
@@ -552,9 +647,6 @@ export class PkgTreeEntry extends PkgTree {
 
   /**
    * Self's PkgTree name, visualized in UI.
-   * NOTE: Technically this API is promoted by SmartModel, and will work (since
-   *       the correct name is promoted to SmartModel), HOWEVER this implementation 
-   *       is MORE explicit!
    * @returns {string} the PkgTree node name (for human consumption).
    */
   getName() {
@@ -570,3 +662,8 @@ export class PkgTreeEntry extends PkgTree {
   }
 }
 PkgTreeEntry.unmangledName = 'PkgTreeEntry';
+
+
+// PkgTree allows PkgTree objects to be pasted
+const DnDPastableType = 'visualize-it/PkgTree';
+

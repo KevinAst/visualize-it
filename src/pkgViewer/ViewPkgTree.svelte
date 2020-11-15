@@ -13,13 +13,12 @@
  import genDualClickHandler  from '../util/ui/genDualClickHandler';
  import Icon                 from '../util/ui/Icon.svelte';
  import {slide}              from 'svelte/transition'; // visually animated transitions for tree node expansion/contraction
- import Ripple               from '@smui/ripple';
 
 
- // component params
+ // component params ?? greatly simplify (with new PkgTree support) by passing in ONLY pkgTree (gleaning other things from this)
  export let pkg;                 // the SmartPkg entry point (for public consumption) ... for internal recursive usage this is a PkgTree
  export let inEditMode;          // true: edit package structure, false: package is read-only
- export let accumTreeId = '';    // INTERNAL: accumulative ID throughout tree
+ export let accumTreeId = '';    // INTERNAL: accumulative ID throughout tree ?? glean from PkgTree itself
 
  // our edit/view styling
  $: style = inEditMode ? 'color: blue;' : '';
@@ -30,13 +29,13 @@
  if (isPkg(pkg)) { // ... top-level entry point (a SmartPkg)
    pkgTree     = pkg.rootDir;
    top         = true;
-   accumTreeId = pkg.getPkgId();    // force our top accumTreeId to be our pkg id
+   accumTreeId = pkg.getPkgId();    // force our top accumTreeId to be our pkg id ?? glean from PkgTree itself
    // console.log(`xx <ViewPkgTree> for ${pkg.getPkgName()}:\n`, {pkgTree});
  }
  else { // ... subordinate levels within internal recursive usage (PkgTree entries)
    pkgTree      = pkg;
    top          = false;
-   accumTreeId += ` - ${pkgTree.getName()}`;
+   accumTreeId += ` - ${pkgTree.getName()}`; // ?? glean from PkgTree itself
  }
  
  // maintain our reflexive in-sync label qualifier
@@ -77,20 +76,61 @@
    () => activateTab(tabController.getTabId(), /*preview*/false), // double-click
  );
 
- // support drag (of DnD), based on polymorphic SmartObj.copyable()
- const copySrc   = pkgEntry ? pkgEntry.copyable() : null;
- const draggable = copySrc  ? true : false;
- function handleDragStart(e) { // ... conditionally invokes when `draggable` is true
+ // support drag (of DnD), based on polymorphic SmartObj.copyable() -and- PkgTree.copyable()
+ const copySrcPkgEntry = pkgEntry   ? pkgEntry.copyable() : null;
+ $:    copySrcPkgTree  = inEditMode ? pkgTree.copyable()  : null;  // ?? move "inEditMode" conditional logic into pkgTree.copyable() ONCE we can get to the pkg
+ $:    draggable       = copySrcPkgEntry || copySrcPkgTree  ? true : false;
+ function handleDragStart(e) { // ... conditionally invoked when `draggable` is true (via draggleble DOM attribute - below)
    // console.log(`xx ViewPkgTree handleDragStart(): starting`);
 
-   // specify cursor effect that IS allowed
-   // ... used later in dragenter/dragover events (via the dropEffect prop)
-	 e.dataTransfer.effectAllowed = 'link';
+   // specify cursor effects that ARE allowed
+   // ... subsequently later in dragenter/dragover events (via the dropEffect prop)
+   // ... multiple effects used ('linkMove'):
+   //     - link: for PkgEntry (to link a copy into Comp/Scene/Collage)
+   //     - move: for PkgTree  (to move SmartPkg PkgTree directory structure)
+	 e.dataTransfer.effectAllowed = 'linkMove';
 
    // pack the data for our drag operation
-   // ... we can use our own meta type
-   //     NOTE: it is forced to a lower-case (grrr)
-   e.dataTransfer.setData(copySrc.type, copySrc.key);
+   // NOTE: We can use our own meta type (however NOTE that is is forced to be lower-case)
+   // ... PkgEntry (to link a copy into Comp/Scene/Collage))
+   if (copySrcPkgEntry) {
+     e.dataTransfer.setData(copySrcPkgEntry.type, copySrcPkgEntry.key);
+   }
+   // ... PkgTree (to move SmartPkg PkgTree directory structure)
+   if (copySrcPkgTree) {
+     e.dataTransfer.setData(copySrcPkgTree.type, copySrcPkgTree.key);
+   }
+   // ?? FOR ABOVE: HAVE FOLLOWING: ?? TRASH THIS COMMENT ONCE FULLY RETROFITTED
+   //    - pkgTree      PkgTree (is root '/' WHEN top===true)
+   //    - top          true, pkgTree is '/'
+   //    - accumTreeId  Ex: 'com.astx.KONVA2 - scenes - More Depth - Scene2' ?? suspect we need to maintain this within PkgTree
+ };
+
+ // allow DnD drops based on polymorphic PkgTree.pastable()
+ // ... GRRR: Must implement BOTH dragenter/dragover BECAUSE have to override the default implementation (which prevents a drop).
+ //           This is optimized by caching, since nothing changes (for us) in drag over.
+ // ??$$ NEW
+ let isAllowed = null;
+ function allowDrops_enter(e) {
+   isAllowed = pkgTree.pastable(e);
+   // console.log(`xx allowDrops_enter on: `, {isAllowed, pkgTree, types: e.dataTransfer.types});
+   allowDrops_over(e);
+ };
+ function allowDrops_over(e) {
+   // console.log(`xx allowDrops_over`);
+   if (isAllowed) {
+     e.preventDefault(); // allow drop (nullify default disallow behavior)
+     // console.log(`xx dropEffect BEFORE: ${e.dataTransfer.dropEffect}`);
+     e.dataTransfer.dropEffect = 'move'; // change cursor to reflect droppable
+     // console.log(`xx dropEffect AFTER: ${e.dataTransfer.dropEffect}`);
+   }
+ }
+
+ // perform DnD drop based on polymorphic PkgTree.paste()
+ // ??$$ NEW
+ function handleDrop(e) {
+   // console.log(`xx handleDrop on: `, {pkgTree});
+   pkgTree.paste(e);
  };
 
  // console.log(`xx <ViewPkgTree> for ${accumTreeId}`);
@@ -107,9 +147,14 @@
       {#if children}
         <span class="mdc-typography--subtitle2 expander"
               title="Directory (click to expand/contract)"
+              {draggable}
               {style}
-              on:click={toggleExpansion}
-              use:Ripple={{ripple: true, color: 'surface', unbounded: false}}>
+              on:dragstart={handleDragStart}
+              on:dragenter={allowDrops_enter}
+              on:dragover={allowDrops_over}
+              on:drop|preventDefault={handleDrop}
+
+              on:click={toggleExpansion}>
           <span class="arrow" class:arrowDown>&#x25b6</span>
           {label}
         </span>
@@ -124,10 +169,12 @@
               on:click={displayEntry}>
           <span class="no-arrow-spacer"/>
 
-          <!-- DnD Container (is conditional - ex: Collages are NOT draggable)  -->
           <span {draggable}
                 {style}
-                on:dragstart={handleDragStart}>
+                on:dragstart={handleDragStart}
+                on:dragenter={allowDrops_enter}
+                on:dragover={allowDrops_over}
+                on:drop|preventDefault={handleDrop}>
 
             <Icon name="{pkgEntry.getIconName()}"
                   size="1.0rem"/>
