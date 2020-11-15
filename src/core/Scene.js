@@ -375,7 +375,6 @@ export default class Scene extends SmartPallet {
     }
 
     // reconstitute our copySrc from the DnD event
-    const type    = e.dataTransfer.types[0]; // ... our usage only uses one type
     const copySrc = {
       type: DnDPastableType,
       key:  e.dataTransfer.getData(DnDPastableType), // ... will exist based on `pastable(e)` (above)
