@@ -5,7 +5,8 @@ import SmartPallet       from './SmartPallet';
 import {ChangeManager}   from './changeManager';
 import DispMode          from './DispMode';
 import {isString,
-        isArray}         from '../util/typeCheck';
+        isArray,
+        isPkg}           from '../util/typeCheck';
 import verify            from '../util/verify';
 import checkUnknownArgs  from '../util/checkUnknownArgs';
 
@@ -438,6 +439,29 @@ class PkgTree extends SmartModel {
   }
 
   /**
+   * Indicator as to whether self is the tree root of all PkgTree entry nodes.
+   * @returns {boolean} true: root node, false: non-root node
+   */
+  isRoot() {
+    return isPkg(this.getParent()); // ... if our parent is the SmartPkg, we are the root!
+  }
+
+  /**
+   * Self's accumulative pkgTreeId.
+   * 
+   * This is an accumulative id, starting with the pkgId, followed by
+   * all accumulative node names ... ex:
+   *   '{pkgId} - {dirName} - {dirName} - {entryName}'
+   *   ?? adjust EX (above) ' - ' when PkgTreeIdDelim is FINALIZED
+   * 
+   * @returns {string} self's accumulative pkgTreeId.
+   */
+  getPkgTreeId() {
+    //                     TOP: use our pkgId         INTERMEDIATE: prefix parent node ids
+    return this.isRoot() ? this.getPkg().getPkgId() : this.getParent().getPkgTreeId() + PkgTreeIdDelim + this.getName();;
+  }
+
+  /**
    * Provide indicator as to whether self can be copied to other sources (i.e. a DnD source)
    *
    * API: DnD
@@ -667,3 +691,5 @@ PkgTreeEntry.unmangledName = 'PkgTreeEntry';
 // PkgTree allows PkgTree objects to be pasted
 const DnDPastableType = 'visualize-it/PkgTree';
 
+// delimiter used in pkgTreeId
+const PkgTreeIdDelim = ' - ';

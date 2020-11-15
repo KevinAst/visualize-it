@@ -30,12 +30,14 @@
    pkgTree     = pkg.rootDir;
    top         = true;
    accumTreeId = pkg.getPkgId();    // force our top accumTreeId to be our pkg id ?? glean from PkgTree itself
+   // console.log(`??$$ TEMP TEST: ViewPkgTree.svelte ROOT - NEW PkgTree.getPkgTreeId() ${accumTreeId === pkgTree.getPkgTreeId() ? 'GREAT: SAME' : 'BAD: DIFFERENT'}`);
    // console.log(`xx <ViewPkgTree> for ${pkg.getPkgName()}:\n`, {pkgTree});
  }
  else { // ... subordinate levels within internal recursive usage (PkgTree entries)
    pkgTree      = pkg;
    top          = false;
    accumTreeId += ` - ${pkgTree.getName()}`; // ?? glean from PkgTree itself
+   // console.log(`??$$ TEMP TEST ViewPkgTree.svelte INTR - NEW PkgTree.getPkgTreeId() ${accumTreeId === pkgTree.getPkgTreeId() ? 'GREAT: SAME' : 'BAD: DIFFERENT'}`);
  }
  
  // maintain our reflexive in-sync label qualifier
