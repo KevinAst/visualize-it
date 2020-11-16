@@ -2,7 +2,7 @@
  // retain ModuleScoped expansion state for each tree node
  // ... so collapsing a parent doesn't loose expansion state of children :-)
  const _expansionState = {
-   // accumTreeId: expanded <boolean>
+   // pkgTreeId: expanded <boolean>
  };
 </script>
 
@@ -19,11 +19,11 @@
  export let pkgTree;  // the PkgTree to display (will recurse into any sub-structure)
 
  // our primary reflexive state
- $: pkg         = pkgTree.getPkg();
- $: inEditMode  = pkg.getDispMode() === DispMode.edit; // true: edit package structure, false: package is read-only
- $: accumTreeId = pkgTree.getPkgTreeId();              // the accumulative pkgTreeId
- $: style       = inEditMode ? 'color: blue;' : '';    // edit/view styling
- $: top         = pkgTree.isRoot();
+ $: pkg        = pkgTree.getPkg();
+ $: inEditMode = pkg.getDispMode() === DispMode.edit; // true: edit package structure, false: package is read-only
+ $: pkgTreeId  = pkgTree.getPkgTreeId();              // the accumulative pkgTreeId
+ $: style      = inEditMode ? 'color: blue;' : '';    // edit/view styling
+ $: top        = pkgTree.isRoot();
  
  // maintain our reflexive in-sync label qualifier
  // ... for PkgEntries, we utilize it's changeManager reflexive store
@@ -47,10 +47,10 @@
  // maintain expansion state
  // ... initialize from any prior expansion state
  // ... default to NOT expanded (false) on first occurance
- $: expanded  = _expansionState[accumTreeId] || false;
+ $: expanded  = _expansionState[pkgTreeId] || false;
  $: arrowDown = expanded;
  const toggleExpansion = () => {
-   expanded = _expansionState[accumTreeId] = !expanded;
+   expanded = _expansionState[pkgTreeId] = !expanded;
  };
 
  // locate the tabController pre-registered to this pkgEntry
@@ -114,7 +114,7 @@
    pkgTree.paste(e);
  };
 
- // console.log(`xx <ViewPkgTree> for ${accumTreeId}`);
+ // console.log(`xx <ViewPkgTree> for ${pkgTreeId}`);
 </script>
 
 <!-- omit the top root directory node - a "/" (it is implied by our Package Header) -->
@@ -134,7 +134,6 @@
               on:dragenter={allowDrops_enter}
               on:dragover={allowDrops_over}
               on:drop|preventDefault={handleDrop}
-
               on:click={toggleExpansion}>
           <span class="arrow" class:arrowDown>&#x25b6</span>
           {label}
