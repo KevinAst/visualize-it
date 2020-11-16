@@ -451,14 +451,24 @@ class PkgTree extends SmartModel {
    * 
    * This is an accumulative id, starting with the pkgId, followed by
    * all accumulative node names ... ex:
-   *   '{pkgId} - {dirName} - {dirName} - {entryName}'
-   *   ?? adjust EX (above) ' - ' when PkgTreeIdDelim is FINALIZED
+   *   '{pkgId}|-::-|{dirName}|-::-|{dirName}|-::-|{entryName}'
    * 
    * @returns {string} self's accumulative pkgTreeId.
    */
   getPkgTreeId() {
     //                     TOP: use our pkgId         INTERMEDIATE: prefix parent node ids
     return this.isRoot() ? this.getPkg().getPkgId() : this.getParent().getPkgTreeId() + PkgTreeIdDelim + this.getName();;
+  }
+
+  /**
+   * Convenience utility returning DnD type restricting PkgTree DnD to same package.
+   *
+   * API: DnD
+   *
+   * @returns {string} a CopySrc: {type, key} ... null when NOT copyable
+   */
+  dndPastableTypeType() {
+    return `visualize-it/PkgTree#${this.getPkg().getPkgId()}`.toLowerCase();
   }
 
   /**
@@ -469,10 +479,9 @@ class PkgTree extends SmartModel {
    * @returns {CopySrc} a CopySrc: {type, key} ... null when NOT copyable
    */
   copyable() {
-    // ?? once REAL ??pkgId is supplied, TEST to insure only structure move within given package
     return {
-      type: `${DnDPastableType}#??pkgId`.toLowerCase(), // self represents PkgTree instance of a specific Pkg (both PkgTreeDir/PkgTreeEntry handled consistently)
-      key:  '??this.getTreeId()',                       // specific node pkgTreeId - ex: 'com.astx.ACME - scenes - More Depth - Scene2' ?? new method in PkgTree
+      type: this.dndPastableTypeType(), // self represents PkgTree instance of a specific Pkg (both PkgTreeDir/PkgTreeEntry handled consistently)
+      key:  this.getPkgTreeId(),        // specific node pkgTreeId - ex: 'com.astx.ACME - scenes - More Depth - Scene2'
     };
   }
 
@@ -486,8 +495,8 @@ class PkgTree extends SmartModel {
    * @returns {boolean} `true`: content of DnD event IS pastable, `false` otherwise
    */
   pastable(e) {
-    // console.log(`xx PkgTree.pastable(e): `, {lookingFor: `${DnDPastableType}#??pkgId`.toLowerCase(), inTypes: e.dataTransfer.types});
-    return e.dataTransfer.types.includes(`${DnDPastableType}#??pkgId`.toLowerCase());
+    // console.log(`xx PkgTree.pastable(e): `, {lookingFor: this.dndPastableTypeType(), inTypes: e.dataTransfer.types});
+    return e.dataTransfer.types.includes(this.dndPastableTypeType());
   }
 
   /**
@@ -506,7 +515,7 @@ class PkgTree extends SmartModel {
     //? }
 
     // reconstitute our copySrc from the DnD event
-    const type    = `${DnDPastableType}#??pkgId`.toLowerCase()
+    const type    = this.dndPastableTypeType();
     const copySrc = {
       type,
       key: e.dataTransfer.getData(type), // ... will exist based on `pastable(e)` (above)
@@ -687,9 +696,5 @@ export class PkgTreeEntry extends PkgTree {
 }
 PkgTreeEntry.unmangledName = 'PkgTreeEntry';
 
-
-// PkgTree allows PkgTree objects to be pasted
-const DnDPastableType = 'visualize-it/PkgTree';
-
 // delimiter used in pkgTreeId
-const PkgTreeIdDelim = ' - ';
+const PkgTreeIdDelim = '|-::-|';
