@@ -83,6 +83,12 @@
    pkg = pkg; // ... make responsive to Svelte
    // toast({msg: `The "${pkg.getPkgName()}" package structure is now in a view mode (edits are disabled)`});
  }
+
+ // register our package structure GUI synchronization process (invoked via changeManager)
+ pkg.syncPkgStructureGuiChanges = syncPkgStructureGuiChanges;
+ function syncPkgStructureGuiChanges() {
+   pkg = pkg; // ... make responsive to Svelte
+ }
 </script>
 
 <!-- NOTE: using activated strictly for it's coloring :-) -->

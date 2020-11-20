@@ -6,11 +6,6 @@ import checkUnknownArgs from '../../util/checkUnknownArgs';
 import {isEPkg,
         isFunction}     from '../../util/typeCheck';
 
-// ??$$$ Change Manage should NOW fully support EPKG (both SmartPkg and PkgEntry) ... retrofit code (and variables throughout)
-//       DONE: may ONLY AFFECT: changeDispMode()
-//       ?? research all pkgentry comment/vars
-//       ?? fully implement through LeftNav "Edit Package Structure"
-
 /**
  * ChangeManager is a reactive custom store that manages and monitors
  * changes in an EPkg:
@@ -25,7 +20,7 @@ import {isEPkg,
  * ChangeManager greatly simplifies the change process by
  * automatically applying the required synchronization to the:
  *
- *  - graphical representation (i.e. the Konva state)
+ *  - graphical representation (i.e. the Konva graphical state, or the LeftNav's PkgViewer)
  *    ... app logic focuses on SmartObject changes,
  *        and ChangeManager auto syncs the visual graphics
  *
@@ -50,7 +45,7 @@ import {isEPkg,
  * 
  *    For details, please refer to the method JavaDocs (below)
  *    ```js
- *    + changeDispMode(dispMode): void        - change the dispMode of self's PkgEntry (view/edit/animate)
+ *    + changeDispMode(dispMode): void        - change the dispMode of self's ePkg (view/edit/animate)
  *
  *    + syncMonitoredChange(): void           - synchronize self's ChangeMonitor (store value), 
  *                                              due to a change that has just been made to self's ePkg
@@ -65,10 +60,10 @@ import {isEPkg,
  *    + applyChange({changeFn, undoFn}): void - apply a change to our system, registering the change to our undo/redo stack,
  *                                              auto-syncing required state (see "Auto Synchronization" above).
  *
- *    + applyUndo(): void                     - apply an "undo" operation to the PkgEntry on whose behalf we are managing,
+ *    + applyUndo(): void                     - apply an "undo" operation to the EPkg on whose behalf we are managing,
  *                                              auto-syncing required state (see "Auto Synchronization" above).
  *
- *    + applyRedo(): void                     - apply an "redo" operation to the PkgEntry on whose behalf we are managing,
+ *    + applyRedo(): void                     - apply an "redo" operation to the EPkg on whose behalf we are managing,
  *                                              auto-syncing required state (see "Auto Synchronization" above).
  *    ```
  *
@@ -76,7 +71,7 @@ import {isEPkg,
  *    subscription or the auto-subscription `$` prefix):
  *
  *    ```js
- *    + dispMode: DispMode enum - the current pkgEntry's DispMode (view/edit/animate)
+ *    + dispMode: DispMode enum - the current ePkg's DispMode (view/edit/animate)
  *
  *    + inSync: boolean - is self's ePkg "in sync" with it's base version (saved on disk)
  *    + inSyncIcon(): string - name of icon to qualify "in sync" status ('NONE' for in-sync - can be fed directly into <Icon>)
@@ -203,22 +198,28 @@ export default class ChangeManager {
    * undo/redo stack, auto-syncing required state (see "Auto
    * Synchronization" above).
    * 
-   * - Changes are registered to the PkgEntry on whose behalf we
+   * - Changes are registered to the EPkg on whose behalf we
    *   manage/monitor (i.e. this.ePkg).  This must be consistent with
-   *   the PkgEntry of the targetObj returned from the `changeFn()` /
+   *   the EPkg of the targetObj returned from the `changeFn()` /
    *   `undoFn()`.
    *
    * - Changes are modeled as functions to be executed.  The API of
    *   `changeFn()` / `undoFn()` is as follows:
    *   
    *   ```js
-   *   + changeFn(): targetObj
-   *   + undoFn():   targetObj
+   *   + changeFn(): targetObj | [targetObjs]
+   *   + undoFn():   targetObj | [targetObjs]
    *   ```
    * 
-   * - Both functions return the targetObj of the operation.  This is
-   *   used to seed the synchronization of other parts of the model
-   *   ... via the `SmartModel.trickleUpChange()` method.
+   * - Both functions return the low-level targetObj(s) (of type
+   *   SmartObject) that were directly impacted by the change.  An
+   *   array of targetObjs can be returned if there are multiple
+   *   objects impacted (this is not typical, but used in things like
+   *   moving Pkg directories).  These targetObj(s) are used to seed
+   *   the synchronization of other parts of the model, through things
+   *   like the `SmartModel.trickleUpChange()` method.  The targetObj
+   *   MUST be in the lineage of the EPkg on who's behalf we are
+   *   operating.
    * 
    * - These change functions should be implemented in a way that DOES NOT
    *   reference stale objects!
@@ -265,7 +266,7 @@ export default class ChangeManager {
 
 
   /**
-   * Apply an "undo" operation to the PkgEntry on whose behalf we are
+   * Apply an "undo" operation to the EPkg on whose behalf we are
    * managing, auto-syncing required state (see "Auto Synchronization"
    * above).
    */
@@ -276,7 +277,7 @@ export default class ChangeManager {
 
 
   /**
-   * Apply an "redo" operation to the PkgEntry on whose behalf we are
+   * Apply an "redo" operation to the EPkg on whose behalf we are
    * managing, auto-syncing required state (see "Auto Synchronization"
    * above).
    */

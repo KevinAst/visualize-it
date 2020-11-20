@@ -44,6 +44,11 @@ function isEPkg(ref) {
   return ref && ref.isaEPkg && ref.isaEPkg();
 }
 
+// isPkgTree(ref): is ref a PkgTree
+function isPkgTree(ref) {
+  return ref && ref.getPkgTreeId;
+}
+
 // isView(ref): is ref a View (SmartView)
 function isView(ref) {
   return ref && ref.isaView && ref.isaView();
@@ -67,5 +72,6 @@ export {
   isPkg,         // + isPkg(ref):           boolean
   isPkgEntry,    // + isPkgEntry(ref):      boolean
   isEPkg,        // + isEPkg(ref):          boolean
+  isPkgTree,     // + isPkgTree(ref):       boolean
   isView,        // + isView(ref):          boolean
 };

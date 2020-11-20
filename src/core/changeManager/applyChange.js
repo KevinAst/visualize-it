@@ -1,4 +1,4 @@
-import {isSmartObject, isPkgEntry}  from '../../util/typeCheck';
+import {isSmartObject, isPkgEntry, isArray}  from '../../util/typeCheck';
 
 /**
  * Utility function that manages the details of any change (initial,
@@ -11,17 +11,26 @@ import {isSmartObject, isPkgEntry}  from '../../util/typeCheck';
  * manage/monitor.
  * 
  * @param {function} changeFn - the function that will apply the
- * change (this can be the initial/redo or undo function).
+ * change (this can be the initial, redo, or undo function).
  *
  * @private
  */
 export default function applyChange(check, ePkg, changeFn) {
 
-  // verify our ePkg is a pkgEntry
-  // ... in current usage ePkg IS a pkgEntry which in-turn is a SmartPallet (Scene/Collage/CompRef)
-  //     AI: this will need adjusting if we ever manage SmartPkg changes (the other ePkg type)
-  check(isPkgEntry(ePkg), 'currently applyChange() only supports PkgEntry ePkg entries (not SmartPkg)');
-  const pkgEntry = ePkg; // ... convenient aliases
+  // route functionality to the specific EPkg tasks:
+  if (isPkgEntry(ePkg)) { // ... PkgEntry
+    applyChangeForPkgEntry(check, ePkg, changeFn);
+  }
+  else { // ... Pkg (SmartPkg)
+    applyChangeForPkg(check, ePkg, changeFn);
+  }
+}
+
+// internal applyChange() route for PkgEntries
+function applyChangeForPkgEntry(check, ePkg, changeFn) {
+
+  // convenient aliases
+  const pkgEntry = ePkg;
   const pallet   = ePkg;
 
   // PART I: re-sync the graphical representation (i.e. the Konva state)
@@ -38,9 +47,8 @@ export default function applyChange(check, ePkg, changeFn) {
   const targetObj = changeFn();
   check(isSmartObject(targetObj), 'the execution of app-specific change functions (registered to ChangeManager) ' +
                                   'MUST return a targetObj that is a SmartObject (type: SmartModel)');
-  // AI: following check assumes we are changing some part of a PkgEntry - we may eventually use this for changes to SmartPkg too (such as it's name) ... not really sure
-  check(ePkg === targetObj.getPkgEntry(), 'the execution of app-specific change functions (registered to ChangeManager) ' + 
-                                          `MUST return a targetObj that has lineage in the '${ePkg.getEPkgId()}' EPkg (on who's behalf we are operating)`);
+  check(pkgEntry === targetObj.getPkgEntry(), 'the execution of app-specific change functions (registered to ChangeManager for PkgEntries) ' + 
+                                              `MUST return a targetObj that has lineage in the '${pkgEntry.getEPkgId()}' PkgEntry (on who's behalf we are operating)`);
 
   // PART II: re-sync the graphical representation (i.e. the Konva state)
   pallet.mount(containingKonvaStage);
@@ -56,4 +64,46 @@ export default function applyChange(check, ePkg, changeFn) {
   // that's all folks
 }
 
+// internal applyChange() route for Pkgs (SmartPkg)
+function applyChangeForPkg(check, ePkg, changeFn) {
 
+  // convenient aliases
+  const pkg = ePkg; // ... we are servicing SmartPkg
+  
+  // apply the change to our SmartObject model by invoking the app-specific change function
+  const changeFnReturn = changeFn();
+  const targetObjs = isArray(changeFnReturn) ? changeFnReturn : [changeFnReturn];
+  targetObjs.forEach( (targetObj) => {
+    check(isSmartObject(targetObj), 'the execution of app-specific change functions (registered to ChangeManager) ' +
+                                    'MUST return a targetObj that is a SmartObject (type: SmartModel)');
+    check(pkg === targetObj.getPkg(), 'the execution of app-specific change functions (registered to ChangeManager for SmartPkgs) ' + 
+                                      `MUST return a targetObj that has lineage in the '${pkg.getEPkgId()}' SmartPkg (on who's behalf we are operating)`);
+  });
+
+
+  // resync the parentage of the Pkg directory structure
+  // ... because the directory structure may change
+  //     EX: moving entries/directories to different parts of the structure
+  pkg.rootDir.syncParent(pkg);
+
+  // trickle up this low-level change, auto-syncing required state
+  // ... a trickle-up IS required to reflect changes in CRC within the entire tree
+  //     (for example: directories and sub-directories)
+  targetObjs.forEach( (targetObj) => {
+    targetObj.trickleUpChange();
+  });
+
+  // synchronize our GUI to reflect the package structure changes
+  // ... we do this outside of trickleUpChange() so as to be specific to SmartPkg
+  //     and to only invoke ONCE
+  //     ... for SmartPkg changes, trickleUpChange() can occur multiple times 
+  //         via array processing (see prior step)
+  if (pkg.syncPkgStructureGuiChanges) {
+    pkg.syncPkgStructureGuiChanges();
+  }
+  else {
+    console.warn(`*** WARNING *** changeManager.applyChange() could NOT sync GUI package structure changes - expecting SmartPkg to have syncPkgStructureGuiChanges() method (from ViewPkg.svelte) but was NOT registered.`);
+  }
+
+  // that's all folks
+}

@@ -6,7 +6,8 @@ import {ChangeManager}   from './changeManager';
 import DispMode          from './DispMode';
 import {isString,
         isArray,
-        isPkg}           from '../util/typeCheck';
+        isPkg,
+        isPkgTree}       from '../util/typeCheck';
 import verify            from '../util/verify';
 import checkUnknownArgs  from '../util/checkUnknownArgs';
 
@@ -396,7 +397,7 @@ export default class SmartPkg extends SmartModel {
    */
   findPkgTree(pkgTreeId) {
     // validate parameters
-    const check = verify.prefix(`${this.diagClassName()}.findPkgTree() for obj: {id:'${this.id}', name:'${this.name}'} constructor parameter violation: `);
+    const check = verify.prefix(`${this.diagClassName()}.findPkgTree() for obj: {id:'${this.id}', name:'${this.name}'} parameter violation: `);
     // ... pkgTreeId
     check(pkgTreeId,           'pkgTreeId is required');
     check(isString(pkgTreeId), 'pkgTreeId must be a string');
@@ -569,63 +570,158 @@ class PkgTree extends SmartModel {
    * @param {Event} e - the DnD event
    */
   paste(e) {
-    //? ?? SUSPECT NOT NEEDED FOR US
-    //? // verify we are in edit mode
-    //? if (this.getPkgEntry().getDispMode() !== DispMode.edit) {
-    //?   toast({msg: 'Drops require package entry to be in edit mode.'});
-    //?   return;
-    //? }
+    // verify we are in edit mode
+    // ... NOT NEEDED: Package Edit takes a different tact
+    //                 disabling DnD when NOT in edit mode
 
     // reconstitute our copySrc from the DnD event
+    // NOTE: we know the supplied copySrc references a PkgTree object (see pastable() method above)
     const type    = this.dndPastableTypeType();
     const copySrc = {
       type,
       key: e.dataTransfer.getData(type), // ... will exist based on `pastable(e)` (above)
     };
-    const from = this.getPkg().findPkgTree(copySrc.key);
-    const to   = this;
-    console.log(`?? pasting: `, {copySrc, from, to});
 
-    //? // ?? RETROFIT ????????????????????????????????????????????????????????????????????????????????
-    //? // NOTE: we know the supplied copySrc references a SmartComp class (see pastable() method)
-    //? 
-    //? // helpers to service undo/redo
-    //? // IMPORTANT: all updates must be written in such a way that DOES NOT reference stale objects
-    //? //            - when using undo/redo (over the course of time) objects may be "swapped out" via the synchronization process
-    //? //            - SOLUTION: resolve all objects from the "id" string AT RUN-TIME!!
-    //? const [pkgId, className] = copySrc.key.split('/');
-    //? const compClassRef       = pkgManager.getClassRef(pkgId, className);
-    //? const compId             = `${className}-copy-${Date.now()}`; // ... unique id (for now use current time)
-    //? 
-    //? // retain selfScene `this` alias
-    //? // ... NOTE: `this` IS retained in our closure, 
-    //? //           HOWEVER unless changeFn() is an arrow function, it has a different `this` context
-    //? const selfScene = this;
-    //? 
-    //? // apply our change
-    //? this.changeManager.applyChange({
-    //?   changeFn() {
-    //?     // translate the DnD event's absolute page coordinates to canvas coordinates for our scene
-    //?     const canvasCoord = selfScene.dndCanvasCoord(e);
-    //? 
-    //?     // add a new comp (from the DnD drop) to our scene
-    //?     const newComp = compClassRef.createSmartObject({
-    //?       id: compId,
-    //?       x:  canvasCoord.x,
-    //?       y:  canvasCoord.y,
-    //?     });
-    //?     selfScene.addComp(newComp);
-    //? 
-    //?     return newComp; // promote the new comp as our change target
-    //?   },
-    //? 
-    //?   undoFn() {
-    //?     // remove the scene from our collage
-    //?     selfScene.removeComp(compId);
-    //? 
-    //?     return selfScene; // promote our scene as our change target
-    //?   }
-    //? });
+    // define our DnD from/to (both PkgTree objects)
+    const fromPkgTree = this.getPkg().findPkgTree(copySrc.key);
+    if (!fromPkgTree) { // ??$$ TEMP DIAGNOSTIC
+      console.error(`??$$ in PkgTree.paste(e) cannot find fromPkgTree using copySrc.key: `, {copySrc});
+    }
+    const toPkgTree   = this;
+    // console.log(`??XX pasting: `, {copySrc, fromPkgTree, toPkgTree});
+
+    // helpers to service undo/redo
+    // IMPORTANT: all updates must be written in such a way that DOES NOT reference stale objects
+    //            - when using undo/redo (over the course of time) objects may be "swapped out" via the synchronization process
+    //            - SOLUTION: resolve all objects from the "id" string AT RUN-TIME!!
+    const pkg           = this.getPkg(); // ... believe we can put a stake in the ground the SmartPkg instance will NOT change
+                                         //     (if not, retain the pkgId and reconstitute with pkgManager)
+    const fromPkgTreeId = fromPkgTree.getPkgTreeId(); // ??$$ this is erroring out in special case (see journal.txt) ... don't know how visuals are being updated ... hmmmmm
+    const toPkgTreeId   = toPkgTree.getPkgTreeId();
+
+    // original positions are needed for undo operation
+    const original_fromParentPkgTreeId = fromPkgTree.getParent().getPkgTreeId();
+    const original_fromParentIndex     = fromPkgTree.getParent().getChildren().indexOf(fromPkgTree);
+ // const original_toParentIndex       = toPkgTree.getParent().getChildren().indexOf(toPkgTree); ... ?? NOT NEEDED
+
+    // apply our change
+    this.getPkg().changeManager.applyChange({
+      changeFn() {
+        const fromNode = pkg.findPkgTree(fromPkgTreeId);
+        const toNode   = pkg.findPkgTree(toPkgTreeId);
+
+        // this is it - reposition the pkg dir structure!
+        // console.log(`??XX in PkgTree.paste() INVOKING move(): `, {from: fromNode, to: toNode});
+        toNode.move(fromNode);
+    
+        // communicate both fromNode/toNode
+        // ... allowing both CRC computations to be synced (via SmartObj.trickleUpChange())
+        return [fromNode, toNode];
+      },
+    
+      undoFn() {
+        const fromNode = pkg.findPkgTree(fromPkgTreeId);
+        const toNode   = pkg.findPkgTree(toPkgTreeId);
+
+        // this is it - reset the pkg dir structure to it's original position!
+        // ... ORIGINAL OP WAS: remove from / insert to
+        //     UNDO     OP IS:  remove to   / insert from
+
+        // ... remove to - MUST be done first to accommodate cleanup when from/to share same parent
+        const toParent   = toNode.getParent();
+        const toNodeIndx = toParent().getChildren().indexOf(toNode);
+        toParent.getChildren().splice(toNodeIndx, 1);
+
+        // ... insert from
+        // ?? NOT SURE THIS IS RIGHT ... do we need some directory logic sim to original operation?
+        //? const fromParent   = fromNode.getParent();
+        //? fromParent.getChildren().splice(original_fromParentIndex, 0, fromNode);
+        // ?? try this
+        const fromParentNode = pkg.findPkgTree(original_fromParentPkgTreeId);
+        fromParentNode.getChildren().splice(original_fromParentIndex, 0, fromNode);
+
+        // communicate both fromNode/toNode
+        // ... allowing both CRC computations to be synced (via SmartObj.trickleUpChange())
+        return [fromNode, toNode];
+      }
+    });
+  }
+
+  /**
+   * Move the supplied `fromPkgTree` node before self.  Both nodes must be in
+   * the same package, ?? and a directory cannot be moved into it's descendant path
+   *
+   * ?? initial heuristic (before toNode when Entry, first-child when Dir)
+   *
+   * @param {PkgTree} fromPkgTree - the node to move.
+   */
+  // ??$$ NEW
+  move(fromPkgTree) {
+    // console.log(`??XX in PkgTree.move(): `, {from: fromPkgTree, to: this});
+
+    // validate parameters
+    const check = verify.prefix(`${this.diagClassName()}.move() parameter violation: `);
+    // ... fromPkgTree
+    check(fromPkgTree,            'fromPkgTree is required');
+    check(isPkgTree(fromPkgTree), 'fromPkgTree must be a PkgTree');
+    check(this.getPkg() === fromPkgTree.getPkg(), 'fromPkgTree must be in same SmartPkg as self');
+
+    // setup needed state
+    const fromNode   = fromPkgTree;
+    const fromParent = fromNode.getParent();
+    const toNode     = this;
+    const toParent   = toNode.getParent();
+
+    // no-op when fromNode/toNode are the same
+    if (fromNode === toNode) {
+      return;
+    }
+
+    // prevent the following invalid condition: a from directory cannot be moved into it's descendant path
+    // ... ?? AI: if we restrict this in DnD, we can make this a true check/error
+    if (fromNode.isDir() && toNode.isDescendantOf(fromNode)) {
+      alert(`?? TOAST: from directory cannot be moved into it's descendant tree`);
+      return;
+    }
+
+    // Part I (cleanup `from` original): remove fromNode from it's original source
+    // ... MUST be done first to accommodate cleanup when from/to share same parent
+    const fromNodeIndx = fromParent.getChildren().indexOf(fromNode);
+    fromParent.getChildren().splice(fromNodeIndx, 1);
+
+    // Part II (adjust `to`)
+    // ... when toNode is a directory: place fromNode as first child of toNode directory
+    if (toNode.isDir()) {
+      toNode.getChildren().splice(0, 0, fromNode);
+    }
+    // ... when toNode is an entry: place fromNode before toNode
+    else {
+      const toNodeIndx = toParent.getChildren().indexOf(toNode);
+      toParent.getChildren().splice(toNodeIndx, 0, fromNode);
+    }
+
+  }
+
+  // ??$$ NEW ?? DOC
+  syncParent(parent) {
+    this.parent = parent;
+    // recurse into any sub-directories
+    if (this.isDir()) {
+      this.getChildren().forEach( (child) => child.syncParent(this) );
+    }
+  }
+  
+  // return indicator as to whether self is a descendant of the supplied ancestorPkgTree
+  // ??$$ NEW ?? DOC
+  isDescendantOf(ancestorPkgTree) {
+    // if self is the supplied ancestorPkgTree, we ARE a descendant
+    if (this === ancestorPkgTree) return true;
+
+    // if we hit the top, we are NOT a descendant
+    if (this.isRoot()) return false;
+
+    // keep looking up recursively
+    return this.getParent().isDescendantOf(ancestorPkgTree);
   }
 
 }
