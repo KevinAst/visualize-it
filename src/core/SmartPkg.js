@@ -447,6 +447,22 @@ export default class SmartPkg extends SmartModel {
     return runningNode; // FOUND specified PkgTreeDir (PkgTreeEntry/PkgTreeDir)
   }
 
+  /**
+   * Provide symbolic representation of self.
+   *
+   * @param {string} [treeDirective] a proprietary directive that when
+   * set to 'tree', will emit the PkgTree structure.
+   * 
+   * @returns {string} a human consumable representation of self
+   */
+  toString(treeDirective) {
+    let selfStr = `SmartPkg: ${this.getPkgId()} (${this.getPkgName()})`;
+    if (treeDirective === 'tree') {
+      selfStr += '\n' + this.rootDir.toString(1);
+    }
+    return selfStr;
+  }
+
 }
 SmartPkg.unmangledName = 'SmartPkg';
 
@@ -457,6 +473,25 @@ SmartPkg.unmangledName = 'SmartPkg';
  * depth) of a SmartPkg.
  */
 class PkgTree extends SmartModel {
+
+  /**
+   * Create a PkgTree.
+   */
+  constructor({id, name}) {
+    super({id, name});
+
+    // maintain our unique and unchanging key
+    this.key = `PkgTreeKey-${nextPkgTreeKey++}`;
+  }
+
+  /**
+   * Self's unique and unchanging key (analogous to a memory address).
+   * @returns {string} self's unique and unchanging key (analogous to a memory address).
+   */
+  getKey() {
+    return this.key;
+  }
+
 
   /**
    * Self's PkgTree name, visualized in UI.
@@ -581,14 +616,45 @@ class PkgTree extends SmartModel {
       type,
       key: e.dataTransfer.getData(type), // ... will exist based on `pastable(e)` (above)
     };
+    // console.log(`XX PkgTree.paste(e): `, {copySrc});
+
+    // NO-OP when duplicate paste events are detected
+    // BUG: There is an obscure condition where DUPLICATE paste events are registered
+    //      in some cases, AFTER a PkgTree directory structure changes.
+    //      - it is UNCLEAR if this is an app logic bug, or a svelte bug
+    //      - TO RECREATE (this is one, there are many):
+    //        1. DRAG "More Depth" ON "Scene1" (placing "More Depth" dir BEFORE Scene1 entry)
+    //        2. DRAG "Scene1" ON "Scene2"     (placing "Scene1" entry   BEFORE Scene2 entry -AND- moving it to a diff dir)
+    //           - see duplicate event (here)
+    //           - NOTE: Does NOT occur if you collapse/expand "scenes" OR "More Depth" node between steps 1/2
+    //                   This is due to the fact that we delete and re-create all DOM/events from scratch
+    //      - SUSPECT:
+    //        1. potential BUG in svelte
+    //           * it is unclear what is causing the dup events (it could be svelte)
+    //        2. some app-specific reflexivity issue in ViewPkgTree.svelte
+    //           * I have tried several things, but cannot find it
+    //           * for example:
+    //             - some #each/key issue
+    //               * like the key changing on PkgTree object instanced
+    //                 ... the PkgTree object instance key will change when using getPkgTreeId() vs. getKey()
+    //                 ... NO LUCK ON THIS (either technique has same duplicate event)
+    //      - WORK-AROUND:
+    //        * THIS NO-OP logic has circumvented the issue (for now)
+    //          - ?? unsure what would happen if dups went through (once everything is "getKey()" based) ... test it to see (by allowing dup events to go through)
+    //        * YOU CAN CLEAR THE DUP EVENTS:
+    //          -  simply collapse/expand entire package (this destroys the DOM and starts over)
+    if (lastPkgTreePasteEvent === e) {
+      console.warn(`*** WARNING *** PkgTree.paste(e): NO-OP: Detected duplicate paste event (see BUG in SmartPkg.js):`, {copySrc}); // ?? when using "key" everywhere, move this after next section -and- INCLUDE fromPkgTree/toPkgTree in log
+      return;
+    }
+    else {
+      lastPkgTreePasteEvent = e;
+    }
 
     // define our DnD from/to (both PkgTree objects)
     const fromPkgTree = this.getPkg().findPkgTree(copySrc.key);
-    if (!fromPkgTree) { // ??$$ TEMP DIAGNOSTIC
-      console.error(`??$$ in PkgTree.paste(e) cannot find fromPkgTree using copySrc.key: `, {copySrc});
-    }
     const toPkgTree   = this;
-    // console.log(`??XX pasting: `, {copySrc, fromPkgTree, toPkgTree});
+    // console.log(`XX pasting more info: `, {copySrc, fromPkgTree, toPkgTree});
 
     // helpers to service undo/redo
     // IMPORTANT: all updates must be written in such a way that DOES NOT reference stale objects
@@ -596,13 +662,13 @@ class PkgTree extends SmartModel {
     //            - SOLUTION: resolve all objects from the "id" string AT RUN-TIME!!
     const pkg           = this.getPkg(); // ... believe we can put a stake in the ground the SmartPkg instance will NOT change
                                          //     (if not, retain the pkgId and reconstitute with pkgManager)
-    const fromPkgTreeId = fromPkgTree.getPkgTreeId(); // ??$$ this is erroring out in special case (see journal.txt) ... don't know how visuals are being updated ... hmmmmm
+    const fromPkgTreeId = fromPkgTree.getPkgTreeId();
     const toPkgTreeId   = toPkgTree.getPkgTreeId();
 
     // original positions are needed for undo operation
     const original_fromParentPkgTreeId = fromPkgTree.getParent().getPkgTreeId();
     const original_fromParentIndex     = fromPkgTree.getParent().getChildren().indexOf(fromPkgTree);
- // const original_toParentIndex       = toPkgTree.getParent().getChildren().indexOf(toPkgTree); ... ?? NOT NEEDED
+ // const original_toParentIndex       = toPkgTree.getParent().getChildren().indexOf(toPkgTree); ... NOT NEEDED
 
     // apply our change
     this.getPkg().changeManager.applyChange({
@@ -611,7 +677,7 @@ class PkgTree extends SmartModel {
         const toNode   = pkg.findPkgTree(toPkgTreeId);
 
         // this is it - reposition the pkg dir structure!
-        // console.log(`??XX in PkgTree.paste() INVOKING move(): `, {from: fromNode, to: toNode});
+        // console.log(`XX in PkgTree.paste() INVOKING move(): `, {from: fromNode, to: toNode});
         toNode.move(fromNode);
     
         // communicate both fromNode/toNode
@@ -655,9 +721,8 @@ class PkgTree extends SmartModel {
    *
    * @param {PkgTree} fromPkgTree - the node to move.
    */
-  // ??$$ NEW
   move(fromPkgTree) {
-    // console.log(`??XX in PkgTree.move(): `, {from: fromPkgTree, to: this});
+    // console.log(`XX in PkgTree.move(): `, {from: fromPkgTree, to: this});
 
     // validate parameters
     const check = verify.prefix(`${this.diagClassName()}.move() parameter violation: `);
@@ -702,7 +767,12 @@ class PkgTree extends SmartModel {
 
   }
 
-  // ??$$ NEW ?? DOC
+  /**
+   * Resync the PkgTree parentage after Pkg directory structure
+   * changes (used by changeManager).
+   *
+   * @param {SmartPkg|PkgTree} parent the parent of self.
+   */
   syncParent(parent) {
     this.parent = parent;
     // recurse into any sub-directories
@@ -710,9 +780,16 @@ class PkgTree extends SmartModel {
       this.getChildren().forEach( (child) => child.syncParent(this) );
     }
   }
-  
-  // return indicator as to whether self is a descendant of the supplied ancestorPkgTree
-  // ??$$ NEW ?? DOC
+
+  /**
+   * Return indicator as to whether self is a descendant of the
+   * supplied ancestorPkgTree.
+   *
+   * @param {PkgTree} ancestorPkgTree the ancestor to check.
+   * 
+   * @returns {boolean} true: self is a decedent of ancestorPkgTree,
+   * false: otherwise.
+   */
   isDescendantOf(ancestorPkgTree) {
     // if self is the supplied ancestorPkgTree, we ARE a descendant
     if (this === ancestorPkgTree) return true;
@@ -724,9 +801,32 @@ class PkgTree extends SmartModel {
     return this.getParent().isDescendantOf(ancestorPkgTree);
   }
 
+  /**
+   * Provide symbolic representation of self - a visual indented tree
+   * (useful in diagnostics).
+   *
+   * @param {int} [indentLvl=0] an internal indicator as to the tree
+   * indentation level in effect.
+   * 
+   * @returns {string} a human consumable visual indented tree of self.
+   */
+  toString(indentLvl=0) {
+    const indentStr = ''.padStart(indentLvl*2, ' '); // 2 spaces per indention level
+    let   selfStr   = indentStr + this.getName() + (this.isDir() ? '/' : '') + ` (${this.getKey()})\n`; // basic name (with '/' on dirs)
+    if (this.isDir()) { // recurse on directory children
+      selfStr = this.getChildren().reduce( (accumStr, child) => accumStr + child.toString(indentLvl+1), selfStr );
+    }
+    return selfStr;
+  }
+
 }
 PkgTree.unmangledName = 'PkgTree';
 
+// the next PkgTree unique and unchanging key
+let nextPkgTreeKey = 1;
+
+// last PkgTree paste event (used in detecting duplicate paste events
+let lastPkgTreePasteEvent = null;
 
 
 /**

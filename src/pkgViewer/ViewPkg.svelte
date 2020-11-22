@@ -19,6 +19,9 @@
  check(pkg,        'pkg is required');
  check(isPkg(pkg), `pkg must be a SmartPkg ... NOT: ${pkg}`);
 
+ // diagnostic showing entire tree
+ // $: console.log(`XX <ViewPkg> rendering "enhanced" ${pkg.toString('tree')}`);
+
  // maintain our reflexive expansion state
  let expanded = true;
  $: expandedIndicator = expanded ? '' : '...';

@@ -110,7 +110,7 @@
 
  // perform DnD drop based on polymorphic PkgTree.paste()
  function handleDrop(e) {
-   // console.log(`xx handleDrop on: `, {pkgTree});
+   // console.log(`\n\nxx handleDrop invoking paste() on: `, {pkgTree});
    pkgTree.paste(e);
  };
 
@@ -119,7 +119,7 @@
 
 <!-- omit the top root directory node - a "/" (it is implied by our Package Header) -->
 {#if top && children}
-  {#each children as child (child.getPkgTreeId())}
+  {#each children as child (child.getKey())}
     <svelte:self pkgTree={child}/>
   {/each}
 {:else}
@@ -139,7 +139,7 @@
           {label}
         </span>
         {#if expanded}
-          {#each children as child (child.getPkgTreeId())}
+          {#each children as child (child.getKey())}
             <svelte:self pkgTree={child}/>
           {/each}
         {/if}
