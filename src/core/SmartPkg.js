@@ -395,7 +395,8 @@ export default class SmartPkg extends SmartModel {
    * @returns {PkgTree} the PkgTreeEntry/PkgTreeDir matching the
    * supplied `pkgTreeId`, `undefined` for not-found.
    */
-  findPkgTree(pkgTreeId) {
+  // ??$$ TRASH in subsequent/separate check-in (to be able to re-instate if needed)
+  findPkgTreeOLD_OBSOLETE(pkgTreeId) {
     // validate parameters
     const check = verify.prefix(`${this.diagClassName()}.findPkgTree() for obj: {id:'${this.id}', name:'${this.name}'} parameter violation: `);
     // ... pkgTreeId
@@ -445,6 +446,25 @@ export default class SmartPkg extends SmartModel {
     } // ... end of nodeIds iteration
     // console.log(`xx RETURN 4 TEST: SmartPkg.findPkgTree('${pkgTreeId}')`);
     return runningNode; // FOUND specified PkgTreeDir (PkgTreeEntry/PkgTreeDir)
+  }
+
+  /**
+   * Locate the PkgTree (Entry or Dir) from the specified pkgTreeKey.
+   * 
+   * @param {string} pkgTreeKey - the PkgTree key to find.
+   * 
+   * @returns {PkgTree} the PkgTreeEntry/PkgTreeDir matching the
+   * supplied `pkgTreeKey`, `undefined` for not-found.
+   */
+  findPkgTree(pkgTreeKey) {
+    // validate parameters
+    const check = verify.prefix(`${this.diagClassName()}.findPkgTree() for obj: {id:'${this.id}', name:'${this.name}'} parameter violation: `);
+    // ... pkgTreeKey
+    check(pkgTreeKey,           'pkgTreeKey is required');
+    check(isString(pkgTreeKey), 'pkgTreeKey must be a string');
+
+    // forward on to our root directory
+    return this.rootDir.findPkgTree(pkgTreeKey);
   }
 
   /**
@@ -553,6 +573,7 @@ class PkgTree extends SmartModel {
    * 
    * @returns {string} self's accumulative pkgTreeId.
    */
+  // ??$$ TRASH in subsequent/separate check-in (to be able to re-instate if needed)
   getPkgTreeId() {
     //                     TOP: use our pkgId         INTERMEDIATE: prefix parent node ids
     return this.isRoot() ? this.getPkg().getPkgId() : this.getParent().getPkgTreeId() + PkgTreeIdDelim + this.getName();;
@@ -579,7 +600,7 @@ class PkgTree extends SmartModel {
   copyable() {
     return {
       type: this.dndPastableTypeType(), // self represents PkgTree instance of a specific Pkg (both PkgTreeDir/PkgTreeEntry handled consistently)
-      key:  this.getPkgTreeId(),        // specific node pkgTreeId - ex: 'com.astx.ACME - scenes - More Depth - Scene2'
+      key:  this.getKey(),
     };
   }
 
@@ -618,6 +639,11 @@ class PkgTree extends SmartModel {
     };
     // console.log(`XX PkgTree.paste(e): `, {copySrc});
 
+    // define our DnD from/to (both PkgTree objects)
+    const fromPkgTree = this.getPkg().findPkgTree(copySrc.key);
+    const toPkgTree   = this;
+    // console.log(`XX pasting more info: `, {copySrc, fromPkgTree, toPkgTree});
+
     // NO-OP when duplicate paste events are detected
     // BUG: There is an obscure condition where DUPLICATE paste events are registered
     //      in some cases, AFTER a PkgTree directory structure changes.
@@ -635,28 +661,22 @@ class PkgTree extends SmartModel {
     //           * I have tried several things, but cannot find it
     //           * for example:
     //             - some #each/key issue
-    //               * like the key changing on PkgTree object instanced
-    //                 ... the PkgTree object instance key will change when using getPkgTreeId() vs. getKey()
-    //                 ... NO LUCK ON THIS (either technique has same duplicate event)
     //      - WORK-AROUND:
     //        * THIS NO-OP logic has circumvented the issue (for now)
-    //          - ?? unsure what would happen if dups went through (once everything is "getKey()" based) ... test it to see (by allowing dup events to go through)
-    //        * YOU CAN CLEAR THE DUP EVENTS:
-    //          -  simply collapse/expand entire package (this destroys the DOM and starts over)
+    //        * When there were DUP EVENTS (before this detection), you could clear the dups by:
+    //          - simply collapse/expand entire package (this destroys the DOM and starts over)
     if (lastPkgTreePasteEvent === e) {
-      // ?? when using "key" everywhere, move this after next section -and- INCLUDE fromPkgTree/toPkgTree in log
       console.warn('*** WARNING *** PkgTree.paste(e): NO-OP: Detected duplicate paste event, ' + 
-                   'WORK-AROUND IN PLACE (should be OK) ... see: BUG in SmartPkg.js):', {copySrc});
+                   'WORK-AROUND IN PLACE (should be OK) ... see: BUG in SmartPkg.js):', {copySrc, fromPkgTree, toPkgTree});
+      // NO-OP
+      // ... NOTE: Since the retrofit using the non-changing pkgTreeKey (vs. accumulative and changing tree id)
+      //           it appears this no-op is no longer needed (i.e. the return)
+      //           HOWEVER, I'm leaving it in for now.
       return;
     }
     else {
       lastPkgTreePasteEvent = e;
     }
-
-    // define our DnD from/to (both PkgTree objects)
-    const fromPkgTree = this.getPkg().findPkgTree(copySrc.key);
-    const toPkgTree   = this;
-    // console.log(`XX pasting more info: `, {copySrc, fromPkgTree, toPkgTree});
 
     // helpers to service undo/redo
     // IMPORTANT: all updates must be written in such a way that DOES NOT reference stale objects
@@ -664,19 +684,19 @@ class PkgTree extends SmartModel {
     //            - SOLUTION: resolve all objects from the "id" string AT RUN-TIME!!
     const pkg           = this.getPkg(); // ... believe we can put a stake in the ground the SmartPkg instance will NOT change
                                          //     (if not, retain the pkgId and reconstitute with pkgManager)
-    const fromPkgTreeId = fromPkgTree.getPkgTreeId();
-    const toPkgTreeId   = toPkgTree.getPkgTreeId();
+    const fromPkgTreeKey = fromPkgTree.getKey();
+    const toPkgTreeKey   = toPkgTree.getKey();
 
     // original positions are needed for undo operation
-    const original_fromParentPkgTreeId = fromPkgTree.getParent().getPkgTreeId();
-    const original_fromParentIndex     = fromPkgTree.getParent().getChildren().indexOf(fromPkgTree);
- // const original_toParentIndex       = toPkgTree.getParent().getChildren().indexOf(toPkgTree); ... NOT NEEDED
+    const original_fromParentPkgTreeKey = fromPkgTree.getParent().getKey();
+    const original_fromParentIndex      = fromPkgTree.getParent().getChildren().indexOf(fromPkgTree);
+ // const original_toParentIndex        = toPkgTree.getParent().getChildren().indexOf(toPkgTree); ... NOT NEEDED
 
     // apply our change
     this.getPkg().changeManager.applyChange({
       changeFn() {
-        const fromNode = pkg.findPkgTree(fromPkgTreeId);
-        const toNode   = pkg.findPkgTree(toPkgTreeId);
+        const fromNode = pkg.findPkgTree(fromPkgTreeKey);
+        const toNode   = pkg.findPkgTree(toPkgTreeKey);
 
         // CRC sync must account for PRIOR parent of fromNode
         // ... in the event we are moving it OUT of this directory
@@ -692,8 +712,8 @@ class PkgTree extends SmartModel {
       },
     
       undoFn() {
-        const fromNode = pkg.findPkgTree(fromPkgTreeId);
-        const toNode   = pkg.findPkgTree(toPkgTreeId);
+        const fromNode = pkg.findPkgTree(fromPkgTreeKey);
+        const toNode   = pkg.findPkgTree(toPkgTreeKey);
 
         // CRC sync must account for PRIOR parent of fromNode
         // ... in the event we are moving it OUT of this directory
@@ -713,7 +733,7 @@ class PkgTree extends SmartModel {
         //? const fromParent   = fromNode.getParent();
         //? fromParent.getChildren().splice(original_fromParentIndex, 0, fromNode);
         // ?? try this
-        const fromParentNode = pkg.findPkgTree(original_fromParentPkgTreeId);
+        const fromParentNode = pkg.findPkgTree(original_fromParentPkgTreeKey);
         fromParentNode.getChildren().splice(original_fromParentIndex, 0, fromNode);
 
         // communicate both fromNode/toNode/etc
@@ -809,6 +829,31 @@ class PkgTree extends SmartModel {
 
     // keep looking up recursively
     return this.getParent().isDescendantOf(ancestorPkgTree);
+  }
+
+  /**
+   * Locate the PkgTree (Entry or Dir) from the specified pkgTreeKey.
+   * 
+   * @param {string} pkgTreeKey - the PkgTree key to find.
+   * 
+   * @returns {PkgTree} the PkgTreeEntry/PkgTreeDir matching the
+   * supplied `pkgTreeKey`, `undefined` for not-found.
+   */
+  findPkgTree(pkgTreeKey) {
+    // NOTE: for NOT-FOUND conditions, this algorithm uses implicit returns (yielding undefined)
+    if (this.getKey() === pkgTreeKey) { // found it
+      return this;
+    }
+    else if (this.isDir()) { // recursively keep searching directory entries
+      const children = this.getChildren();
+      for (let i=0; i<children.length; i++) {
+        const child   = children[i];
+        const pkgTree = child.findPkgTree(pkgTreeKey);
+        if (pkgTree) {
+          return pkgTree;  // found it
+        }
+      }
+    }
   }
 
   /**
@@ -967,4 +1012,5 @@ export class PkgTreeEntry extends PkgTree {
 PkgTreeEntry.unmangledName = 'PkgTreeEntry';
 
 // delimiter used in pkgTreeId
+// ??$$ TRASH in subsequent/separate check-in (to be able to re-instate if needed)
 const PkgTreeIdDelim = '|-::-|';

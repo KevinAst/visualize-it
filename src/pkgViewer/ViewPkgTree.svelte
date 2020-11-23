@@ -2,7 +2,7 @@
  // retain ModuleScoped expansion state for each tree node
  // ... so collapsing a parent doesn't loose expansion state of children :-)
  const _expansionState = {
-   // pkgTreeId: expanded <boolean>
+   // pkgTreeKey: expanded <boolean>
  };
 </script>
 
@@ -21,7 +21,7 @@
  // our primary reflexive state
  $: pkg        = pkgTree.getPkg();
  $: inEditMode = pkg.getDispMode() === DispMode.edit; // true: edit package structure, false: package is read-only
- $: pkgTreeId  = pkgTree.getPkgTreeId();              // the accumulative pkgTreeId
+ $: pkgTreeKey = pkgTree.getKey();
  $: style      = inEditMode ? 'color: blue;' : '';    // edit/view styling
  $: top        = pkgTree.isRoot();
  
@@ -47,10 +47,10 @@
  // maintain expansion state
  // ... initialize from any prior expansion state
  // ... default to NOT expanded (false) on first occurance
- $: expanded  = _expansionState[pkgTreeId] || false;
+ $: expanded  = _expansionState[pkgTreeKey] || false;
  $: arrowDown = expanded;
  const toggleExpansion = () => {
-   expanded = _expansionState[pkgTreeId] = !expanded;
+   expanded = _expansionState[pkgTreeKey] = !expanded;
  };
 
  // locate the tabController pre-registered to this pkgEntry
@@ -114,7 +114,7 @@
    pkgTree.paste(e);
  };
 
- // console.log(`xx <ViewPkgTree> for ${pkgTreeId}`);
+ // console.log(`xx <ViewPkgTree> for ${pkgTreeKey}`);
 </script>
 
 <!-- omit the top root directory node - a "/" (it is implied by our Package Header) -->
