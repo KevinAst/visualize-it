@@ -90,7 +90,8 @@ function applyChangeForPkg(check, ePkg, changeFn) {
   // ... a trickle-up IS required to reflect changes in CRC within the entire tree
   //     (for example: directories and sub-directories)
   targetObjs.forEach( (targetObj) => {
-    targetObj.trickleUpChange();
+    // console.log(`xx trickling up: ${targetObj.getName()}`, {targetObj}, `\n${targetObj}`);
+    targetObj.trickleUpChange(false/*sizeChanged: has NOT changed*/);
   });
 
   // synchronize our GUI to reflect the package structure changes

@@ -644,7 +644,9 @@ class PkgTree extends SmartModel {
     //        * YOU CAN CLEAR THE DUP EVENTS:
     //          -  simply collapse/expand entire package (this destroys the DOM and starts over)
     if (lastPkgTreePasteEvent === e) {
-      console.warn(`*** WARNING *** PkgTree.paste(e): NO-OP: Detected duplicate paste event (see BUG in SmartPkg.js):`, {copySrc}); // ?? when using "key" everywhere, move this after next section -and- INCLUDE fromPkgTree/toPkgTree in log
+      // ?? when using "key" everywhere, move this after next section -and- INCLUDE fromPkgTree/toPkgTree in log
+      console.warn('*** WARNING *** PkgTree.paste(e): NO-OP: Detected duplicate paste event, ' + 
+                   'WORK-AROUND IN PLACE (should be OK) ... see: BUG in SmartPkg.js):', {copySrc});
       return;
     }
     else {
@@ -676,18 +678,26 @@ class PkgTree extends SmartModel {
         const fromNode = pkg.findPkgTree(fromPkgTreeId);
         const toNode   = pkg.findPkgTree(toPkgTreeId);
 
+        // CRC sync must account for PRIOR parent of fromNode
+        // ... in the event we are moving it OUT of this directory
+        const fromNodePriorParent = fromNode.getParent();
+
         // this is it - reposition the pkg dir structure!
         // console.log(`XX in PkgTree.paste() INVOKING move(): `, {from: fromNode, to: toNode});
         toNode.move(fromNode);
     
-        // communicate both fromNode/toNode
+        // communicate both fromNode/toNode/etc
         // ... allowing both CRC computations to be synced (via SmartObj.trickleUpChange())
-        return [fromNode, toNode];
+        return [fromNode, toNode, fromNodePriorParent];
       },
     
       undoFn() {
         const fromNode = pkg.findPkgTree(fromPkgTreeId);
         const toNode   = pkg.findPkgTree(toPkgTreeId);
+
+        // CRC sync must account for PRIOR parent of fromNode
+        // ... in the event we are moving it OUT of this directory
+        const fromNodePriorParent = fromNode.getParent();
 
         // this is it - reset the pkg dir structure to it's original position!
         // ... ORIGINAL OP WAS: remove from / insert to
@@ -706,9 +716,9 @@ class PkgTree extends SmartModel {
         const fromParentNode = pkg.findPkgTree(original_fromParentPkgTreeId);
         fromParentNode.getChildren().splice(original_fromParentIndex, 0, fromNode);
 
-        // communicate both fromNode/toNode
+        // communicate both fromNode/toNode/etc
         // ... allowing both CRC computations to be synced (via SmartObj.trickleUpChange())
-        return [fromNode, toNode];
+        return [fromNode, toNode, fromNodePriorParent];
       }
     });
   }

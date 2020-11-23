@@ -1004,6 +1004,7 @@ export default class SmartModel {
     //***
 
     // reset self's crc
+    // console.log(`xx trickleUpChange(): resetCrc() for ${this.getName()}`, {obj: this});
     this.resetCrc();
 
     //***
