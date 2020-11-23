@@ -46,7 +46,7 @@ function isEPkg(ref) {
 
 // isPkgTree(ref): is ref a PkgTree
 function isPkgTree(ref) {
-  return ref && ref.getPkgTreeId;
+  return ref && ref.isRoot;
 }
 
 // isView(ref): is ref a View (SmartView)

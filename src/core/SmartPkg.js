@@ -386,69 +386,6 @@ export default class SmartPkg extends SmartModel {
   }
 
   /**
-   * Locate the PkgTree (Entry or Dir) from the specified pkgTreeId.
-   * 
-   * @param {string} pkgTreeId - the accumulative PkgTree ID of the
-   * PkgTree to return ... ex:
-   *   '{pkgId}|-::-|{dirName}|-::-|{dirName}|-::-|{entryName}'
-   * 
-   * @returns {PkgTree} the PkgTreeEntry/PkgTreeDir matching the
-   * supplied `pkgTreeId`, `undefined` for not-found.
-   */
-  // ??$$ TRASH in subsequent/separate check-in (to be able to re-instate if needed)
-  findPkgTreeOLD_OBSOLETE(pkgTreeId) {
-    // validate parameters
-    const check = verify.prefix(`${this.diagClassName()}.findPkgTree() for obj: {id:'${this.id}', name:'${this.name}'} parameter violation: `);
-    // ... pkgTreeId
-    check(pkgTreeId,           'pkgTreeId is required');
-    check(isString(pkgTreeId), 'pkgTreeId must be a string');
-
-    // split up the nodeIds from the accumulative pkgTreeId
-    const [pkgId, ...nodeIds] = pkgTreeId.split(PkgTreeIdDelim);
-
-    // NOTE: Algorithm tested manually with enclosed logs (currently commented out)
-    //       console.log('\n'); console.log(`xx Test 1: `, this.getPkg().findPkgTree('XXX.astx.KONVA|-::-|scenes|-::-|More Depth|-::-|Scene2'));               
-    //       console.log('\n'); console.log(`xx Test 2: `, this.getPkg().findPkgTree('com.astx.KONVA|-::-|scenes|-::-|XXXX Depth|-::-|Scene2'));               
-    //       console.log('\n'); console.log(`xx Test 2: `, this.getPkg().findPkgTree('com.astx.KONVA|-::-|scenes|-::-|More Depth|-::-|XXXXX2'));               
-    //       console.log('\n'); console.log(`xx Test 3: `, this.getPkg().findPkgTree('com.astx.KONVA|-::-|scenes|-::-|More Depth|-::-|Scene2|-::-|XXX'));      
-    //       console.log('\n'); console.log(`xx Test 4: `, this.getPkg().findPkgTree('com.astx.KONVA|-::-|scenes|-::-|More Depth|-::-|Scene2'));               
-    //       console.log('\n'); console.log(`xx Test 4: `, this.getPkg().findPkgTree('com.astx.KONVA|-::-|scenes|-::-|More Depth'));
-
-    // insure starting node is OUR pkgId
-    if (pkgId !== this.getPkgId()) {
-      // console.log(`xx RETURN 1 TEST: SmartPkg.findPkgTree('${pkgTreeId}')`);
-      return undefined;  // NOT FOUND: is NOT our pkg
-    }
-
-    // search through our rootDir
-    // ... '{pkgId}|-::-|{dirName}|-::-|{dirName}|-::-|{entryName}'
-    //        N/A            0              1              2        ... nodeIds INDEX
-    let runningNode = this.rootDir; // our running PkgTree (PkgTreeEntry/PkgTreeDir) ... starting at rootDir
-    for (let i=0; i<nodeIds.length; i++) {
-      const runningId = nodeIds[i];
-      if (runningNode.isDir()) { // ... for directories: search further in
-        runningNode = runningNode.getChildren().find( (child) => child.getName() === runningId);
-        if (!runningNode) {
-          // console.log(`xx RETURN 2 TEST: SmartPkg.findPkgTree('${pkgTreeId}')`);
-          return undefined;  // NOT FOUND: specified node NOT found
-        }
-      }
-      else { // ... for entries: can't go any deeper
-        // NOTE: The way our processing iteration works, we should NEVER hit this case
-        //       - an entry should be found at the very end
-        //       - in other words, entries should be found in the PREVIOUS iteration (above)
-        //         returning control at THAT point
-        //       - if we get this far, we know that additional nodes were specified in the pkgTreeId 
-        //         beyond an entry, which CANT exist
-        // console.log(`xx RETURN 3 TEST: SmartPkg.findPkgTree('${pkgTreeId}')`);
-        return undefined;  // NOT FOUND: additional pkgTreeId nodes were specified
-      }
-    } // ... end of nodeIds iteration
-    // console.log(`xx RETURN 4 TEST: SmartPkg.findPkgTree('${pkgTreeId}')`);
-    return runningNode; // FOUND specified PkgTreeDir (PkgTreeEntry/PkgTreeDir)
-  }
-
-  /**
    * Locate the PkgTree (Entry or Dir) from the specified pkgTreeKey.
    * 
    * @param {string} pkgTreeKey - the PkgTree key to find.
@@ -562,21 +499,6 @@ class PkgTree extends SmartModel {
    */
   isRoot() {
     return isPkg(this.getParent()); // ... if our parent is the SmartPkg, we are the root!
-  }
-
-  /**
-   * Self's accumulative pkgTreeId.
-   * 
-   * This is an accumulative id, starting with the pkgId, followed by
-   * all accumulative node names ... ex:
-   *   '{pkgId}|-::-|{dirName}|-::-|{dirName}|-::-|{entryName}'
-   * 
-   * @returns {string} self's accumulative pkgTreeId.
-   */
-  // ??$$ TRASH in subsequent/separate check-in (to be able to re-instate if needed)
-  getPkgTreeId() {
-    //                     TOP: use our pkgId         INTERMEDIATE: prefix parent node ids
-    return this.isRoot() ? this.getPkg().getPkgId() : this.getParent().getPkgTreeId() + PkgTreeIdDelim + this.getName();;
   }
 
   /**
@@ -1010,7 +932,3 @@ export class PkgTreeEntry extends PkgTree {
   }
 }
 PkgTreeEntry.unmangledName = 'PkgTreeEntry';
-
-// delimiter used in pkgTreeId
-// ??$$ TRASH in subsequent/separate check-in (to be able to re-instate if needed)
-const PkgTreeIdDelim = '|-::-|';
