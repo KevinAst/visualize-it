@@ -93,6 +93,8 @@
  // ... GRRR: Must implement BOTH dragenter/dragover BECAUSE have to override the default implementation (which prevents a drop).
  //           This is optimized by caching, since nothing changes (for us) in drag over.
  let isAllowed = null;
+ $: dropZone   = null; // null, 'before', 'in', 'after'
+ $: dropZoneCssClass = dropZone ? `dropZone-${dropZone}` : '';
  function allowDrops_enter(e) {
    isAllowed = pkgTree.pastable(e);
    // console.log(`xx allowDrops_enter on: `, {isAllowed, pkgTree, types: e.dataTransfer.types});
@@ -105,13 +107,54 @@
      // console.log(`xx dropEffect BEFORE: ${e.dataTransfer.dropEffect}`);
      e.dataTransfer.dropEffect = 'move'; // change cursor to reflect droppable
      // console.log(`xx dropEffect AFTER: ${e.dataTransfer.dropEffect}`);
+
+     // maintain our visual drop zone (before/in/after)
+     dropZone = getDropZone(e);
    }
+ }
+
+ // used in filtering boundary conditions to prevent oscillation
+ let runningDropZone = null;
+
+ // determine drop zone of the supplied DnD event (before/in/after)
+ function getDropZone(e) {
+   const boundingRect  = e.target.getBoundingClientRect();
+   const {top, bottom} = boundingRect;       // ... tiny range (in our UI context): 17 pixels to work with
+   const clientY       = e.clientY;          // ... this WILL be in the top/bottom range
+   const numSections   = children ? 3 : 2;   // ... 3 sections for directories, 2 sections for entries
+   const boundry       = (bottom - top) / numSections; // ... divide up our sections evenly (in our case, rouphly 5 pixels for directories)
+
+   // define out dropZone
+   // ... this is much simpler, however it suffers from an "oscillation between boundaries"
+// const dropZone      = clientY > bottom-boundry ? 'after' : (clientY < top+boundry ? 'before' : 'in')
+   // ... this eliminates most of the "oscillation between boundaries" (there is prob a simplier way)
+   let theDropZone = null;
+   const oscillationFudge = 4;
+   if (clientY >= bottom - boundry) {
+     theDropZone = 'after';
+     if (clientY >= bottom - boundry + oscillationFudge)
+       theDropZone = runningDropZone; // fallback to prevent "oscillation between boundaries"
+   }
+   else if (clientY <= top + boundry) {
+     theDropZone = 'before';
+     if (clientY >= top + boundry - oscillationFudge)
+       theDropZone = runningDropZone; // fallback to prevent "oscillation between boundaries"
+   }
+   else {
+     theDropZone = 'in';
+   }
+   runningDropZone = theDropZone; // maintain our runningDropZone
+
+   // console.log(`XX detecting before/in/after:`, {boundingRect, clientY, boundry, theDropZone});
+   // console.log(`XX getDropZone(): ${theDropZone}`);
+   return theDropZone;
  }
 
  // perform DnD drop based on polymorphic PkgTree.paste()
  function handleDrop(e) {
    // console.log(`\n\nxx handleDrop invoking paste() on: `, {pkgTree});
-   pkgTree.paste(e);
+   pkgTree.paste(e, dropZone);
+   dropZone = null; // clear visual dropZone
  };
 
  // console.log(`xx <ViewPkgTree> for ${pkgTreeKey}`);
@@ -126,13 +169,14 @@
   <ul class:top transition:slide="{{duration: 500}}">
     <li>
       {#if children}
-        <span class="mdc-typography--subtitle2 expander"
+        <span class="mdc-typography--subtitle2 expander {dropZoneCssClass}"
               title="Directory (click to expand/contract)"
               {draggable}
               {style}
               on:dragstart={handleDragStart}
               on:dragenter={allowDrops_enter}
               on:dragover={allowDrops_over}
+              on:dragleave={()=>dropZone=null}
               on:drop|preventDefault={handleDrop}
               on:click={toggleExpansion}>
           <span class="arrow" class:arrowDown>&#x25b6</span>
@@ -149,11 +193,13 @@
               on:click={displayEntry}>
           <span class="no-arrow-spacer"/>
 
-          <span {draggable}
+          <span class={dropZoneCssClass}
+                {draggable}
                 {style}
                 on:dragstart={handleDragStart}
                 on:dragenter={allowDrops_enter}
                 on:dragover={allowDrops_over}
+                on:dragleave={()=>dropZone=null}
                 on:drop|preventDefault={handleDrop}>
 
             <Icon name="{pkgEntry.getIconName()}"
@@ -201,5 +247,14 @@
  }
  .arrowDown {
    transform: rotate(90deg);
+ }
+ .dropZone-before {
+   border-top: 3px dotted red;
+ }
+ .dropZone-in {
+   border: 3px dotted red;
+ }
+ .dropZone-after {
+   border-bottom: 3px dotted red;
  }
 </style>

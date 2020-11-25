@@ -547,8 +547,9 @@ class PkgTree extends SmartModel {
    * API: DnD
    *
    * @param {Event} e - the DnD event
+   * @param {string} dropZone - a directive qualifying where to place the drop (before/in/after)
    */
-  paste(e) {
+  paste(e, dropZone) {
     // verify we are in edit mode
     // ... NOT NEEDED: Package Edit takes a different tact
     //                 disabling DnD when NOT in edit mode
@@ -634,7 +635,7 @@ class PkgTree extends SmartModel {
 
         // apply the move - adjusting Package Directory structure!
         // console.log(`XX in PkgTree.paste() INVOKING move(): `, {from: fromNode, to: toNode});
-        toNode.move(fromNode);
+        toNode.move(fromNode, dropZone);
     
         // communicate the nodes required for UI/CRC synchronization
         // NOTE: CRC sync must account for PRIOR parent of fromNode
@@ -671,14 +672,11 @@ class PkgTree extends SmartModel {
    * Move the supplied `fromPkgTree` node before self.  Both nodes must be in
    * the same package, and a directory cannot be moved into it's descendant path.
    *
-   * TODO: MAKE MORE ROBUST: This algorithm represents out initial (simple) heuristic:
-   *       - before toNode when Entry,
-   *       - first-child when Dir
-   *
    * @param {PkgTree} fromPkgTree - the node to move (relative to self).
+   * @param {string} dropZone - a directive qualifying where to place the drop (before/in/after)
    */
-  move(fromPkgTree) {
-    // console.log(`XX in PkgTree.move(): `, {from: fromPkgTree, to: this});
+  move(fromPkgTree, dropZone) {
+    // console.log(`XX in PkgTree.move(): `, {from: fromPkgTree, to: this, dropZone});
 
     // validate parameters
     const check = verify.prefix(`${this.diagClassName()}.move() parameter violation: `);
@@ -708,22 +706,22 @@ class PkgTree extends SmartModel {
       return;
     }
 
-    // Part I (cleanup `from` original): remove fromNode from it's original source
+    // Part I: remove fromNode from it's original source
     // ... MUST be done first to accommodate cleanup when from/to share same parent
     const fromNodeIndx = fromParent.getChildren().indexOf(fromNode);
     fromParent.getChildren().splice(fromNodeIndx, 1);
 
-    // Part II (adjust `to`)
-    // ... when toNode is a directory: place fromNode as first child of toNode directory
-    if (toNode.isDir()) {
+    // Part II: position toNode relative to fromNode (interpreting dropZone directive)
+    // ... for toNode directories with an 'in' dropZone: place fromNode as the first child of toNode directory
+    //     NOTE: only directories support an 'in' dropZone
+    if (toNode.isDir() && dropZone === 'in') {
       toNode.getChildren().splice(0, 0, fromNode);
     }
-    // ... when toNode is an entry: place fromNode before toNode
+    // ... for all other cases (a toNode directory or entry): place fromNode before/after toNode
     else {
-      const toNodeIndx = toParent.getChildren().indexOf(toNode);
+      const toNodeIndx = toParent.getChildren().indexOf(toNode) + (dropZone === 'after' ? 1 : 0);
       toParent.getChildren().splice(toNodeIndx, 0, fromNode);
     }
-
   }
 
   /**
