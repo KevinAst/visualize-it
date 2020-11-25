@@ -609,58 +609,62 @@ class PkgTree extends SmartModel {
     const fromPkgTreeKey = fromPkgTree.getKey();
     const toPkgTreeKey   = toPkgTree.getKey();
 
-    // original positions are needed for undo operation
+    // original positions are needed for undo operation ?? check these out (usage and need etc)
     const original_fromParentPkgTreeKey = fromPkgTree.getParent().getKey();
     const original_fromParentIndex      = fromPkgTree.getParent().getChildren().indexOf(fromPkgTree);
- // const original_toParentIndex        = toPkgTree.getParent().getChildren().indexOf(toPkgTree); ... NOT NEEDED
+    const original_toParentPkgTreeKey   = toPkgTree.getParent().getKey();
+    const original_toParentIndex        = toPkgTree.getParent().getChildren().indexOf(toPkgTree); // ... NOT NEEDED ??? may need afterall
 
     // apply our change
     this.getPkg().changeManager.applyChange({
       changeFn() {
+        console.log(`?? REDO BEFORE: ${pkg.toString('tree')}`);
+
         const fromNode = pkg.findPkgTree(fromPkgTreeKey);
         const toNode   = pkg.findPkgTree(toPkgTreeKey);
 
         // CRC sync must account for PRIOR parent of fromNode
         // ... in the event we are moving it OUT of this directory
-        const fromNodePriorParent = fromNode.getParent();
+        const current_fromNodeParent = fromNode.getParent();
 
         // this is it - reposition the pkg dir structure!
         // console.log(`XX in PkgTree.paste() INVOKING move(): `, {from: fromNode, to: toNode});
         toNode.move(fromNode);
+
+        console.log(`?? REDO AFTER: ${pkg.toString('tree')}`);
     
         // communicate both fromNode/toNode/etc
         // ... allowing both CRC computations to be synced (via SmartObj.trickleUpChange())
-        return [fromNode, toNode, fromNodePriorParent];
+        return [fromNode, toNode, current_fromNodeParent];
       },
     
       undoFn() {
+        console.log(`?? UNDO BEFORE: ${pkg.toString('tree')} ... `, {fromPkgTreeKey, toPkgTreeKey, original_toParentPkgTreeKey, original_toParentIndex});
+
+        // ?? rename vars (everywhere):
+        //    - ? PkgTreeKey ... just remove it from Key ... RATHER: fromPkgTreeKey JUST: fromKey
+        //    - ? node       ... consider removing it    ... RATHER: fromNode  JUST: from           ?? not sure I want to remove node
+
         const fromNode = pkg.findPkgTree(fromPkgTreeKey);
-        const toNode   = pkg.findPkgTree(toPkgTreeKey);
 
         // CRC sync must account for PRIOR parent of fromNode
         // ... in the event we are moving it OUT of this directory
-        const fromNodePriorParent = fromNode.getParent();
+        const current_fromNodeParent = fromNode.getParent();
 
-        // this is it - reset the pkg dir structure to it's original position!
-        // ... ORIGINAL OP WAS: remove from / insert to
-        //     UNDO     OP IS:  remove to   / insert from
+        // remove FROM from out of it's current position
+//?     const fromParent   = fromNode.getParent(); // ?? just use fromParent current_fromNodeParent
+        const fromNodeIndx = current_fromNodeParent.getChildren().indexOf(fromNode);
+        current_fromNodeParent.getChildren().splice(fromNodeIndx, 1);
 
-        // ... remove to - MUST be done first to accommodate cleanup when from/to share same parent
-        const toParent   = toNode.getParent();
-        const toNodeIndx = toParent().getChildren().indexOf(toNode);
-        toParent.getChildren().splice(toNodeIndx, 1);
-
-        // ... insert from
-        // ?? NOT SURE THIS IS RIGHT ... do we need some directory logic sim to original operation?
-        //? const fromParent   = fromNode.getParent();
-        //? fromParent.getChildren().splice(original_fromParentIndex, 0, fromNode);
-        // ?? try this
+        // re-insert FROM back to it's original location
         const fromParentNode = pkg.findPkgTree(original_fromParentPkgTreeKey);
         fromParentNode.getChildren().splice(original_fromParentIndex, 0, fromNode);
 
-        // communicate both fromNode/toNode/etc
+        console.log(`?? UNDO AFTER:  ${pkg.toString('tree')}`);
+
+        // communicate both fromNode/current_fromNodeParent
         // ... allowing both CRC computations to be synced (via SmartObj.trickleUpChange())
-        return [fromNode, toNode, fromNodePriorParent];
+        return [fromNode, current_fromNodeParent]; // ?? may be only thing needed in change
       }
     });
   }

@@ -63,6 +63,8 @@
  // our edit/view status ... a boolean
  $: inEditMode = pkg.getDispMode() === DispMode.edit; // true: edit package structure, false: package is read-only
  $: style      = inEditMode ? 'color: blue;' : '';
+ $: undoAvail  = $changeManager.undoAvail;
+ $: redoAvail  = $changeManager.redoAvail;
 
  // edit the structure of our SmartPkg (EPkg name/id, add/remove PkgEntry, dir structure, etc.)
  // ... changes the visual rendering to accomidate edits
@@ -138,6 +140,8 @@
       <Separator/>
       {#if inEditMode} <!-- for edit mode -->
         <Item on:SMUI:action={() => editPkgComplete()}><Text>Complete Package Edit</Text></Item>
+        <Item on:SMUI:action={() => changeManager.applyUndo()} disabled={!undoAvail}><Text>Undo</Text></Item>
+        <Item on:SMUI:action={() => changeManager.applyRedo()} disabled={!redoAvail}><Text>Redo</Text></Item>
       {:else} <!-- for view mode -->
         <Item on:SMUI:action={() => editPkg()}><Text>Edit Package Structure</Text></Item>
       {/if}
