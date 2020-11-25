@@ -10,6 +10,7 @@ import {isString,
         isPkgTree}       from '../util/typeCheck';
 import verify            from '../util/verify';
 import checkUnknownArgs  from '../util/checkUnknownArgs';
+import {toast}           from '../util/ui/notify';
 
 /**
  * SmartPkg models visualize-it packages.
@@ -386,22 +387,22 @@ export default class SmartPkg extends SmartModel {
   }
 
   /**
-   * Locate the PkgTree (Entry or Dir) from the specified pkgTreeKey.
+   * Locate the PkgTree (Entry or Dir) from the specified key.
    * 
-   * @param {string} pkgTreeKey - the PkgTree key to find.
+   * @param {string} key - the PkgTree key to find.
    * 
    * @returns {PkgTree} the PkgTreeEntry/PkgTreeDir matching the
-   * supplied `pkgTreeKey`, `undefined` for not-found.
+   * supplied `key`, `undefined` for not-found.
    */
-  findPkgTree(pkgTreeKey) {
+  findPkgTree(key) {
     // validate parameters
     const check = verify.prefix(`${this.diagClassName()}.findPkgTree() for obj: {id:'${this.id}', name:'${this.name}'} parameter violation: `);
-    // ... pkgTreeKey
-    check(pkgTreeKey,           'pkgTreeKey is required');
-    check(isString(pkgTreeKey), 'pkgTreeKey must be a string');
+    // ... key
+    check(key,           'key is required');
+    check(isString(key), 'key must be a string');
 
     // forward on to our root directory
-    return this.rootDir.findPkgTree(pkgTreeKey);
+    return this.rootDir.findPkgTree(key);
   }
 
   /**
@@ -566,6 +567,14 @@ class PkgTree extends SmartModel {
     const toPkgTree   = this;
     // console.log(`XX pasting more info: `, {copySrc, fromPkgTree, toPkgTree});
 
+    // NO-OP when to/from are the same (i.e. dropped on self)
+    // ... technically it doesn't hurt to process this
+    //     HOWEVER: it injects an additional/unneeded entry in the undo/redo stack
+    // ... AI: we could catch this earlier in the pastable(e) method above (but would be a bit more involved)
+    if (fromPkgTree === toPkgTree) {
+      return;
+    }
+
     // NO-OP when duplicate paste events are detected
     // BUG: There is an obscure condition where DUPLICATE paste events are registered
     //      in some cases, AFTER a PkgTree directory structure changes.
@@ -594,6 +603,7 @@ class PkgTree extends SmartModel {
       // ... NOTE: Since the retrofit using the non-changing pkgTreeKey (vs. accumulative and changing tree id)
       //           it appears this no-op is no longer needed (i.e. the return)
       //           HOWEVER, I'm leaving it in for now.
+      //           One side-effect I can think of is an additional/unneeded entry in the undo/redo stack
       return;
     }
     else {
@@ -604,78 +614,68 @@ class PkgTree extends SmartModel {
     // IMPORTANT: all updates must be written in such a way that DOES NOT reference stale objects
     //            - when using undo/redo (over the course of time) objects may be "swapped out" via the synchronization process
     //            - SOLUTION: resolve all objects from the "id" string AT RUN-TIME!!
-    const pkg           = this.getPkg(); // ... believe we can put a stake in the ground the SmartPkg instance will NOT change
-                                         //     (if not, retain the pkgId and reconstitute with pkgManager)
-    const fromPkgTreeKey = fromPkgTree.getKey();
-    const toPkgTreeKey   = toPkgTree.getKey();
-
-    // original positions are needed for undo operation ?? check these out (usage and need etc)
-    const original_fromParentPkgTreeKey = fromPkgTree.getParent().getKey();
-    const original_fromParentIndex      = fromPkgTree.getParent().getChildren().indexOf(fromPkgTree);
-    const original_toParentPkgTreeKey   = toPkgTree.getParent().getKey();
-    const original_toParentIndex        = toPkgTree.getParent().getChildren().indexOf(toPkgTree); // ... NOT NEEDED ??? may need afterall
+    const pkg = this.getPkg(); // ... the SmartPkg instance should NOT change (so we can hold onto it here)
+                               //     ... if not, retain the pkgId and reconstitute with pkgManager
+    const fromKey = fromPkgTree.getKey();
+    const toKey   = toPkgTree.getKey();
+    // ... original FROM positions are needed for undo operation
+    const original_fromParentKey   = fromPkgTree.getParent().getKey();
+    const original_fromParentIndex = fromPkgTree.getParent().getChildren().indexOf(fromPkgTree);
 
     // apply our change
     this.getPkg().changeManager.applyChange({
       changeFn() {
-        console.log(`?? REDO BEFORE: ${pkg.toString('tree')}`);
+        // console.log(`\n\nXX PkgTree CHANGE/REDO BEFORE: ${pkg.toString('tree')}Closure Context: `, {fromKey, toKey});
 
-        const fromNode = pkg.findPkgTree(fromPkgTreeKey);
-        const toNode   = pkg.findPkgTree(toPkgTreeKey);
+        // reconstitute needed object instances from our closure state
+        const fromNode             = pkg.findPkgTree(fromKey);
+        const toNode               = pkg.findPkgTree(toKey);
+        const prior_fromNodeParent = fromNode.getParent();
 
-        // CRC sync must account for PRIOR parent of fromNode
-        // ... in the event we are moving it OUT of this directory
-        const current_fromNodeParent = fromNode.getParent();
-
-        // this is it - reposition the pkg dir structure!
+        // apply the move - adjusting Package Directory structure!
         // console.log(`XX in PkgTree.paste() INVOKING move(): `, {from: fromNode, to: toNode});
         toNode.move(fromNode);
-
-        console.log(`?? REDO AFTER: ${pkg.toString('tree')}`);
     
-        // communicate both fromNode/toNode/etc
-        // ... allowing both CRC computations to be synced (via SmartObj.trickleUpChange())
-        return [fromNode, toNode, current_fromNodeParent];
+        // communicate the nodes required for UI/CRC synchronization
+        // NOTE: CRC sync must account for PRIOR parent of fromNode
+        //       ... in the event we are moving it OUT of this directory
+        // console.log(`XX PkgTree CHANGE/REDO AFTER: ${pkg.toString('tree')}`);
+        return [fromNode, prior_fromNodeParent];
       },
     
       undoFn() {
-        console.log(`?? UNDO BEFORE: ${pkg.toString('tree')} ... `, {fromPkgTreeKey, toPkgTreeKey, original_toParentPkgTreeKey, original_toParentIndex});
+        // console.log(`\n\nXX PkgTree UNDO BEFORE: ${pkg.toString('tree')}Closure Context: `, {fromKey, original_fromParentKey, original_fromParentIndex});
 
-        // ?? rename vars (everywhere):
-        //    - ? PkgTreeKey ... just remove it from Key ... RATHER: fromPkgTreeKey JUST: fromKey
-        //    - ? node       ... consider removing it    ... RATHER: fromNode  JUST: from           ?? not sure I want to remove node
+        // reconstitute needed object instances from our closure state
+        const fromNode             = pkg.findPkgTree(fromKey);
+        const prior_fromNodeParent = fromNode.getParent();
 
-        const fromNode = pkg.findPkgTree(fromPkgTreeKey);
+        // remove `fromNode` out of it's PRIOR (i.e. current) position
+        const prior_fromNodeIndx = prior_fromNodeParent.getChildren().indexOf(fromNode);
+        prior_fromNodeParent.getChildren().splice(prior_fromNodeIndx, 1);
 
-        // CRC sync must account for PRIOR parent of fromNode
-        // ... in the event we are moving it OUT of this directory
-        const current_fromNodeParent = fromNode.getParent();
+        // re-insert `fromNode` back to it's ORIGINAL position (before this change operation)
+        const original_fromParentNode = pkg.findPkgTree(original_fromParentKey);
+        original_fromParentNode.getChildren().splice(original_fromParentIndex, 0, fromNode);
 
-        // remove FROM from out of it's current position
-//?     const fromParent   = fromNode.getParent(); // ?? just use fromParent current_fromNodeParent
-        const fromNodeIndx = current_fromNodeParent.getChildren().indexOf(fromNode);
-        current_fromNodeParent.getChildren().splice(fromNodeIndx, 1);
-
-        // re-insert FROM back to it's original location
-        const fromParentNode = pkg.findPkgTree(original_fromParentPkgTreeKey);
-        fromParentNode.getChildren().splice(original_fromParentIndex, 0, fromNode);
-
-        console.log(`?? UNDO AFTER:  ${pkg.toString('tree')}`);
-
-        // communicate both fromNode/current_fromNodeParent
-        // ... allowing both CRC computations to be synced (via SmartObj.trickleUpChange())
-        return [fromNode, current_fromNodeParent]; // ?? may be only thing needed in change
+        // communicate the nodes required for UI/CRC synchronization
+        // NOTE: CRC sync must account for PRIOR parent of fromNode
+        //       ... in the event we are moving it OUT of this directory
+        // console.log(`XX PkgTree UNDO AFTER:  ${pkg.toString('tree')}`);
+        return [fromNode, prior_fromNodeParent];
       }
     });
   }
 
   /**
    * Move the supplied `fromPkgTree` node before self.  Both nodes must be in
-   * the same package, ?? and a directory cannot be moved into it's descendant path
+   * the same package, and a directory cannot be moved into it's descendant path.
    *
-   * ?? initial heuristic (before toNode when Entry, first-child when Dir)
+   * TODO: MAKE MORE ROBUST: This algorithm represents out initial (simple) heuristic:
+   *       - before toNode when Entry,
+   *       - first-child when Dir
    *
-   * @param {PkgTree} fromPkgTree - the node to move.
+   * @param {PkgTree} fromPkgTree - the node to move (relative to self).
    */
   move(fromPkgTree) {
     // console.log(`XX in PkgTree.move(): `, {from: fromPkgTree, to: this});
@@ -694,14 +694,17 @@ class PkgTree extends SmartModel {
     const toParent   = toNode.getParent();
 
     // no-op when fromNode/toNode are the same
+    // ... NOTE: this is also caught earlier (in paste() method) 
+    //           which prevents an additional/unneeded entry in the undo/redo stack
     if (fromNode === toNode) {
       return;
     }
 
     // prevent the following invalid condition: a from directory cannot be moved into it's descendant path
-    // ... ?? AI: if we restrict this in DnD, we can make this a true check/error
+    // ... NOTE: We choose to make this check here (vs. preventing it in the DnD)
+    //           so as to give the user insight as to why it is not allowed.
     if (fromNode.isDir() && toNode.isDescendantOf(fromNode)) {
-      alert(`?? TOAST: from directory cannot be moved into it's descendant tree`);
+      toast({msg: `A directory CANNOT be moved into it's descendant tree.`});
       return;
     }
 
@@ -758,23 +761,23 @@ class PkgTree extends SmartModel {
   }
 
   /**
-   * Locate the PkgTree (Entry or Dir) from the specified pkgTreeKey.
+   * Locate the PkgTree (Entry or Dir) from the specified key.
    * 
-   * @param {string} pkgTreeKey - the PkgTree key to find.
+   * @param {string} key - the PkgTree key to find.
    * 
    * @returns {PkgTree} the PkgTreeEntry/PkgTreeDir matching the
-   * supplied `pkgTreeKey`, `undefined` for not-found.
+   * supplied `key`, `undefined` for not-found.
    */
-  findPkgTree(pkgTreeKey) {
+  findPkgTree(key) {
     // NOTE: for NOT-FOUND conditions, this algorithm uses implicit returns (yielding undefined)
-    if (this.getKey() === pkgTreeKey) { // found it
+    if (this.getKey() === key) { // found it
       return this;
     }
     else if (this.isDir()) { // recursively keep searching directory entries
       const children = this.getChildren();
       for (let i=0; i<children.length; i++) {
         const child   = children[i];
-        const pkgTree = child.findPkgTree(pkgTreeKey);
+        const pkgTree = child.findPkgTree(key);
         if (pkgTree) {
           return pkgTree;  // found it
         }
