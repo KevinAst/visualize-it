@@ -191,8 +191,6 @@
         <span class="mdc-typography--subtitle2 pkg-entry"
               title={pkgEntryToolTip}
               on:click={displayEntry}>
-          <span class="no-arrow-spacer"/>
-
           <span class={dropZoneCssClass}
                 {draggable}
                 {style}
@@ -201,18 +199,13 @@
                 on:dragover={allowDrops_over}
                 on:dragleave={()=>dropZone=null}
                 on:drop|preventDefault={handleDrop}>
-
             <Icon name="{pkgEntry.getIconName()}"
                   size="1.0rem"/>
-
             {label}
-
           </span>
-
           <Icon name={inSyncIcon}
                 {style}
                 size="1.0rem"/>
-
         </span>
       {/if}
     </li>
@@ -229,9 +222,6 @@
  ul.top { /* NO indentation FOR top-level node only */
    margin:  0;
    padding: 0;
- }
- .no-arrow-spacer {
-   padding-left:    1.0rem;
  }
  .expander {
    cursor:  pointer;
