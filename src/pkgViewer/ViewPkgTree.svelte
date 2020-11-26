@@ -249,12 +249,12 @@
    transform: rotate(90deg);
  }
  .dropZone-before {
-   border-top: 3px dotted red;
+   border-top: 5px solid;
  }
  .dropZone-in {
-   border: 3px dotted red;
+   border: 3px dotted;
  }
  .dropZone-after {
-   border-bottom: 3px dotted red;
+   border-bottom: 5px solid;
  }
 </style>
