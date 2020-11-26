@@ -521,8 +521,14 @@ class PkgTree extends SmartModel {
    * @returns {CopySrc} a CopySrc: {type, key} ... null when NOT copyable
    */
   copyable() {
+    // self is copyable ONLY when it's pkg is in edit mode
+    if (this.getPkg().getDispMode() !== DispMode.edit) {
+      return null;
+    }
+
+    // self represents PkgTree instance of a specific Pkg (both PkgTreeDir/PkgTreeEntry handled consistently)
     return {
-      type: this.dndPastableTypeType(), // self represents PkgTree instance of a specific Pkg (both PkgTreeDir/PkgTreeEntry handled consistently)
+      type: this.dndPastableTypeType(),
       key:  this.getKey(),
     };
   }

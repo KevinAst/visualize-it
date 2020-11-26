@@ -63,9 +63,9 @@
    () => activateTab(tabController.getTabId(), /*preview*/false), // double-click
  );
 
- // support drag (of DnD), based on polymorphic SmartObj.copyable() -and- PkgTree.copyable()
- const copySrcPkgEntry = pkgEntry   ? pkgEntry.copyable() : null;
- $:    copySrcPkgTree  = inEditMode ? pkgTree.copyable()  : null;  // ?? move "inEditMode" conditional logic into pkgTree.copyable() ONCE we can get to the pkg
+ // support drag (of DnD), based on a combination of two polymorphic APIs: SmartObj.copyable() -and- PkgTree.copyable()
+ const copySrcPkgEntry = pkgEntry ? pkgEntry.copyable() : null;
+ $:    copySrcPkgTree  = pkgTree.copyable();
  $:    draggable       = copySrcPkgEntry || copySrcPkgTree  ? true : false;
  function handleDragStart(e) { // ... conditionally invoked when `draggable` is true (via draggleble DOM attribute - below)
    // console.log(`xx ViewPkgTree handleDragStart(): starting`);
