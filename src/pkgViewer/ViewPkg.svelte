@@ -107,10 +107,10 @@
   <Text {style}>
     {pkg.getPkgName()}
     {expandedIndicator}
-    <Icon name={inSyncIcon}
-          title="Package has been modified (needs to be saved) NOT SHOWING (qualified in pkgNameToolTip)"
-          size="1.0rem"/>
   </Text>
+  <Icon name={inSyncIcon}
+        title="Package has been modified (needs to be saved) NOT SHOWING (qualified in pkgNameToolTip)"
+        size="1.0rem"/>
   <Meta>
     <Icon name="save"
           title="Save Package"
