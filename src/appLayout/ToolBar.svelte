@@ -49,8 +49,8 @@
 
  function handleAbout() {
    // AI: figure out HOW to glean this info directly from our package.json
-   const name         = "visualize-it";
-   const version     = "0.1.0";
+   const name        = "visualize-it";
+   const version     = "0.1.1";
    const description = "Your View into External Systems";
    toast({msg: `${name}
 
