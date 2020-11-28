@@ -113,41 +113,30 @@
    }
  }
 
- // used in filtering boundary conditions to prevent oscillation
- let runningDropZone = null;
-
  // determine drop zone of the supplied DnD event (before/in/after)
  function getDropZone(e) {
    const boundingRect  = e.target.getBoundingClientRect();
-   const {top, bottom} = boundingRect;       // ... tiny range (in our UI context): 17 pixels to work with
+   let   {top, bottom} = boundingRect;       // ... tiny range (in our UI context): 17 pixels to work with
    const clientY       = e.clientY;          // ... this WILL be in the top/bottom range
    const numSections   = children ? 3 : 2;   // ... 3 sections for directories, 2 sections for entries
    const boundry       = (bottom - top) / numSections; // ... divide up our sections evenly (in our case, rouphly 5 pixels for directories)
 
-   // define out dropZone
-   // ... this is much simpler, however it suffers from an "oscillation between boundaries"
-// const dropZone      = clientY > bottom-boundry ? 'after' : (clientY < top+boundry ? 'before' : 'in')
-   // ... this eliminates most of the "oscillation between boundaries" (there is prob a simplier way)
-   let theDropZone = null;
-   const oscillationFudge = 4;
-   if (clientY >= bottom - boundry) {
-     theDropZone = 'after';
-     if (clientY >= bottom - boundry + oscillationFudge)
-       theDropZone = runningDropZone; // fallback to prevent "oscillation between boundaries"
-   }
-   else if (clientY <= top + boundry) {
-     theDropZone = 'before';
-     if (clientY >= top + boundry - oscillationFudge)
-       theDropZone = runningDropZone; // fallback to prevent "oscillation between boundaries"
-   }
-   else {
-     theDropZone = 'in';
-   }
-   runningDropZone = theDropZone; // maintain our runningDropZone
+   // prevent oscillation by stripping out the varying borders
+   // ... this is a brute force technique (a bit ugly)
+   //     I tried using CSS (box-sizing: border-box), 
+   //     but this ONLY impacts boundingRect height, NOT top/bottom
+   const styling      = getComputedStyle(e.target);
+   const topBorder    = styling.getPropertyValue('border-top-width');
+   const bottomBorder = styling.getPropertyValue('border-bottom-width');
+   top    += parseInt(topBorder); // ... convert "4px" to 4
+   bottom -= parseInt(bottomBorder);
 
-   // console.log(`XX detecting before/in/after:`, {boundingRect, clientY, boundry, theDropZone});
-   // console.log(`XX getDropZone(): ${theDropZone}`);
-   return theDropZone;
+   // define our dropZone
+   const rtnDropZone   = clientY > bottom-boundry ? 'after' : (clientY < top+boundry ? 'before' : 'in')
+
+   // console.log(`XX getDropZone():`, {rtnDropZone, clientY, top, bottom, boundry, topBorder, bottomBorder});
+   // console.log(`XX getDropZone(): ${rtnDropZone}`);
+   return rtnDropZone;
  }
 
  // perform DnD drop based on polymorphic PkgTree.paste()
@@ -239,12 +228,12 @@
    transform: rotate(90deg);
  }
  .dropZone-before {
-   border-top: 5px solid;
+   border-top: 4px solid;
  }
  .dropZone-in {
-   border: 3px dotted;
+   border: 2px dotted;
  }
  .dropZone-after {
-   border-bottom: 5px solid;
+   border-bottom: 4px solid;
  }
 </style>
