@@ -55,6 +55,7 @@ export default class TabManager {
     this.closeOtherTabs   = this.closeOtherTabs.bind(this);
     this.closeTabsToRight = this.closeTabsToRight.bind(this);
     this.closeAllTabs     = this.closeAllTabs.bind(this);
+    this.repositionTab    = this.repositionTab.bind(this);
   }
 
   /**
@@ -221,6 +222,11 @@ export default class TabManager {
     }
 
     // update store (when changed)
+    // ?? MAKE COMMON ?? pass
+    //                - ? onBehalfOf ... `activateTab('${tabId}', preview:${preview})`
+    //                - ? $tabs, _tabs,
+    //                - ? $activeTab, _activeTab,
+    //                - ? $previewTab, _previewTab,
     const tabsChanged       = $tabs       !== _tabs;
     const activeTabChanged  = $activeTab  !== _activeTab;
     const previewTabChanged = $previewTab !== _previewTab;
@@ -295,6 +301,7 @@ export default class TabManager {
     logQualifier += ` ... tab purged`;
 
     // update store
+    // ?? MAKE COMMON
     const tabsChanged       = $tabs       !== _tabs;
     const activeTabChanged  = $activeTab  !== _activeTab;
     const previewTabChanged = $previewTab !== _previewTab;
@@ -365,6 +372,7 @@ export default class TabManager {
     }
 
     // update store
+    // ?? MAKE COMMON
     const tabsChanged       = $tabs       !== _tabs;
     const activeTabChanged  = $activeTab  !== _activeTab;
     const previewTabChanged = $previewTab !== _previewTab;
@@ -436,6 +444,7 @@ export default class TabManager {
     }
 
     // update store
+    // ?? MAKE COMMON
     const tabsChanged       = $tabs       !== _tabs;
     const activeTabChanged  = $activeTab  !== _activeTab;
     const previewTabChanged = $previewTab !== _previewTab;
@@ -491,6 +500,7 @@ export default class TabManager {
     }
 
     // update store
+    // ?? MAKE COMMON
     const tabsChanged       = $tabs       !== _tabs;
     const activeTabChanged  = $activeTab  !== _activeTab;
     const previewTabChanged = $previewTab !== _previewTab;
@@ -507,6 +517,86 @@ export default class TabManager {
       logQualifier += ` ... NOTHING CHANGED!!`;
     }
     log(`closeAllTabs()` +
+        ` ... state changed: {tabs: ${tabsChanged}, activeTab: ${activeTabChanged}, previewTab: ${previewTabChanged}}` +
+        logQualifier);
+  }
+
+  /**
+   * Reposition the supplied tab.
+   *
+   * @param {string} fromTabId - the id of the TabController to move.
+   * @param {string} toTabId - the id of the TabController to reposition to.
+   * @param {string} placement - a placement directive (before/after toTabId).
+   */
+  repositionTab(fromTabId, toTabId, placement) {
+    // validate parameters
+    const check = verify.prefix('TabManager.repositionTab() parameter violation: ');
+    // ... fromTabId
+    check(fromTabId,             'fromTabId is required');
+    check(isString(fromTabId),   'fromTabId must be a string');
+    // ... toTabId
+    check(toTabId,               'toTabId is required');
+    check(isString(toTabId),     'toTabId must be a string');
+    // ... placement
+    check(placement,             'placement is required');
+    check(isString(placement),   'placement must be a string');
+    check(placement==='before' ||
+          placement==='after',   `placement must be either 'before' or 'after', NOT: '${placement}'`);
+
+    let logQualifier = '';
+
+    // get our current state
+    // NOTE: get() is somewhat inefficient, BUT this is NOT a heavy usage
+    const $tabs       = get(this.tabs);
+    const $activeTab  = get(this.activeTab);  // ?? not impacted by this routine
+    const $previewTab = get(this.previewTab); // ?? not impacted by this routine
+    const _activeTab  = $activeTab;           // ?? TEMP for now (see not impacted)
+    const _previewTab = $previewTab;          // ?? TEMP for now (see not impacted)
+    let   _tabs       = $tabs;
+
+
+    // locate the tab objects of interest
+    const fromTab = $tabs[findTabIndex(fromTabId, $tabs)];
+    const toTab   = $tabs[findTabIndex(toTabId,   $tabs)];
+
+    // no-op when to/from are the same (i.e. dropped on self)
+    // ... don't worry about adjacent cases (where it results in a no-op)
+    //       - no real harm done
+    //       - would make routine needlessly complex
+    if (fromTab === toTab) {
+      logQualifier += ` ... no-op from/to are the same`;
+    }
+    else { // ... reposition the tab
+
+      // remove `fromTab` out of it's current position
+      // ... making a working copy of $tabs (i.e. future usage is _tabs NOT $tabs)
+      _tabs = $tabs.filter( (tab) => tab !== fromTab );
+      logQualifier += ` ... fromTab removed`;
+
+      // reposition `fromTab` to it's new position (relative to `toTab` and `placement`)
+      const toNodeIndx = _tabs.indexOf(toTab) + (placement === 'after' ? 1 : 0);
+      _tabs.splice(toNodeIndx, 0, fromTab);
+      logQualifier += ` ... fromTab repositioned`;
+    }
+
+    // update store
+    // ?? MAKE COMMON
+    const tabsChanged       = $tabs       !== _tabs;
+    const activeTabChanged  = $activeTab  !== _activeTab;  // ?? not impacted by this routine
+    const previewTabChanged = $previewTab !== _previewTab; // ?? not impacted by this routine
+    if (tabsChanged) {
+      this.tabs.set(_tabs);
+    }
+    if (activeTabChanged) {
+      this.activeTab.set(_activeTab);
+    }
+    if (previewTabChanged) {
+      this.previewTab.set(_previewTab);
+    }
+    if ( !(tabsChanged || activeTabChanged || previewTabChanged)) {
+      logQualifier += ` ... NOTHING CHANGED!!`;
+    }
+    log(`repositionTab('${fromTabId}', '${toTabId}', '${placement}')` +
         ` ... state changed: {tabs: ${tabsChanged}, activeTab: ${activeTabChanged}, previewTab: ${previewTabChanged}}` +
         logQualifier);
   }

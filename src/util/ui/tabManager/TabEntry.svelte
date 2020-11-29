@@ -16,7 +16,7 @@
  // ... because this is an internal component, we bypass this step :-)
 
  // extract the various controls needed from our tabManager
- const {activeTab, previewTab, activateTab, closeTab, closeOtherTabs, closeTabsToRight, closeAllTabs} = tabManager;
+ const {activeTab, previewTab, activateTab, closeTab, closeOtherTabs, closeTabsToRight, closeAllTabs, repositionTab} = tabManager;
 
  // extract needed primitives out of our tab
  // ... this optimizes svelte, because it uses primitive staleness identity semantics
@@ -83,18 +83,117 @@
  // our popup contextMenu binding
  let contextMenu;
 
+
+ //***
+ //*** DnD support of tabs order
+ //***
+
+ const dndPastableType = 'visualize-it/TabEntry'.toLowerCase();
+ function handleDragStart(e) {
+	 e.dataTransfer.effectAllowed = 'move';
+   e.dataTransfer.setData(dndPastableType, tab.getTabId());
+ };
+
+ let isDropAllowed = false;
+ let dropZone      = null; // null, 'before', 'after' // ?? AI: do this in LeftNav DnD too ... NO NEED to be reflixive ($:)
+ $: dropZoneCssClass = dropZone ? `dropZone-${dropZone}` : '';
+
+ function allowDrops_enter(e) { // of interest: this is actually executed more than you would think (on sub-elms of our tab-entry)
+   // maintain closure state that is UNCHANGED for allowDrops_over
+   isDropAllowed = e.dataTransfer.types.includes(dndPastableType);
+
+   // defer to allowDrops_over
+   allowDrops_over(e);
+ };
+
+ function allowDrops_over(e) {
+   if (isDropAllowed) {
+     e.preventDefault(); // allow drop (nullify default disallow behavior)
+     // console.log(`xx dropEffect BEFORE: ${e.dataTransfer.dropEffect}`);
+     e.dataTransfer.dropEffect = 'move'; // change cursor to reflect droppable
+     // console.log(`xx dropEffect AFTER: ${e.dataTransfer.dropEffect}`);
+
+     // maintain our visual drop zone (before/in/after)
+     dropZone = getDropZone(e);
+     // console.log(`xx allowDrops_over ... dropZone: ${dropZone}`);
+   }
+ }
+
+ function findAncestorWithCssClass(elm, cssClass) { // helper function ?? AI: move this in util
+   // if elm has desired cssClass, we found it!
+   if (elm.classList.contains(cssClass)) {
+     return elm;
+   }
+   // recurs further up our DOM ancestry
+   const parent = elm.parentElement;
+   return parent ? findAncestorWithCssClass(parent, cssClass) : undefined;
+ }
+
+ function getDropZone(e) { // determine drop zone of the supplied DnD event (before/after)
+
+   // for sizing heuristics, we MUST use the DOM element that is managing our DnD event
+   // ... NOT: one of it's subordinates!
+   //          This insures the overall sizing is correct and NOT sporadic!!
+   // ?? AI: do this in LeftNav DnD too
+   const tabEntryElm = findAncestorWithCssClass(e.target, 'tab-entry');
+
+   const boundingRect  = tabEntryElm.getBoundingClientRect();
+   let   {left, right} = boundingRect;
+   const clientX       = e.clientX;          // ... this WILL be in the left/right range
+   const numSections   = 2;                  // ... 2 sections (before/after)
+   const boundry       = (right - left) / numSections; // ... divide up our sections evenly
+
+   // calculate/return our dropZone
+   const rtnDropZone = clientX > right-boundry ? 'after' : 'before';
+   // console.log(`XX getDropZone():`, {rtnDropZone, clientX, left, right, boundry/*, leftBorder, rightBorder*/});
+   // console.log(`XX getDropZone(): ${rtnDropZone}`);
+   return rtnDropZone;
+ }
+
+ // last drop event (used in detecting duplicate drop events)
+ let lastDropEvent = null;
+
+ function handleDrop(e) {
+   const fromTabId = e.dataTransfer.getData(dndPastableType);
+   const toTabId   = tab.getTabId();
+   // console.log('XX handleDrop: ', {fromTabId, toTabId, dropZone});
+
+   // NO-OP when duplicate drop events are detected
+   // BUG: This is a work-aroung for now
+   //      ... see similar situation (fully explained) in SmartPkg.js (search: lastPkgTreePasteEvent)
+   if (lastDropEvent === e) {
+     // console.log('XX <TabEntry> handleDrop(): NO-OP ... detected duplicate drop event :-(');
+     return;
+   }
+   else {
+     lastDropEvent = e;
+   }
+
+   // reposition the tabs
+   repositionTab(fromTabId, toTabId, dropZone);
+
+   // clear visual dropZone
+   dropZone = null;
+ };
+
 </script>
 
 
 <!-- in lieu of genDualClickHandler(), 
      double registration of click/dblclick WORKS (in this case),
      and is more responsive! -->
-<div class={classes}
+<div class="{classes} {dropZoneCssClass}"
      on:mouseover= {() => tabHover=true}
      on:mouseout=  {() => tabHover=false}
      on:click=     {() => activateTab(tabId, /*preview*/true)}
      on:dblclick=  {() => activateTab(tabId, /*preview*/false)}
-     on:contextmenu|preventDefault={() => contextMenu.setOpen(true)}>
+     on:contextmenu|preventDefault={() => contextMenu.setOpen(true)}
+     draggable={true}
+     on:dragstart={handleDragStart}
+     on:dragenter={allowDrops_enter}
+     on:dragover={allowDrops_over}
+     on:dragleave={()=>dropZone=null}
+     on:drop|preventDefault={handleDrop}>
 
   <!-- classification icon -->
   <Icon name="{tabContext.getIconName()}"
@@ -155,4 +254,12 @@
  .preview-tab {
 	 font-style: italic;
  }
+
+ .dropZone-before {
+   border-left: 10px solid DarkRed;
+ }
+ .dropZone-after {
+   border-right: 10px solid DarkRed;
+ }
+
 </style>
