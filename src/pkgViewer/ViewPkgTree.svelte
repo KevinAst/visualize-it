@@ -14,6 +14,7 @@
  import Icon                 from '../util/ui/Icon.svelte';
  import DispMode             from '../core/DispMode';
  import {slide}              from 'svelte/transition'; // visually animated transitions for tree node expansion/contraction
+ import {findAncestorWithCssClass} from '../util/ui/domUtil';
 
  // component props
  export let pkgTree;  // the PkgTree to display (will recurse into any sub-structure)
@@ -93,7 +94,7 @@
  // ... GRRR: Must implement BOTH dragenter/dragover BECAUSE have to override the default implementation (which prevents a drop).
  //           This is optimized by caching, since nothing changes (for us) in drag over.
  let isAllowed = null;
- $: dropZone   = null; // null, 'before', 'in', 'after'
+ let dropZone   = null; // null, 'before', 'in', 'after'
  $: dropZoneCssClass = dropZone ? `dropZone-${dropZone}` : '';
  function allowDrops_enter(e) {
    isAllowed = pkgTree.pastable(e);
@@ -115,7 +116,16 @@
 
  // determine drop zone of the supplied DnD event (before/in/after)
  function getDropZone(e) {
-   const boundingRect  = e.target.getBoundingClientRect();
+
+   // for sizing heuristics, we MUST use the DOM element that is managing our DnD event
+   // ... NOT: one of it's subordinates!
+   //          This insures the overall sizing is correct and NOT sporadic!!
+   const dropTargetElm = findAncestorWithCssClass(e.target, 'dropTarget');
+   // if (dropTargetElm !== e.target) {
+   //   console.log(`XX <ViewPkgTree> getDropZone(): using different target: `, {dropTargetElm, event_target: e.target});
+   // }
+
+   const boundingRect  = dropTargetElm.getBoundingClientRect();
    let   {top, bottom} = boundingRect;       // ... tiny range (in our UI context): 17 pixels to work with
    const clientY       = e.clientY;          // ... this WILL be in the top/bottom range
    const numSections   = children ? 3 : 2;   // ... 3 sections for directories, 2 sections for entries
@@ -158,7 +168,7 @@
   <ul class:top transition:slide="{{duration: 500}}">
     <li>
       {#if children}
-        <span class="mdc-typography--subtitle2 expander {dropZoneCssClass}"
+        <span class="mdc-typography--subtitle2 expander dropTarget {dropZoneCssClass}"
               title="Directory (click to expand/contract)"
               {draggable}
               {style}
@@ -180,7 +190,7 @@
         <span class="mdc-typography--subtitle2 pkg-entry"
               title={pkgEntryToolTip}
               on:click={displayEntry}>
-          <span class={dropZoneCssClass}
+          <span class="dropTarget {dropZoneCssClass}"
                 {draggable}
                 {style}
                 on:dragstart={handleDragStart}

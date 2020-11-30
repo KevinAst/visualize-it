@@ -96,7 +96,7 @@
  };
 
  let isDropAllowed = false;
- let dropZone      = null; // null, 'before', 'after' // ?? AI: do this in LeftNav DnD too ... NO NEED to be reflixive ($:)
+ let dropZone      = null; // null, 'before', 'after'
  $: dropZoneCssClass = dropZone ? `dropZone-${dropZone}` : '';
 
  function allowDrops_enter(e) { // of interest: this is actually executed more than you would think (on sub-elms of our tab-entry)
@@ -125,11 +125,10 @@
    // for sizing heuristics, we MUST use the DOM element that is managing our DnD event
    // ... NOT: one of it's subordinates!
    //          This insures the overall sizing is correct and NOT sporadic!!
-   // ?? AI: do this in LeftNav DnD too
    const tabEntryElm = findAncestorWithCssClass(e.target, 'tab-entry');
 
    const boundingRect  = tabEntryElm.getBoundingClientRect();
-   let   {left, right} = boundingRect;
+   const {left, right} = boundingRect;
    const clientX       = e.clientX;          // ... this WILL be in the left/right range
    const numSections   = 2;                  // ... 2 sections (before/after)
    const boundry       = (right - left) / numSections; // ... divide up our sections evenly
