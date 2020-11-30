@@ -7,6 +7,7 @@
  import Icon from '../Icon.svelte';
  import Menu                          from '@smui/menu';
  import List, {Item, Text, Separator} from '@smui/list';
+ import {findAncestorWithCssClass}    from '../domUtil';
 
  // accept component props
  export let tab;        // ... the TabController we are displaying
@@ -117,16 +118,6 @@
      dropZone = getDropZone(e);
      // console.log(`xx allowDrops_over ... dropZone: ${dropZone}`);
    }
- }
-
- function findAncestorWithCssClass(elm, cssClass) { // helper function ?? AI: move this in util
-   // if elm has desired cssClass, we found it!
-   if (elm.classList.contains(cssClass)) {
-     return elm;
-   }
-   // recurs further up our DOM ancestry
-   const parent = elm.parentElement;
-   return parent ? findAncestorWithCssClass(parent, cssClass) : undefined;
  }
 
  function getDropZone(e) { // determine drop zone of the supplied DnD event (before/after)
