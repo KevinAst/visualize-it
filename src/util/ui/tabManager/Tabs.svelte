@@ -3,6 +3,8 @@
  import TabPanel    from './TabPanel.svelte';
  import verify      from '../../verify';
  import {isClass}   from '../../typeCheck';
+ import {flip}      from 'svelte/animate';
+ import {backInOut as easing} from 'svelte/easing'; // like back/circ/expo
 
  // accept component props
  export let tabManager; // ... the TabManager governing our set of dynamic tabs
@@ -26,7 +28,9 @@
   <!-- TabBar with TabEntries -->
   <div class="tab-bar">
     {#each $tabs as tab (tab.getTabId())}
-      <TabEntry {tab} {tabManager}/>
+      <span animate:flip={{duration: 800, easing}}>
+        <TabEntry {tab} {tabManager}/>
+      </span>
   	{/each}
   </div>
   
