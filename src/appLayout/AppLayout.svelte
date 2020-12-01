@@ -72,10 +72,72 @@
    titleToolTip += ' (modified - needs to be saved)';
  }
 
+ // support for LeftNav (Drawer) dynamic sizing
+ //  - the @smui way of setting <Drawer> size is through a sass variable:
+ //    EX: in src/theme/_smui-theme.scss
+ //           $mdc-drawer-width: 400px;
+ //  - PROBLEM:  This is CANNOT be dynamic :-(
+ //              SASS is a CSS preprocessor which means it is compiled into CSS at build time.
+ //  - SOLUTION: Interpret the DOM resulting from the compiled CSS 
+ //              and override in-line styles at run-time with JavaScript
+ //      <div class="vit-drawer-container">
+ //        <aside class="vit-drawer"         <<< our drawerElm
+ //               style="width: 550px;">     <<< dynamic in-line style (managing width)
+ //          <span bind:this={drawerHook}/>  <<< our hook into this DOM
+ //          ... snip snip (drawer content)
+ //        </aside> 
+ //        <div class="vit-drawer-app-content"   <<< our appContentElm
+ //             style="margin-left: 550px;">     <<< dynamic in-line style (managing position when Drawer collapsed/expanded)
+ //          <span bind:this={appContentHook}/>  <<< our hook into this DOM
+ //          ... snip snip (app content)
+ //        </div>
+ //      </div>
+ let drawerWidth = 256; // dynamic adjustement of drawer size (in pixels)
+ let drawerHook,     drawerElm;
+ let appContentHook, appContentElm;
+ let resizerInitialized = false;
+ $: if (drawerElm) {
+   drawerElm.style.width = `${drawerWidth}px`; // set Drawer width
+
+   // register our CSS-based resize controler
+   if (!resizerInitialized) { // ... one time only
+     resizerInitialized = true;
+
+     // promote a CSS-based resize control in our drawer's lower-right
+     drawerElm.style.resize   = 'horizontal';
+     drawerElm.style.minWidth = '200px';
+     drawerElm.style.maxWidth = '750px';
+
+     // register an observer to sync our state when resize occurs
+     // ... becase resize control is CSS-based
+     //     and we need visibility of this in our code
+     new ResizeObserver(resizeOccurred).observe(drawerElm);
+   }
+ }
+ $: if (appContentElm) {
+   // adjust appContent placement (consistent with LeftNav width)
+   appContentElm.style.marginLeft = drawerOpen ? `${drawerWidth}px`: '0px';
+ }
+ function resizeOccurred() { // sync our state when resize occurs
+   let width = drawerElm.offsetWidth;
+   // console.log(`XX resizeOccurred() width: ${width}`);
+   
+   // reflex content to our state, making the operation complete
+   // ... ONLY when our drawer is open (so as to NOT perminently loose our width)
+   if (drawerOpen) {
+     drawerWidth = width; // reflex to our state (making the operation complete)
+   }
+ }
+
  // maintain our external bindings (once <AppLayout> is mounted)
  let leftNavComp; // ... maintained by `bind:this` (see below)
  onMount(() => {
    activateSingleton(leftNavComp);
+
+   // binding for LeftNav (Drawer) dynamic sizing
+   drawerElm     = drawerHook.parentElement;
+   appContentElm = appContentHook.parentElement;
+
    return deactivateSingleton;
  });
 
@@ -115,6 +177,7 @@
 
     <!-- vit-drawer (LeftNav) -->
     <Drawer class="vit-drawer" variant="dismissible" bind:open={drawerOpen}>
+      <span bind:this={drawerHook}/>
       <!-- farm this out to our LeftNav feature -->
       <LeftNav bind:this={leftNavComp}/>
     </Drawer>
@@ -122,6 +185,7 @@
     <!-- vit-drawer-app-content: everything MINUS vit-drawer -->
     <!-- vit-tabs-container:     flex container for util/ui/tabManager/Tabs (really TabEntry/TabPanel) -->
     <AppContent class="vit-drawer-app-content vit-tabs-container">
+      <span bind:this={appContentHook}/>
       <!-- our dynamic Pkgentry tabs -->
       <PkgEntryTabs/>
     </AppContent>
