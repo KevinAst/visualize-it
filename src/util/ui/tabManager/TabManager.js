@@ -1,9 +1,10 @@
-import TabController   from './TabController';
-import {writable, get} from 'svelte/store';
-import verify          from '../../verify';
-import {isString, 
-        isBoolean}     from '../../typeCheck';
-import {createLogger}  from '../../logger';
+import TabController    from './TabController';
+import {writable, get}  from 'svelte/store';
+import verify           from '../../verify';
+import {isString,
+        isBoolean}      from '../../typeCheck';
+import {createLogger}   from '../../logger';
+import checkUnknownArgs from '../../../util/checkUnknownArgs';
 
 // our internal diagnostic logger
 const log = createLogger('***DIAG*** TabManager ... ').disable();
@@ -222,29 +223,13 @@ export default class TabManager {
     }
 
     // update store (when changed)
-    // ?? MAKE COMMON ?? pass
-    //                - ? onBehalfOf ... `activateTab('${tabId}', preview:${preview})`
-    //                - ? $tabs, _tabs,
-    //                - ? $activeTab, _activeTab,
-    //                - ? $previewTab, _previewTab,
-    const tabsChanged       = $tabs       !== _tabs;
-    const activeTabChanged  = $activeTab  !== _activeTab;
-    const previewTabChanged = $previewTab !== _previewTab;
-    if (tabsChanged) {
-      this.tabs.set(_tabs);
-    }
-    if (activeTabChanged) {
-      this.activeTab.set(_activeTab);
-    }
-    if (previewTabChanged) {
-      this.previewTab.set(_previewTab);
-    }
-    if ( !(tabsChanged || activeTabChanged || previewTabChanged)) {
-      logQualifier += ` ... NOTHING CHANGED!!`;
-    }
-    log(`activateTab('${tabId}', preview:${preview})` +
-        ` ... state changed: {tabs: ${tabsChanged}, activeTab: ${activeTabChanged}, previewTab: ${previewTabChanged}}` +
-        logQualifier);
+    this.syncStore({
+      onBehalfOf: `activateTab('${tabId}', preview:${preview})`,
+      logQualifier,
+      tabs:        {before: $tabs,      after: _tabs},
+      activeTab:   {before: $activeTab, after: _activeTab},
+      previewTab:  {before: $previewTab, after: _previewTab},
+    });
   }
 
   /**
@@ -300,26 +285,14 @@ export default class TabManager {
     const _tabs = $tabs.filter( (tab) => tab !== closeTab );
     logQualifier += ` ... tab purged`;
 
-    // update store
-    // ?? MAKE COMMON
-    const tabsChanged       = $tabs       !== _tabs;
-    const activeTabChanged  = $activeTab  !== _activeTab;
-    const previewTabChanged = $previewTab !== _previewTab;
-    if (tabsChanged) {
-      this.tabs.set(_tabs);
-    }
-    if (activeTabChanged) {
-      this.activeTab.set(_activeTab);
-    }
-    if (previewTabChanged) {
-      this.previewTab.set(_previewTab);
-    }
-    if ( !(tabsChanged || activeTabChanged || previewTabChanged)) {
-      logQualifier += ` ... NOTHING CHANGED!!`;
-    }
-    log(`closeTab('${tabId}')` +
-        ` ... state changed: {tabs: ${tabsChanged}, activeTab: ${activeTabChanged}, previewTab: ${previewTabChanged}}` +
-        logQualifier);
+    // update store (when changed)
+    this.syncStore({
+      onBehalfOf:  `closeTab('${tabId}')`,
+      logQualifier,
+      tabs:        {before: $tabs,      after: _tabs},
+      activeTab:   {before: $activeTab, after: _activeTab},
+      previewTab:  {before: $previewTab, after: _previewTab},
+    });
   }
 
   /**
@@ -371,26 +344,14 @@ export default class TabManager {
       logQualifier += ` ... other tabs purged`;
     }
 
-    // update store
-    // ?? MAKE COMMON
-    const tabsChanged       = $tabs       !== _tabs;
-    const activeTabChanged  = $activeTab  !== _activeTab;
-    const previewTabChanged = $previewTab !== _previewTab;
-    if (tabsChanged) {
-      this.tabs.set(_tabs);
-    }
-    if (activeTabChanged) {
-      this.activeTab.set(_activeTab);
-    }
-    if (previewTabChanged) {
-      this.previewTab.set(_previewTab);
-    }
-    if ( !(tabsChanged || activeTabChanged || previewTabChanged)) {
-      logQualifier += ` ... NOTHING CHANGED!!`;
-    }
-    log(`closeOtherTabs('${tabId}')` +
-        ` ... state changed: {tabs: ${tabsChanged}, activeTab: ${activeTabChanged}, previewTab: ${previewTabChanged}}` +
-        logQualifier);
+    // update store (when changed)
+    this.syncStore({
+      onBehalfOf:  `closeOtherTabs('${tabId}')`,
+      logQualifier,
+      tabs:        {before: $tabs,      after: _tabs},
+      activeTab:   {before: $activeTab, after: _activeTab},
+      previewTab:  {before: $previewTab, after: _previewTab},
+    });
   }
 
   /**
@@ -443,26 +404,14 @@ export default class TabManager {
       logQualifier += ` ... previewTab cleared`;
     }
 
-    // update store
-    // ?? MAKE COMMON
-    const tabsChanged       = $tabs       !== _tabs;
-    const activeTabChanged  = $activeTab  !== _activeTab;
-    const previewTabChanged = $previewTab !== _previewTab;
-    if (tabsChanged) {
-      this.tabs.set(_tabs);
-    }
-    if (activeTabChanged) {
-      this.activeTab.set(_activeTab);
-    }
-    if (previewTabChanged) {
-      this.previewTab.set(_previewTab);
-    }
-    if ( !(tabsChanged || activeTabChanged || previewTabChanged)) {
-      logQualifier += ` ... NOTHING CHANGED!!`;
-    }
-    log(`closeTabsToRight('${tabId}')` +
-        ` ... state changed: {tabs: ${tabsChanged}, activeTab: ${activeTabChanged}, previewTab: ${previewTabChanged}}` +
-        logQualifier);
+    // update store (when changed)
+    this.syncStore({
+      onBehalfOf:  `closeTabsToRight('${tabId}')`,
+      logQualifier,
+      tabs:        {before: $tabs,      after: _tabs},
+      activeTab:   {before: $activeTab, after: _activeTab},
+      previewTab:  {before: $previewTab, after: _previewTab},
+    });
   }
 
   /**
@@ -499,26 +448,14 @@ export default class TabManager {
       logQualifier += ` ... previewTab cleared`;
     }
 
-    // update store
-    // ?? MAKE COMMON
-    const tabsChanged       = $tabs       !== _tabs;
-    const activeTabChanged  = $activeTab  !== _activeTab;
-    const previewTabChanged = $previewTab !== _previewTab;
-    if (tabsChanged) {
-      this.tabs.set(_tabs);
-    }
-    if (activeTabChanged) {
-      this.activeTab.set(_activeTab);
-    }
-    if (previewTabChanged) {
-      this.previewTab.set(_previewTab);
-    }
-    if ( !(tabsChanged || activeTabChanged || previewTabChanged)) {
-      logQualifier += ` ... NOTHING CHANGED!!`;
-    }
-    log(`closeAllTabs()` +
-        ` ... state changed: {tabs: ${tabsChanged}, activeTab: ${activeTabChanged}, previewTab: ${previewTabChanged}}` +
-        logQualifier);
+    // update store (when changed)
+    this.syncStore({
+      onBehalfOf:  `closeAllTabs()`,
+      logQualifier,
+      tabs:        {before: $tabs,      after: _tabs},
+      activeTab:   {before: $activeTab, after: _activeTab},
+      previewTab:  {before: $previewTab, after: _previewTab},
+    });
   }
 
   /**
@@ -547,13 +484,8 @@ export default class TabManager {
 
     // get our current state
     // NOTE: get() is somewhat inefficient, BUT this is NOT a heavy usage
-    const $tabs       = get(this.tabs);
-    const $activeTab  = get(this.activeTab);  // ?? not impacted by this routine
-    const $previewTab = get(this.previewTab); // ?? not impacted by this routine
-    const _activeTab  = $activeTab;           // ?? TEMP for now (see not impacted)
-    const _previewTab = $previewTab;          // ?? TEMP for now (see not impacted)
-    let   _tabs       = $tabs;
-
+    const $tabs = get(this.tabs);
+    let   _tabs = $tabs;
 
     // locate the tab objects of interest
     const fromTab = $tabs[findTabIndex(fromTabId, $tabs)];
@@ -579,26 +511,76 @@ export default class TabManager {
       logQualifier += ` ... fromTab repositioned`;
     }
 
-    // update store
-    // ?? MAKE COMMON
-    const tabsChanged       = $tabs       !== _tabs;
-    const activeTabChanged  = $activeTab  !== _activeTab;  // ?? not impacted by this routine
-    const previewTabChanged = $previewTab !== _previewTab; // ?? not impacted by this routine
+    // update store (when changed)
+    this.syncStore({
+      onBehalfOf:  `repositionTab('${fromTabId}', '${toTabId}', '${placement}')`,
+      logQualifier,
+      tabs:        {before: $tabs,      after: _tabs},
+    });
+  }
+
+
+  /**
+   * Internal method to synchronize self's store when it has changed.
+   *
+   * A before/after image can be supplied for each store managed by
+   * self.  Each corresponding store will be updated if a change is
+   * detected.  If the store is NOT supplied, no change will be
+   * analyzed (for that given store).
+   * 
+   * **Please Note** this method uses named parameters.
+   *
+   * @param {string} onBehalfOf - a human interpretable qualifier of
+   * whose behalf we are working (used in logging) ... ex:
+   * `activateTab('${tabId}', preview:${preview})`.
+   *
+   * @param {string} [logQualifier] - an optional human interpretable
+   * qualifier used in logging ... ex:
+   * ` ... introduced NEW tab: ${tabName} at end`
+   * 
+   * @param {{before, after}} [tabs] - the before/after image of the
+   * tabs store (TabController[]) ... if NOT supplied no change will
+   * be synced.
+   *
+   * @param {{before, after}} [activeTab] - the before/after image of the
+   * activeTab store (TabController).
+   *
+   * @param {{before, after}} [previewTab] - the before/after image of the
+   * previewTab store (TabController).
+   *
+   * @private
+   */
+  syncStore({onBehalfOf, logQualifier='', tabs, activeTab, previewTab, ...unknownArgs}={}) {
+    // validate parameters
+    const check = verify.prefix('TabManager.syncStore() parameter violation: ');
+    // ... onBehalfOf
+    check(onBehalfOf,             'onBehalfOf is required');
+    check(isString(onBehalfOf),   'onBehalfOf must be a string');
+    // ... logQualifier
+    check(isString(logQualifier), 'logQualifier must be a string');
+    // ... don't bother with remainin params (this is an internal method)
+    // ... unknown arguments
+    checkUnknownArgs(check, unknownArgs, arguments);
+
+    // update each store (only when changed)
+    const tabsChanged       = tabs       ? tabs.before       !== tabs.after       : false;
+    const activeTabChanged  = activeTab  ? activeTab.before  !== activeTab.after  : false;
+    const previewTabChanged = previewTab ? previewTab.before !== previewTab.after : false;
     if (tabsChanged) {
-      this.tabs.set(_tabs);
+      this.tabs.set(tabs.after);
     }
     if (activeTabChanged) {
-      this.activeTab.set(_activeTab);
+      this.activeTab.set(activeTab.after);
     }
     if (previewTabChanged) {
-      this.previewTab.set(_previewTab);
+      this.previewTab.set(previewTab.after);
     }
     if ( !(tabsChanged || activeTabChanged || previewTabChanged)) {
       logQualifier += ` ... NOTHING CHANGED!!`;
     }
-    log(`repositionTab('${fromTabId}', '${toTabId}', '${placement}')` +
-        ` ... state changed: {tabs: ${tabsChanged}, activeTab: ${activeTabChanged}, previewTab: ${previewTabChanged}}` +
-        logQualifier);
+
+    // log what happened
+    log(`${onBehalfOf} ... state changed: {tabs: ${tabsChanged}, activeTab: ${activeTabChanged}, previewTab: ${previewTabChanged}} ${logQualifier}`);
   }
 
 }
