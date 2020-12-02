@@ -50,13 +50,16 @@
  function handleAbout() {
    // AI: figure out HOW to glean this info directly from our package.json
    const name        = "visualize-it";
-   const version     = "0.1.1";
+   const version     = "0.1.2";
    const description = "Your View into External Systems";
    toast({msg: `${name}
 
 ${description}
 
-version: ${version}`});
+version: ${version}
+ - Tabs can now be re-positioned (via DnD)
+ - and LeftNav can be re-sized
+`});
  }
 
 </script>
