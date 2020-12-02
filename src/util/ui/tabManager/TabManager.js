@@ -558,7 +558,7 @@ export default class TabManager {
     check(isString(onBehalfOf),   'onBehalfOf must be a string');
     // ... logQualifier
     check(isString(logQualifier), 'logQualifier must be a string');
-    // ... don't bother with remainin params (this is an internal method)
+    // ... don't bother with remaining params (this is an internal method)
     // ... unknown arguments
     checkUnknownArgs(check, unknownArgs, arguments);
 
