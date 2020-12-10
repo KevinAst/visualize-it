@@ -6,6 +6,7 @@
  import {isPkg}         from '../util/typeCheck';
  import {toast}         from '../util/ui/notify';
  import discloseError   from '../util/discloseError';
+ import Dialog          from '../util/ui/Dialog.svelte';
  import ViewPkgTree     from './ViewPkgTree.svelte';
  import DispMode        from '../core/DispMode';
  import {savePkg as savePkgService} from '../core/pkgPersist';
@@ -94,6 +95,12 @@
  function syncPkgStructureGuiChanges() {
    pkg = pkg; // ... make responsive to Svelte
  }
+
+ // in support of "Add Package Entry"
+ let   addPkgEntryDialog = null;
+ const pkgEntryTypes     = ['Component', 'Scene', 'Collage', 'Directory'];
+ let   pkgEntryType      = 'Component';
+
 </script>
 
 <!-- NOTE: using activated strictly for it's coloring :-) -->
@@ -139,11 +146,12 @@
       <Item on:SMUI:action={() => savePkg(true)}><Text>Save As ...</Text></Item>
       <Separator/>
       {#if inEditMode} <!-- for edit mode -->
-        <Item on:SMUI:action={() => editPkgComplete()}><Text>Complete Package Edit</Text></Item>
+        <Item on:SMUI:action={addPkgEntryDialog.showModal}><Text>Add Package Entry</Text></Item>
+        <Item on:SMUI:action={editPkgComplete}><Text>Complete Package Edit</Text></Item>
         <Item on:SMUI:action={() => changeManager.applyUndo()} disabled={!undoAvail}><Text>Undo</Text></Item>
         <Item on:SMUI:action={() => changeManager.applyRedo()} disabled={!redoAvail}><Text>Redo</Text></Item>
       {:else} <!-- for view mode -->
-        <Item on:SMUI:action={() => editPkg()}><Text>Edit Package Structure</Text></Item>
+        <Item on:SMUI:action={editPkg}><Text>Edit Package Structure</Text></Item>
       {/if}
       <Separator/>
       <Item on:SMUI:action={() => alert('FUTURE: Close')}><Text>Close</Text></Item>
@@ -155,10 +163,34 @@
   <ViewPkgTree pkgTree={pkg.rootDir}/>
 {/if}
 
+<!-- Dialog in support of Add Package Entry -->
+<Dialog bind:this={addPkgEntryDialog} title="Add Package Entry">
+
+  <!-- PkgEntryType -->
+  {#each pkgEntryTypes as t}
+    <label class="spacer">
+      <input type="radio" value={t} bind:group={pkgEntryType}>
+      {t}
+    </label>
+  {/each}
+
+  <p>Work In Progress!</p>
+
+</Dialog>
+
 
 <style>
  /* vit-drawer-item: attempt to space out <ViewPkgTree> content a bit better */
  * :global(.vit-drawer-item) {
    margin: 8px 8px 0px 8px !important;
+ }
+
+ label {
+   user-select: none;
+   cursor:      pointer; /* ?? may not want this for other labels ... unless it selects the text field */
+ }
+ .spacer {
+   display: inline;  /* adjust label to be on single line */
+   margin:  0px 5px; /* with the proper spacing */
  }
 </style>
