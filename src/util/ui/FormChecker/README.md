@@ -4,7 +4,7 @@
 ?? use the term "touched" NOT "has been seen"
 
 ?? here is a design CON in our library using action-centric directives:
-- we are limited in using native form/elm items
+- we are limited to strictly use native form/elm items
 - BECAUSE: svelte actions can ONLY be used with native elements, NOT Components
 
 
@@ -41,6 +41,7 @@ Form Library inspired by Formik (KJB: MAY BE minimalist COMPETITION <<< looks ro
 - https://nathancahill.com/sveltik/introducing
 - https://github.com/nathancahill/sveltik
 - https://www.npmjs.com/package/sveltik <<< 323 weekly downloads
+- <mark>NOT sure I like</mark> the `let:xxx` usage, HOWEVER this may open it up to BOTH native/component forms
 
 ```
 * seems lightweight
