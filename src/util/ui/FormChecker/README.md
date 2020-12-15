@@ -90,7 +90,7 @@ A Form Generator (KJB: NO NO NO)
 
 ```
 * must setup some structure
-  - seems kinda klunky
+  - seems kinda clunky
 * THEN you have a single <Field {fields}> <<< suspect is too intrusive/opinionated
   - i.e. it is a generator
 ```
