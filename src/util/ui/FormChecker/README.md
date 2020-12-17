@@ -184,7 +184,7 @@ the field it is monitoring is invalid.
 
 ```html
 <!-- field error message -->
-?# retrofit to what it ultimatly looks like for field defs
+?# retrofit to what it ultimately looks like for field defs
 <FieldErr {fieldChecker}/>
 ```
 
