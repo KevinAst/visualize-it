@@ -1,13 +1,13 @@
 <script>
- import DispErrField  from './DispErrField.svelte';
- import verify        from '../../verify.js';
- import {isFunction}  from '../../typeCheck';
+ import DispErrDefault from './DispErr.svelte';
+ import verify         from '../../verify.js';
+ import {isFunction}   from '../../typeCheck';
 
  // INPUT: fieldChecker: the FieldChecker object to monitor errors on
  export let fieldChecker;
 
  // INPUT: [DispErr]: the display component that renders the error - DEFAULTS to the standard field-based error component
- export let DispErr = DispErrField;
+ export let DispErr = DispErrDefault;
 
  // validate INPUT properties
  const check = verify.prefix(`<FieldErr> component INPUT property violation: `);

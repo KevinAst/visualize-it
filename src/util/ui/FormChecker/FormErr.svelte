@@ -1,8 +1,8 @@
 <script>
- import DispErrForm  from './DispErrForm.svelte';
- import verify       from '../../verify.js';
+ import DispErrDefault from './DispErr.svelte';
+ import verify         from '../../verify.js';
  import {isString,
-         isFunction} from '../../typeCheck';
+         isFunction}   from '../../typeCheck';
 
  // INPUT: formChecker: the FormChecker object to monitor errors on
  export let formChecker;
@@ -11,7 +11,7 @@
  export let errMsg = 'Please correct the highlighted field errors';
 
  // INPUT: [DispErr]: the display component that renders the error - DEFAULTS to the standard form-based error component
- export let DispErr = DispErrForm;
+ export let DispErr = DispErrDefault;
 
  // validate INPUT properties
  const check = verify.prefix(`<FormErr> component INPUT property violation: `);

@@ -98,14 +98,14 @@ errors from that form!
 **Customization:**
 
 The `<FormErr>` component simply monitors the reflective state of form
-errors, and defers it's display to an internal `<DispErrForm>`,
+errors, and defers it's display to an internal `<DispErr>`,
 passing it the `errMsg` string _(an empty string (`''`) represents no
 error)_.
 
 This display component is extremely simple.  It styles the message and
 dynamically displays it using animation:
 
-**DispErrForm.svelte** _... the internal default component_
+**DispErr.svelte** _... the internal default component_
 ```html
 <script>
  import {fade} from 'svelte/transition';
@@ -113,15 +113,16 @@ dynamically displays it using animation:
 </script>
 
 {#if errMsg}
-  <span class="formError" transition:fade>
+  <div class="error" transition:fade>
     {errMsg}
-  </span>
+  </div>
 {/if}
 
 <style>
- .formError {
+ .error {
    font-size:    80%;
    font-weight:  bold;
+   font-style:   italic;
    color:        #900;
  }
 </style>
@@ -129,7 +130,7 @@ dynamically displays it using animation:
 
 Because of it's simplicity, you can easily implement your own display
 component and pass it to `<FormErr>` through the `DispErr` property.
-Simply use the `DispErrForm.svelte` _(above)_ as a pattern.  _**You
+Simply use the `DispErr.svelte` _(above)_ as a pattern.  _**You
 can taylor the style and animation to your application needs!**_ Here
 is an example that overrides the default:
 
@@ -140,7 +141,7 @@ is an example that overrides the default:
 </center>
 ```
 
-AI: ?? Provide a full-blown example that overrides the internal DispErrForm component.  Here are some ideas:
+AI: ?? Provide a full-blown example that overrides the internal DispErr component.  Here are some ideas:
 
 - change the animation
 - change the error display into a red box via the following form style:
