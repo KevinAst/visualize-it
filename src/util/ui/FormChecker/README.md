@@ -143,7 +143,7 @@ is an example that overrides the default:
 AI: ?? Provide a full-blown example that overrides the internal DispErrForm component.  Here are some ideas:
 
 - change the animation
-- change the error display into a red box via the following style:
+- change the error display into a red box via the following form style:
   ```
   <style>
    .formError {
@@ -152,6 +152,20 @@ AI: ?? Provide a full-blown example that overrides the internal DispErrForm comp
      color:            white;
      background-color: #900;
      border-radius:    5px;
+     box-sizing:       border-box;
+   }
+  </style>
+  ```
+- here is the corresponding field style (a red box with square top so it looks like part of the input):
+  ```
+  <style>
+   .fieldError {
+     width:            100%;
+     padding:          0.3em;
+     font-size:        80%;
+     color:            white;
+     background-color: #900;
+     border-radius:    0 0 5px 5px;
      box-sizing:       border-box;
    }
   </style>

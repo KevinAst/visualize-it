@@ -1,29 +1,27 @@
 <script>
- import {fade}  from 'svelte/transition';
+ import DispErrField  from './DispErrField.svelte';
+ import verify        from '../../verify.js';
+ import {isFunction}  from '../../typeCheck';
 
- // INPUT: fieldChecker that we monitor field errors on
+ // INPUT: fieldChecker: the FieldChecker object to monitor errors on
  export let fieldChecker;
- // ?? validate INPUTS
+
+ // INPUT: [DispErr]: the display component that renders the error - DEFAULTS to the standard field-based error component
+ export let DispErr = DispErrField;
+
+ // validate INPUT properties
+ const check = verify.prefix(`<FieldErr> component INPUT property violation: `);
+ // ... fieldChecker
+ check(fieldChecker,         'fieldChecker is required');
+ check(fieldChecker.getForm, 'fieldChecker must be a FieldChecker instance'); // ... duck type check
+ // ... DispErr
+ check(isFunction(DispErr),  'DispErr (when supplied) must be a Svelte Component');
 
  // monitor the reactive store that reflect's the field error of interest
+ // ... an empty string ('') represents no error
  const fieldErrMsg = fieldChecker.getErrMsgStore();
 </script>
 
-{#if $fieldErrMsg} <!-- display field error msg (if any) -->
-  <!-- ??$$ configuration opportunity ... utilize a default component that can be replaced by client    -->
-  <div class="fieldError" transition:fade>{$fieldErrMsg}</div>
-{/if}
 
-
-<!-- ?? styling ... really in component of "configuration opportunity" -->
-<style>
- .fieldError {
-   width:            100%;
-   padding:          0.3em;
-   font-size:        80%;
-   color:            white;
-   background-color: #900;
-   border-radius:    0 0 5px 5px;
-   box-sizing:       border-box;
- }
-</style>
+<!-- use our configurable component to display our errors, supplying it our reflective content -->
+<svelte:component this={DispErr} errMsg={$fieldErrMsg}/>
