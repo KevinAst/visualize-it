@@ -10,7 +10,7 @@
  // INPUT: [errMsg]: the generalized form-based error message - DEFAULTS to 'Please correct the highlighted field errors'
  export let errMsg = 'Please correct the highlighted field errors';
 
- // INPUT: [DispErr]: the display component that renders the error - DEFAULTS to the standard form-based error component
+ // INPUT: [DispErr]: the display component that renders the error - DEFAULTS to the standard internal error display component
  export let DispErr = DispErrDefault;
 
  // validate INPUT properties

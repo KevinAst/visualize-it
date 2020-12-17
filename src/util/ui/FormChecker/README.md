@@ -92,7 +92,7 @@ errors from that form!
          [errMsg={}]    ... the generalized form-based error message
                             DEFAULT: "Please correct the highlighted field errors"
          [DispErr={}]/> ... the display component that renders the error
-                            DEFAULT: the standard form-based error component
+                            DEFAULT: the standard internal error display component
 ```
 
 **Customization:**
@@ -143,6 +143,7 @@ is an example that overrides the default:
 
 AI: ?? Provide a full-blown example that overrides the internal DispErr component.  Here are some ideas:
 
+- NOTE: this covers BOTH FieldErr and FormErr
 - change the animation
 - change the error display into a red box via the following form style:
   ```
@@ -171,6 +172,83 @@ AI: ?? Provide a full-blown example that overrides the internal DispErr componen
    }
   </style>
   ```
+
+
+<!--- *** Section ************************************************************************* ---> 
+## `<FieldErr>`
+
+This component conditionally displays a field-specific message when
+the field it is monitoring is invalid.
+
+**Usage:**
+
+```html
+<!-- field error message -->
+?# retrofit to what it ultimatly looks like for field defs
+<FieldErr {fieldChecker}/>
+```
+
+?# The `<FieldErr>` <mark>**must** identify the field it is
+monitoring</mark>, either through the `forFieldId` property, or it's
+placement within a `<label>` container By doing this, it will
+auto-bind to the errors from that field!
+
+**Visual:**
+
+?? screen shot
+
+**API:**
+```
+<FieldErr fieldChecker={} ... the FieldChecker object to monitor errors on
+          [DispErr={}]/>  ... the display component that renders the error
+                              DEFAULT: the standard internal error display component
+```
+
+**Customization:**
+
+The `<FieldErr>` component simply monitors the reflective error state
+of the field it is monitoring, and defers it's display to an internal
+`<DispErr>`, passing it the `errMsg` string _(an empty string (`''`)
+represents no error)_.
+
+This display component is extremely simple.  It styles the message and
+dynamically displays it using animation:
+
+?? THIS IS MOSTLY A DUPLICATE (from `<FieldErr>`)
+
+**DispErr.svelte** _... the internal default component_
+```html
+<script>
+ import {fade} from 'svelte/transition';
+ export let errMsg;
+</script>
+
+{#if errMsg}
+  <div class="error" transition:fade>
+    {errMsg}
+  </div>
+{/if}
+
+<style>
+ .error {
+   font-size:    80%;
+   font-weight:  bold;
+   font-style:   italic;
+   color:        #900;
+ }
+</style>
+```
+
+Because of it's simplicity, you can easily implement your own display
+component and pass it to `<FieldErr>` through the `DispErr` property.
+Simply use the `DispErr.svelte` _(above)_ as a pattern.  _**You
+can taylor the style and animation to your application needs!**_ Here
+is an example that overrides the default:
+
+```html
+<FieldErr {fieldChecker} DispErr={MyErrComp}/>
+```
+
 
 
 <!--- *** Section ************************************************************************* ---> 

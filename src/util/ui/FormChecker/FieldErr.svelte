@@ -6,7 +6,7 @@
  // INPUT: fieldChecker: the FieldChecker object to monitor errors on
  export let fieldChecker;
 
- // INPUT: [DispErr]: the display component that renders the error - DEFAULTS to the standard field-based error component
+ // INPUT: [DispErr]: the display component that renders the error - DEFAULTS to the standard internal error display component
  export let DispErr = DispErrDefault;
 
  // validate INPUT properties
