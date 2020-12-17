@@ -110,7 +110,9 @@
     <hr/>
 
     <!-- form error message -->
-    <FormErr {formChecker}/>
+    <center>
+      <FormErr {formChecker}/>
+    </center>
 
     <!-- control buttons -->
     <center>
