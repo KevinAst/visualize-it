@@ -41,10 +41,10 @@ export default class FieldChecker {
     this.action = this.action.bind(this);
 
     // define our data members
-    this._id                = id;
-    this._validationFn      = validationFn;
-    this._form              = null; // defined later, via: FormChecker.registerFieldChecker(fieldChecker)
-    this._hasFieldBeenSeen  = false;
+    this._id            = id;
+    this._validationFn  = validationFn;
+    this._form          = null; // defined later, via: FormChecker.registerFieldChecker(fieldChecker)
+    this._touched       = false;
 
     // setup our field-based error message (a reactive svelte store)
     this._errMsgStore   = writable(''); // ... the store
@@ -99,13 +99,13 @@ export default class FieldChecker {
   }
 
   /**
-   * Return indicator as to whether the end user has seen self's field
-   * (as defined by via focus/blur semantics).
+   * Return indicator as to whether the end user has "touched" (or
+   * seen) self's field, as defined by the focus/blur semantics.
    * 
    * @returns {boolean} true: has been seen, false: has NOT been seen
    */
-  hasFieldBeenSeen() {
-    return this._hasFieldBeenSeen;
+  hasTouched() {
+    return this._touched;
   }
 
   /**
@@ -114,9 +114,9 @@ export default class FieldChecker {
    */
   validate() {
     // field validation only occurs when:
-    //  - this field has been seen by the user -OR-
+    //  - this field has been touched by the user -OR-
     //  - a form submit has been attempted
-    if (this.hasFieldBeenSeen() ||
+    if (this.hasTouched() ||
         this.getForm().hasSubmitBeenAttempted()) {
 
       // interpret standard HTML Form Element Constraint Validation
@@ -209,7 +209,7 @@ export default class FieldChecker {
     //? check(!inputElm.hasAttribute('id'), 'the input element should NOT manage the id="x" attribute ... this is the job of FieldChecker');
     //? inputElm.setAttribute('id', true);
 
-    // bind a "blur" event to the field, marking it as "hasFieldBeenSeen"
+    // bind a "blur" event to the field, marking it as "touched"
     // <input on:blur={ourFn}>
     // ... NOTE: We really don't need to detect/prevent other on:blur events
     //           - the app logic may need this for other reasons
@@ -219,8 +219,8 @@ export default class FieldChecker {
     //           - I tried both ways with NO impact
     inputElm.addEventListener('blur', (e) => {
       e.preventDefault();
-      // mark self as hasFieldBeenSeen
-      this._hasFieldBeenSeen = true;
+      // mark self as touched
+      this._touched = true;
 
       // perform validation
       // ... if user comes in/out of field without changing, this may be the first validation of the field

@@ -28,8 +28,6 @@ technique to handle form validation)_.
 - ex: custom field validations is logic right in your interactive form element
 - ex: want to change the Form Error Message: it is right in the <FormErr> component
 
-?? use the term "touched" NOT "has been seen"
-
 
 </ul>
 
