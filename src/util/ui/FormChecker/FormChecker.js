@@ -4,7 +4,13 @@ import FieldChecker      from './FieldChecker';
 import verify            from '../../verify.js';
 import checkUnknownArgs  from '../../checkUnknownArgs';
 import {isString,
-        isFunction}      from '../../typeCheck';
+        isFunction,
+        isPlainObject}   from '../../typeCheck';
+
+const errStylesDEFAULT = {
+  border:          '2px solid #900', /* solid red border */
+  backgroundColor: '#FDD',           /* pink background  */
+}
 
 /**
  * A FormChecker object orchestrates validation of interactive html forms.
@@ -25,10 +31,22 @@ export default class FormChecker {
    *   API:
    *    + submitFn(event, fieldValues): void
    *
+   * @param {object} [errStyles] - an optional object containing the
+   * in-line styles to apply to input elements that are in error.
+   * - Use an object with in-line styling pairs: camelCaseKey/value
+   * - or `null` to disable
+   * DEFAULT:
+   * ```
+   * {
+   *   border:          '2px solid #900', ... solid red border
+   *   backgroundColor: '#FDD',           ... pink background
+   * }
+   * ```
+   *
    * @param {FieldChecker[]} [fieldCheckers] - an optional set of
    * FieldCheckers managed by self.
    */
-  constructor({name, submitFn, fieldCheckers=[], ...unknownArgs}={}) {
+  constructor({name, submitFn, errStyles=errStylesDEFAULT, fieldCheckers=[], ...unknownArgs}={}) {
     // validate constructor parameters
     const check = verify.prefix(`FormChecker(): constructor parameter violation: `);
     // ... name
@@ -37,6 +55,10 @@ export default class FormChecker {
     // ... submitFn
     check(submitFn,             'submitFn is required');
     check(isFunction(submitFn), 'submitFn must be a function');
+    // ... errStyles (optional - defaulted above)
+    if (errStyles !== null) {
+      check(isPlainObject(errStyles), 'errStyles must be a plain object with camelCaseKey/value in-line styling pairs -OR- null to disable');
+    }
     // ... fieldCheckers (optional - defaulted above)
     check(Array.isArray(fieldCheckers),  'fieldCheckers must be a FieldChecker[] array');
     fieldCheckers.forEach( (fieldChecker, indx) => {
@@ -51,6 +73,7 @@ export default class FormChecker {
     // define our data members
     this._name          = name;
     this._submitFn      = submitFn;
+    this._errStyles     = errStyles;
     this._fieldCheckers = [];
     this._fieldValues   = {}; // our field value cache - all values: {fieldId: value, ...} (accumulated via our fieldCheckers)
     this._hasSubmitBeenAttempted = false; // has user attempted a submit?

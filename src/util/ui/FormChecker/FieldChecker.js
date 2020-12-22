@@ -45,6 +45,8 @@ export default class FieldChecker {
     this._validationFn  = validationFn;
     this._form          = null; // defined later, via: FormChecker.registerFieldChecker(fieldChecker)
     this._touched       = false;
+    this._cachedIsValid = 'UNKNOWN';
+//  this._inputElm      = XXX; // ?# currently set by our svelte action, L8TR: provided as constructor param
 
     // setup our field-based error message (a reactive svelte store)
     this._errMsgStore   = writable(''); // ... the store
@@ -163,9 +165,47 @@ export default class FieldChecker {
    * @param {string} errMsg - the error message to set.
    */
   setErrMsg(errMsg) {
-    // NOTE: This is accomplished through our reactive store, 
-    //       which in turn syncs our current value (_errMsg)
+    // set field's error message
+    // ... this is accomplished through our reactive store, 
+    //     which in turn syncs our current value (_errMsg)
     this._errMsgStore.set(errMsg);
+
+    // style our field to better distinguish errors
+    this.styleFieldErr();
+  }
+
+  /**
+   * Style self's field to better distinguish errors.
+   */
+  styleFieldErr() {
+    // errStyles are parameterized in our form
+    const errStyles = this.getForm()._errStyles;
+
+    // no-op when client has disabled errStyles
+    if (!errStyles) {
+      return;
+    }
+    
+    // cache isValid status, and no-op when NOT changed (as an optimization)
+    const isValid = this.isValid();
+    if (isValid === this._cachedIsValid) {
+      return;
+    }
+    this._cachedIsValid = isValid;
+
+    // style any error status changes
+    if (isValid) { // clear error settings
+      // console.log(`XX styling form element '${this.getId()}' AS valid`);
+      Object.entries(errStyles).forEach( ([propName, propValue]) => removeProp(this._inputElm.style, camel2dashes(propName)) );
+      // EX: this._inputElm.style.removeProperty('background-color')
+      // AI: CONSIDER retaining prior client-defined in-styles, to revert back to
+      //     ... this would have to be done in constructor (once we know the properties we are dealing with - since it is parameterized)
+      //         EX: this._clientInLineStyles: {...}
+    }
+    else { // field has an error
+      // console.log(`XX styling form element '${this.getId()}' AS invalid`);
+      Object.entries(errStyles).forEach( ([propName, propValue]) => this._inputElm.style[propName] = propValue );
+    }
   }
 
   /**
@@ -196,6 +236,9 @@ export default class FieldChecker {
     check(inputElm, 'a DOM elm was expected (by svelte) but is missing ... something is wrong');
     check(['INPUT', 'SELECT', 'TEXTAREA'].indexOf(inputElm.nodeName) >= -1,
           `this svelte action should be used on an interactive form element, NOT a <${inputElm.nodeName.toLowerCase()}>`);
+
+    // retain our inputElm (in support of needed DOM interactions)
+    this._inputElm = inputElm; // ?# currently set by our svelte action, L8TR: provided as constructor param
 
     // console.log(`XX here we are in ${this.getId()}'s FieldChecker.action()! -and- here is the inputElm: `, {inputElm})
 
@@ -252,4 +295,25 @@ export default class FieldChecker {
     return `FieldChecker: '${this.getId()}'`;
   }
 
+}
+
+
+//***
+//*** Utilities
+//***
+
+// remove the supplied objs property (supporting older browsers)
+function removeProp(obj, propName) {
+  if (obj.removeProperty) {
+    obj.removeProperty(propName);
+  }
+  else {
+    obj.removeAttribute(propName);
+  }
+}
+
+// convert supplied camelStr to dashes
+// ... example: FROM: 'backgroundColor' TO: 'background-color'
+function camel2dashes(camelStr) {
+  return camelStr.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`);
 }
