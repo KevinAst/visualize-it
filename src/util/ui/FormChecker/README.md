@@ -129,7 +129,7 @@ dynamically displays it using animation:
 Because of it's simplicity, you can easily implement your own display
 component and pass it to `<FormErr>` through the `DispErr` property.
 Simply use the `DispErr.svelte` _(above)_ as a pattern.  _**You
-can taylor the style and animation to your application needs!**_ Here
+can tailor the style and animation to your application needs!**_ Here
 is an example that overrides the default:
 
 ```html
@@ -240,7 +240,7 @@ dynamically displays it using animation:
 Because of it's simplicity, you can easily implement your own display
 component and pass it to `<FieldErr>` through the `DispErr` property.
 Simply use the `DispErr.svelte` _(above)_ as a pattern.  _**You
-can taylor the style and animation to your application needs!**_ Here
+can tailor the style and animation to your application needs!**_ Here
 is an example that overrides the default:
 
 ```html
