@@ -23,7 +23,7 @@ export default class FieldChecker {
    * @param {function} validationFn - the function that performs field
    * validation, triggered at various times.
    *   API:
-   *    + validationFn(value, fieldValues): errMsgStr ('' for valid)
+   *    + validationFn(value, fieldValues): errMsgStr (return '' for valid)
    */
   constructor({id, validationFn, ...unknownArgs}={}) {
     // validate constructor parameters
@@ -66,9 +66,10 @@ export default class FieldChecker {
   /**
    * Return the current values of this field.
    *
-   * @returns {string} the current values of this field.
+   * @returns {string} the current value of this field.
    */
-  getValue() {
+  // ?# suspect obsolete since we always pass all values around
+  getFieldValue() {
     return this.getForm().getFieldValues()[this.getId()];
   }
 
@@ -128,7 +129,7 @@ export default class FieldChecker {
 
       // perform app-specific field validation
       const fieldId     = this.getId();
-      const fieldValue  = this.getValue();
+      const fieldValue  = this.getFieldValue();
       const fieldValues = this.getForm().getFieldValues();
       const errMsg      = this._validationFn(fieldValue, fieldValues);
       // ... verify app logic returns the correct errMsg type
