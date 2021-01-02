@@ -20,10 +20,16 @@ export default class FieldChecker {
    *
    * @param {string} id - self's id (to be injected into the
    * corresponding form elm).
+   *
    * @param {function} validationFn - the function that performs field
    * validation, triggered at various times.
    *   API:
-   *    + validationFn(value, fieldValues): errMsgStr (return '' for valid)
+   *    + validationFn(fieldValues): errMsgStr (return '' for valid)
+   *      NOTE: All field values are passed as named parameters,
+   *            supporting complex inner-dependent field validation
+   *              EX:  validationFn({address, zip}) ...
+   *            Typically you only access the single field being validated
+   *              EX:  validationFn({address}) ...
    */
   constructor({id, validationFn, ...unknownArgs}={}) {
     // validate constructor parameters
@@ -64,11 +70,12 @@ export default class FieldChecker {
   }
 
   /**
-   * Return the current values of this field.
+   * Return the current value of this field.
+   *
+   * NOTE: Currently OBSOLETE since we always pass all values (in validationFn)
    *
    * @returns {string} the current value of this field.
    */
-  // ?# suspect obsolete since we always pass all values around
   getFieldValue() {
     return this.getForm().getFieldValues()[this.getId()];
   }
@@ -129,9 +136,8 @@ export default class FieldChecker {
 
       // perform app-specific field validation
       const fieldId     = this.getId();
-      const fieldValue  = this.getFieldValue();
       const fieldValues = this.getForm().getFieldValues();
-      const errMsg      = this._validationFn(fieldValue, fieldValues);
+      const errMsg      = this._validationFn(fieldValues);
       // ... verify app logic returns the correct errMsg type
       verify(isString(errMsg), `*** ERROR *** FieldChecker: return from validationFn() [for fieldId: '${fieldId}'] MUST be a string ... use an empty string ('') to designate valid`);
 

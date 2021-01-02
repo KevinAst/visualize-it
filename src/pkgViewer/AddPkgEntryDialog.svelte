@@ -36,8 +36,8 @@
    addPkgEntryDialog.close();
  }
 
- function validateName(name, fieldValues) {
-   // console.log(`XX ViewPkg: validateName('${name}') invoked!`, {name, fieldValues});
+ function validateName({name}) {
+   // console.log(`XX ViewPkg: validateName('${name}') invoked!`);
    let nameErr = '';
    if (!name) {
      nameErr = 'Name is required';
@@ -51,8 +51,8 @@
    return nameErr;
  }
 
- function validateId(id, fieldValues) {
-   // console.log(`XX ViewPkg: validateId('${id}') invoked!`, {id, fieldValues});
+ function validateId({id}) {
+   // console.log(`XX ViewPkg: validateId('${id}') invoked!`);
    let idErr = '';
 
    if (pkgEntryType !== 'Directory') { // id NOT needed for directories ?# may NOT need this check when we dynamically remove our structure
