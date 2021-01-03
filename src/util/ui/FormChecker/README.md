@@ -1,29 +1,76 @@
-# FormChecker 
+# svelte-form-checker
 
-*... minimalist form/field validation with powerful results*
+*... minimalist form validation with powerful results*
 
-?? Introduction Paragraph
+<!---  REFINED FROM: Constraint Validation: Native Client Side Validation for Web Forms ... https://www.html5rocks.com/en/tutorials/forms/constraintvalidation/
+       Validating forms has notoriously been a painful development
+       experience. Implementing client side validation in a user friendly,
+       developer friendly, and accessible way is hard. Before HTML5 there was
+       no means of implementing validation natively; therefore, developers
+       have resorted to a variety of JavaScript based solutions.
+ ---> 
+
+Validating forms has notoriously been a painful development
+experience.  Implementing client side validation _in a user friendly
+way **is simply hard to accomplish**_
+&hellip; you want to validate fields only at the appropriate time _(when the
+user has had the chance to enter the data)_
+&bull; you want to present validation errors in a pleasing way
+&bull; you may need to apply custom validation _(specific to your
+application domain)_
+
+<!--- AI: should following sentence reference HTML5's Constraint Validation https://developer.mozilla.org/en-US/docs/Web/API/Constraint_validation ---> 
+
+Even with the introduction of [HTML5's Form Validation], it is still
+overly complex, and doesn't address many common scenarios _(mentioned
+above)_.  Without the proper approach, form validation can be one of
+the most difficult tasks in web development.
 
 <!--- *** Section ************************************************************************* ---> 
 **Overview:**
 
 <ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
 
-?? Overview Section
+**svelte-form-checker** _(aka **SFC**)_ is a [svelte] utility that
+facilitates field validation in your native html forms.
 
-?? a minimalist approach to form field validation that delivers powerful results
+The term _**native**_ refers to the utilization of the native HTML
+`<form>` tag and it' corresponding form elements (`<input>`,
+`<select>`, `<textarea>`, etc.).  In other words, **SFC** does NOT
+introduce components for these abstractions, rather you use the native
+html representations.
+
+- **SFC** is based on **svelte actions**.  By applying a simple action
+  to your form elements, the basics of the form validation control is
+  defined right in your html markup.  
+  
+- In addition, **SFC** promotes a reactive error display component, that
+  "auto wires" to appropriate field errors, dynamically displaying form
+  errors as needed.
+  
+- **SFC** employs powerful validation heuristics, where fields are
+  validated only when they have been seen by the user _(i.e. touched)_, or
+  when a submit is attempted.  This is a commonly used approach that is
+  tedious to accomplish _(when implemented in application code)_.
+  
+- **SFC** is customizable
+  **&bull; don't like the error display format?** _&hellip; that is easily resolved_
+  **&bull; want to perform a custom field validation?** _&hellip; easy peasy_
+
+**SFC** promotes a <mark>**clean and simple approach**</mark> to form
+validation, that yields <mark>**powerful results**</mark>.
 
 **Important NOTE**: FormChecker is intended to be used by applications
-that utilize native html forms and form elements.  Because of
+that employ native html forms and form elements.  Because of
 FormChecker's usage of svelte actions, **this is a hard restriction**!
-_Svelte actions may only be used with native dom elements - **not**
-Components_.  **If you are a minimalist** _(using native html)_, you will
+_Svelte actions may only be applied to native DOM elements - **not**
+components_.  **If you are a minimalist** _(using native html)_, you will
 appreciate this abstraction of form/field validation.  **If you are
-using a more inclusive UI library**, it probably already promotes
+using a more inclusive UI library**, it most likely already promotes
 Form/Element component abstractions _(which will typically provide a
 technique to handle form validation)_.
 
-?? SIMPLE and UNDERSTANDABLE ... everything is defined right in your DOM structure
+?? AI: SIMPLE and UNDERSTANDABLE ... everything is defined right in your DOM structure
 - ex: the fieldValidator action is attached right to your interactive form element
 - ex: custom field validations is logic right in your interactive form element
 - ex: want to change the Form Error Message: it is right in the <FormErr> component
@@ -35,6 +82,7 @@ technique to handle form validation)_.
 ## At a Glance
 
 - [Install](#install)
+- [Basics](#basics)
 - more
 - [Components](#components)
   - [`<FormErr>`]
@@ -46,6 +94,93 @@ technique to handle form validation)_.
 ## Install
 
 ?? Installation
+
+
+<!--- *** Section ************************************************************************* ---> 
+## Basics
+
+Here is a very basic example of **SFC** usage:
+
+?? AI: would be nice to highlight the SFC specifics (NOT POSSIBLE IN quoted stuff) ?? consider an image?
+
+```html
+<script>
+ import {formChecker,  FormErr,
+         fieldChecker, FieldErr} from 'svelte-form-checker';
+
+ const submit     = (event, fieldValues) => alert(`Successful submit (all fields are valid)!`);
+ const isIdUnique = (event, {id}) => id==='dup' ? 'ID must be unique' : '';
+</script>
+
+<form use:formChecker={{submit}}>
+  <label>
+    Name:
+    <input id="name" name="name" type="text" required minlength="3"
+           use:fieldChecker>
+    <FieldErr/>
+  </label>
+
+  <label>
+    ID:
+    <input id="id" name="id" type="text" required minlength="2" maxlength="10"
+           use:fieldChecker={{validate: isIdUnique}}>
+    <FieldErr/>
+  </label>
+
+  <center>
+    <FormErr/>
+  </center>
+  <center>
+    <input type="submit" value="Make It SO!">
+  </center>
+</form>
+```
+
+At it's core, this example is using the standard [HTML5 Form
+Validation].  However with the simple injection **SFC**'s `Checker`
+actions, and **SFC**'s **error display** components, a sophisticated
+control structure has been applied that promotes a very usable form.
+We have even seamlessly introduced a **custom field validation**!
+
+?? IMG: show result
+
+You can interact with this example in the following ?REPL.
+
+Here are some points of interest:
+
+- the `use:formChecker` action is applied to the `<form>`
+
+  - a `submit` function is registered to this action.  This is used in
+    lue of the standard `on:submit` event.  This function is invoked
+    on a standard `submit` request, but **only when all fields pass
+    validation**.  If there are field errors, the appropriate messages
+    are displayed, and no submit occurs.
+
+- the `<input>` form elements are employing some standard [HTML5 Form
+  Validation] constraints (`required`, `minlength`, etc.).
+
+  - the `use:fieldChecker` actions are applied to each `<input>` form
+    element.  This completes the knowledge transfer of your form
+    structure to **SFC**. (AI: can this be implied when all defaults are
+    used?)
+
+  - a **custom field validation** has been introduced (in the `id`
+    field), by using the `validate` action parameter.  This invokes a
+    function that can apply application-specific validations.  The
+    function merely returns an error string (if invalid), or an empty
+    string (when valid).
+
+  - the `<FieldErr/>` components will dynamically bind to the input field
+    of interest, and conditionally display appropriate errors for that
+    field.
+
+- the `<FormErr/>` component dynamically binds to the form, and and
+  conditionally displays an appropriate error when a submit is
+  requested on an invalid form.
+
+- a standard `submit` control is applied to the form.  As mentioned
+  above, the **SFC** `submit` function is only invoked when all fields
+  pass validation.
 
 
 <!--- *** Section ************************************************************************* ---> 
@@ -350,5 +485,7 @@ A Form Generator (KJB: NO NO NO)
 
 
 <!--- external links ---> 
-
-["made with svelte"]:  https://madewithsvelte.com/form
+[svelte]:                   https://svelte.dev/
+["made with svelte"]:       https://madewithsvelte.com/form
+[HTML5 Form Validation]:    https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation
+[HTML5's Form Validation]:  https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation
