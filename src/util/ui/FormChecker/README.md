@@ -31,7 +31,7 @@ the most difficult tasks in web development.
 
 <ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
 
-**svelte-form-checker** _(aka **SFC**)_ is a [svelte] utility that
+**svelte-form-checker** _(<mark>aka **SFC**</mark>)_ is a [svelte] utility that
 facilitates field validation in your native html forms.
 
 The term _**native**_ refers to the utilization of the native HTML
@@ -40,15 +40,27 @@ The term _**native**_ refers to the utilization of the native HTML
 introduce components for these abstractions, rather you use the native
 html representations.
 
+Here are some **key points** to understand:
+
 - **SFC** is based on **svelte actions**.  By applying a simple action
   to your form elements, the basics of the form validation control is
   defined right in your html markup.  
+
+  This represents a different approach from other form validation
+  libraries, that require you to define a separate JavaScript control
+  structure that either drives your html markup, or duplicates the
+  html hierarchy in some way.
+
+  Because **SFC** is action-based, it can utilize your DOM hierarchy
+  to implicitly define the validation control structure, _making it a
+  simple and understandable **single source of truth**_.  In other words, _**your form
+  validation control is defined right in your html markup!**_
   
-- In addition, **SFC** promotes a reactive error display component, that
-  "auto wires" to appropriate field errors, dynamically displaying form
+- **SFC** promotes a reactive error display component, that "auto
+  wires" itself to appropriate field errors, dynamically displaying form
   errors as needed.
   
-- **SFC** employs powerful validation heuristics, where fields are
+- **SFC** employs a powerful validation heuristic, where fields are
   validated only when they have been seen by the user _(i.e. touched)_, or
   when a submit is attempted.  This is a commonly used approach that is
   tedious to accomplish _(when implemented in application code)_.
@@ -69,12 +81,6 @@ appreciate this abstraction of form/field validation.  **If you are
 using a more inclusive UI library**, it most likely already promotes
 Form/Element component abstractions _(which will typically provide a
 technique to handle form validation)_.
-
-?? AI: SIMPLE and UNDERSTANDABLE ... everything is defined right in your DOM structure
-- ex: the fieldValidator action is attached right to your interactive form element
-- ex: custom field validations is logic right in your interactive form element
-- ex: want to change the Form Error Message: it is right in the <FormErr> component
-
 
 </ul>
 
@@ -159,16 +165,16 @@ Here are some points of interest:
 - the `<input>` form elements are employing some standard [HTML5 Form
   Validation] constraints (`required`, `minlength`, etc.).
 
-  - the `use:fieldChecker` actions are applied to each `<input>` form
-    element.  This completes the knowledge transfer of your form
-    structure to **SFC**. (AI: can this be implied when all defaults are
-    used?)
+- the `use:fieldChecker` actions are applied to each `<input>` form
+  element.  This completes the knowledge transfer of your form
+  structure to **SFC**. (AI: can this be implied when all defaults are
+  used?)
 
-  - a **custom field validation** has been introduced (in the `id`
-    field), by using the `validate` action parameter.  This invokes a
+  - a **custom field validation** has been introduced _(for the `id`
+    field)_, by using the `validate` action parameter.  This invokes a
     function that can apply application-specific validations.  The
-    function merely returns an error string (if invalid), or an empty
-    string (when valid).
+    function merely returns an error string _(if invalid)_, or an empty
+    string _(when valid)_.
 
   - the `<FieldErr/>` components will dynamically bind to the input field
     of interest, and conditionally display appropriate errors for that
