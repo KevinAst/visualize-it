@@ -1,4 +1,4 @@
-# svelte-form-checker
+# svelte-native-forms
 
 *... minimalist form validation with powerful results*
 
@@ -12,12 +12,13 @@
 
 Validating forms has notoriously been a painful development
 experience.  Implementing client side validation _in a user friendly
-way **is simply hard to accomplish**_
-&hellip; you want to validate fields only at the appropriate time _(when the
+way **is a tedious and arduous process**_
+&bull; you want to validate fields only at the appropriate time _(when the
 user has had the chance to enter the data)_
 &bull; you want to present validation errors in a pleasing way
 &bull; you may need to apply custom validation _(specific to your
 application domain)_
+&bull; etc.
 
 <!--- AI: should following sentence reference HTML5's Constraint Validation https://developer.mozilla.org/en-US/docs/Web/API/Constraint_validation ---> 
 
@@ -31,50 +32,55 @@ the most difficult tasks in web development.
 
 <ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
 
-**svelte-form-checker** _(<mark>aka **SFC**</mark>)_ is a [svelte] utility that
+**svelte-native-forms** _(<mark>aka **SNF**</mark>)_ is a [svelte] utility that
 facilitates field validation in your native html forms.
 
 The term _**native**_ refers to the utilization of the native HTML
 `<form>` tag and it' corresponding form elements (`<input>`,
-`<select>`, `<textarea>`, etc.).  In other words, **SFC** does NOT
+`<select>`, `<textarea>`, etc.).  In other words, **SNF** does NOT
 introduce components for these abstractions, rather you use the native
 html representations.
 
 Here are some **key points** to understand:
 
-- **SFC** is based on **svelte actions**.  By applying a simple action
+- **SNF** is based on **svelte actions**.  By applying a simple action
   to your form elements, the basics of the form validation control is
   defined right in your html markup.  
 
   This represents a different approach from other form validation
-  libraries, that require you to define a separate JavaScript control
-  structure that either drives your html markup, or duplicates the
-  html hierarchy in some way.
+  libraries.  Some may require you to define a separate JavaScript
+  control structure that either drives your html markup, or duplicates
+  the html hierarchy in some way.  Others may introduce their own
+  component layer on top of the native form elements.
 
-  Because **SFC** is action-based, it can utilize your DOM hierarchy
+  Because **SNF** is action-based, it can utilize your DOM hierarchy
   to implicitly define the validation control structure, _making it a
   simple and understandable **single source of truth**_.  In other words, _**your form
   validation control is defined right in your html markup!**_
+
+- **SNF** allows you to easily apply **custom validations**, where your
+  JavaScript code can perform app-specific validation _(even
+  involving cross field validations)_.
   
-- **SFC** promotes a reactive error display component, that "auto
+- **SNF** provides a **reactive error display component**, that "auto
   wires" itself to appropriate field errors, dynamically displaying form
   errors as needed.
   
-- **SFC** employs a powerful validation heuristic, where fields are
+- **SNF** employs a **powerful validation heuristic**, where fields are
   validated only when they have been seen by the user _(i.e. touched)_, or
-  when a submit is attempted.  This is a commonly used approach that is
+  when a submit is attempted.  This is a common technique that is
   tedious to accomplish _(when implemented in application code)_.
   
-- **SFC** is customizable
+- **SNF** is customizable
   **&bull; don't like the error display format?** _&hellip; that is easily resolved_
   **&bull; want to perform a custom field validation?** _&hellip; easy peasy_
 
-**SFC** promotes a <mark>**clean and simple approach**</mark> to form
+**SNF** promotes a <mark>**clean and simple approach**</mark> to form
 validation, that yields <mark>**powerful results**</mark>.
 
-**Important NOTE**: FormChecker is intended to be used by applications
+**Important NOTE**: **SNF** is intended to be used by applications
 that employ native html forms and form elements.  Because of
-FormChecker's usage of svelte actions, **this is a hard restriction**!
+**SNF**'s usage of svelte actions, **this is a hard restriction**!
 _Svelte actions may only be applied to native DOM elements - **not**
 components_.  **If you are a minimalist** _(using native html)_, you will
 appreciate this abstraction of form/field validation.  **If you are
@@ -105,14 +111,14 @@ technique to handle form validation)_.
 <!--- *** Section ************************************************************************* ---> 
 ## Basics
 
-Here is a very basic example of **SFC** usage:
+Here is a very basic example of **SNF** usage:
 
-?? AI: would be nice to highlight the SFC specifics (NOT POSSIBLE IN quoted stuff) ?? consider an image?
+?? AI: would be nice to highlight the SNF specifics (NOT POSSIBLE IN quoted stuff) ?? consider an image?
 
 ```html
 <script>
  import {formChecker,  FormErr,
-         fieldChecker, FieldErr} from 'svelte-form-checker';
+         fieldChecker, FieldErr} from 'svelte-native-forms';
 
  const submit     = (event, fieldValues) => alert(`Successful submit (all fields are valid)!`);
  const isIdUnique = (event, {id}) => id==='dup' ? 'ID must be unique' : '';
@@ -143,8 +149,8 @@ Here is a very basic example of **SFC** usage:
 ```
 
 At it's core, this example is using the standard [HTML5 Form
-Validation].  However with the simple injection **SFC**'s `Checker`
-actions, and **SFC**'s **error display** components, a sophisticated
+Validation].  However with the simple injection **SNF**'s `Checker`
+actions, and **SNF**'s **error display** components, a sophisticated
 control structure has been applied that promotes a very usable form.
 We have even seamlessly introduced a **custom field validation**!
 
@@ -167,7 +173,7 @@ Here are some points of interest:
 
 - the `use:fieldChecker` actions are applied to each `<input>` form
   element.  This completes the knowledge transfer of your form
-  structure to **SFC**. (AI: can this be implied when all defaults are
+  structure to **SNF**. (AI: can this be implied when all defaults are
   used?)
 
   - a **custom field validation** has been introduced _(for the `id`
@@ -185,14 +191,14 @@ Here are some points of interest:
   requested on an invalid form.
 
 - a standard `submit` control is applied to the form.  As mentioned
-  above, the **SFC** `submit` function is only invoked when all fields
+  above, the **SNF** `submit` function is only invoked when all fields
   pass validation.
 
 
 <!--- *** Section ************************************************************************* ---> 
 ## Components
 
-**FormChecker** promotes two simple components, both related to
+**SNF** promotes two simple components, both related to
 displaying form-based error messages in your application.
 
 1. [`<FormErr>`]: for displaying form errors
@@ -485,7 +491,7 @@ A Form Generator (KJB: NO NO NO)
 
 <!--- *** REFERENCE LINKS ************************************************************************* ---> 
 
-<!--- **FormChecker** ---> 
+<!--- **SNF** ---> 
 [`<FormErr>`]:       #formerr
 [`<FieldErr>`]:      #fielderr
 
