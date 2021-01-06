@@ -1,4 +1,6 @@
 // ?? ?#: further refinement for Phase II
+// ?? ?%: DOM-BASED-CLEANUP: once we restructure to be DOM-based (where FieldChecker is independent of FormChecker) this will be cleaned up!
+
 import {writable}        from 'svelte/store';
 import verify            from '../../verify.js';
 import checkUnknownArgs  from '../../checkUnknownArgs';
@@ -70,6 +72,33 @@ export default class FieldChecker {
   }
 
   /**
+   * Reset self back to it's original state.
+   *
+   * This is useful when a form is re-used without deleting it's DOM
+   * representation (example: when used in form-based dialog).
+   */
+  reset() {
+
+    // ***
+    // *** reset our FIELD state
+    // ***
+
+    // error
+    this.clearErrMsg();
+    this._cachedIsValid = 'UNKNOWN';
+
+    // mark self as NOT touched
+    this._touched = false;
+
+    // cached value
+    // ... must be done AFTER error reset (above) so as to NOT cause pre-mature errors
+    // ... must also include svelte boundValues, HOWEVER (as on next line) entire thing is UNNEEDED
+    // ?%: DOM-BASED-CLEANUP: once we remove our field cache, this is UNNEEDED
+    this.getForm().changeFieldValue(this.getId(), 
+                                    this.getFieldDomValue());
+  }
+
+  /**
    * Return the current value of this field.
    *
    * NOTE: Currently OBSOLETE since we always pass all values (in validationFn)
@@ -79,6 +108,22 @@ export default class FieldChecker {
   getFieldValue() {
     return this.getForm().getFieldValues()[this.getId()];
   }
+
+  /**
+   * Return the current value of this field as defined in it's DOM
+   * representation.
+   *
+   * @returns {string} the current value of this field as defined in
+   * it's DOM representation.
+   */
+  // ?%: DOM-BASED-CLEANUP: combine getFieldDomValue()/getFieldValue() into getValue()
+  getFieldDomValue() {
+    // AI: ? eventually will need to reason about any svelte bound variable
+    // AI: ? ternary handles race condition where this._inputElm is NOT YET defined
+    //       ? EVENTUALLY (once code is more final) this should be resolved
+    return this._inputElm ? this._inputElm.value : '';
+  }
+
 
   /**
    * Return self's parent form.
@@ -99,7 +144,7 @@ export default class FieldChecker {
    */
   setForm(form) {
     // validate parameters
-    const check = verify.prefix(`FormChecker[{id: '${this.getId()}'}].setForm(): parameter violation: `);
+    const check = verify.prefix(`FieldChecker[{id: '${this.getId()}'}].setForm(): parameter violation: `);
     // ... form
     check(form,                      'form is required');
     check(form.registerFieldChecker, 'form must be a FormChecker instance'); // ... use duck type check to avoid circular dependency import needed for `instanceof FormChecker` semantics
@@ -201,17 +246,19 @@ export default class FieldChecker {
     this._cachedIsValid = isValid;
 
     // style any error status changes
-    if (isValid) { // clear error settings
-      // console.log(`XX styling form element '${this.getId()}' AS valid`);
-      Object.entries(errStyles).forEach( ([propName, propValue]) => removeProp(this._inputElm.style, camel2dashes(propName)) );
-      // EX: this._inputElm.style.removeProperty('background-color')
-      // AI: CONSIDER retaining prior client-defined in-styles, to revert back to
-      //     ... this would have to be done in constructor (once we know the properties we are dealing with - since it is parameterized)
-      //         EX: this._clientInLineStyles: {...}
-    }
-    else { // field has an error
-      // console.log(`XX styling form element '${this.getId()}' AS invalid`);
-      Object.entries(errStyles).forEach( ([propName, propValue]) => this._inputElm.style[propName] = propValue );
+    if (this._inputElm) { // ... client may call reset() before form exists
+      if (isValid) { // clear error settings
+        // console.log(`XX styling form element '${this.getId()}' AS valid`);
+        Object.entries(errStyles).forEach( ([propName, propValue]) => removeProp(this._inputElm.style, camel2dashes(propName)) );
+        // EX: this._inputElm.style.removeProperty('background-color')
+        // AI: CONSIDER retaining prior client-defined in-styles, to revert back to
+        //     ... this would have to be done in constructor (once we know the properties we are dealing with - since it is parameterized)
+        //         EX: this._clientInLineStyles: {...}
+      }
+      else { // field has an error
+        // console.log(`XX styling form element '${this.getId()}' AS invalid`);
+        Object.entries(errStyles).forEach( ([propName, propValue]) => this._inputElm.style[propName] = propValue );
+      }
     }
   }
 
@@ -246,6 +293,10 @@ export default class FieldChecker {
 
     // retain our inputElm (in support of needed DOM interactions)
     this._inputElm = inputElm; // ?# currently set by our svelte action, L8TR: provided as constructor param
+
+    // ... now that our DOM binding is defined, we must update our cached value
+    // ?%: DOM-BASED-CLEANUP: this is really hoaky, unneeded after this refactor
+    this.getForm().changeFieldValue(this.getId(), inputElm.value);
 
     // console.log(`XX here we are in ${this.getId()}'s FieldChecker.action()! -and- here is the inputElm: `, {inputElm})
 

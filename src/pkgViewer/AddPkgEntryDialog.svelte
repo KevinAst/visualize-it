@@ -27,6 +27,7 @@
  // console.log(`XX test to visualize toString():\n${formChecker}`);
 
  export async function showModal() {
+   formChecker.reset();
    addPkgEntryDialog.showModal();
  }
 

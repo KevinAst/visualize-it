@@ -1,4 +1,6 @@
 // ?? ?#: further refinement for Phase II
+// ?? ?%: DOM-BASED-CLEANUP: once we restructure to be DOM-based (where FieldChecker is independent of FormChecker) this will be cleaned up!
+
 import {writable}        from 'svelte/store';
 import FieldChecker      from './FieldChecker';
 import verify            from '../../verify.js';
@@ -117,13 +119,39 @@ export default class FormChecker {
     // register to self
     this._fieldCheckers.push(fieldChecker);
 
-    // initialize this field in our field value cache
-    // ?# AI: this empty string is NOT correct when the dom value has been pre-initialized
-    //        ... need a FieldChecker.getDomValue() that drills into the DOM ... domElm.value
-    this._fieldValues[fieldChecker.getId()] = '';
+    // initialize our field value cache with the current value of the field
+    // ?%: DOM-BASED-CLEANUP: unneeded with this refactor ... RHS new ... was ''
+    this._fieldValues[fieldChecker.getId()] = fieldChecker.getFieldDomValue();
 
     // maintain the parent form
     fieldChecker.setForm(this);
+  }
+
+  /**
+   * Reset self back to it's original state.
+   *
+   * This is useful when a form is re-used without deleting it's DOM
+   * representation (example: when used in form-based dialog).
+   */
+  reset() {
+
+    // ***
+    // *** reset our FORM state
+    // ***
+
+    // error
+    this.clearErrMsg();
+
+    // mark form submit NOT attempted
+    this._hasSubmitBeenAttempted = false;
+
+
+    // ***
+    // *** reset our FIELD state
+    // ***
+
+    // propagate request to each field
+    this._fieldCheckers.forEach( (fieldChecker) => fieldChecker.reset() );
   }
 
   /**
