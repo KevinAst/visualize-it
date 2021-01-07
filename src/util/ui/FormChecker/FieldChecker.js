@@ -174,17 +174,24 @@ export default class FieldChecker {
     if (this.hasTouched() ||
         this.getForm().hasSubmitBeenAttempted()) {
 
-      // interpret standard HTML Form Element Constraint Validation
-      // ... ex:  <input type="text" required minlength="5">
-      // ... see: https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/Constraint_validation
-      // ?# L8TR
+      // interpret the standard "HTML Form Element Constraint Validation"
+      // ... ex: <input type="text" required minlength="5">
+      // NOTE: domElm.checkValidity() -AND- domElm.validationMessage are part of this standard web API
+      let errMsg = '';
+      if (this._inputElm && // AI: unsure if this conditional is needed (doesn't hurt)
+          this._inputElm.checkValidity() === false) {
+        errMsg = this._inputElm.validationMessage;
+      }
 
       // perform app-specific field validation
-      const fieldId     = this.getId();
-      const fieldValues = this.getForm().getFieldValues();
-      const errMsg      = this._validationFn(fieldValues);
-      // ... verify app logic returns the correct errMsg type
-      verify(isString(errMsg), `*** ERROR *** FieldChecker: return from validationFn() [for fieldId: '${fieldId}'] MUST be a string ... use an empty string ('') to designate valid`);
+      // ... when the standard "HTML Form Element Constraint Validation" IS CLEAN
+      if (!errMsg) {
+        const fieldId     = this.getId();
+        const fieldValues = this.getForm().getFieldValues();
+        errMsg            = this._validationFn(fieldValues);
+        // ... verify app logic returns the correct errMsg type
+        verify(isString(errMsg), `*** ERROR *** FieldChecker: return from validationFn() [for fieldId: '${fieldId}'] MUST be a string ... use an empty string ('') to designate valid`);
+      }
 
       // sync self's errMsg
       // ... can be '': VALID -or 'whatever': INVALID
