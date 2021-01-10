@@ -95,13 +95,19 @@ technique to handle form validation)_.
 <!--- *** Section ************************************************************************* ---> 
 ## At a Glance
 
-- [Install](#install)
-- [Basics](#basics)
-- more
-- [Components](#components)
+- [Install]
+- [Concepts]
+  - [Basic Example]
+  - [Built-In Form Validation]
+- [Actions]
+  - [`formChecker`]
+  - [`fieldChecker`]
+- [Components]
   - [`<FormErr>`]
   - [`<FieldErr>`]
-- [Competition](#competition)
+- [Advanced Concepts]
+  - [svelte bound variables]
+- [Competition]
 
 
 <!--- *** Section ************************************************************************* ---> 
@@ -111,7 +117,16 @@ technique to handle form validation)_.
 
 
 <!--- *** Section ************************************************************************* ---> 
-## Basics
+## Concepts
+
+?? NEW SECTION: AI: ADD sub-toc
+
+?? consider talking about (or sections for) some of the points mentioned in the top-level introduction
+
+?? INCLUDING a SECTION on: **SNF**'s validation heuristic!
+
+<!--- *** Section ************************************************************************* ---> 
+## Basic Example
 
 Here is a very basic example of **SNF** usage:
 
@@ -123,7 +138,7 @@ Here is a very basic example of **SNF** usage:
          fieldChecker, FieldErr} from 'svelte-native-forms';
 
  const submit     = (event, fieldValues) => alert(`Successful submit (all fields are valid)!`);
- const isIdUnique = (event, {id}) => id==='dup' ? 'ID must be unique' : '';
+ const isIdUnique = ({id}) => id==='dup' ? 'ID must be unique' : '';
 </script>
 
 <form use:formChecker={{submit}}>
@@ -150,7 +165,7 @@ Here is a very basic example of **SNF** usage:
 </form>
 ```
 
-At it's core, this example is using the standard [HTML5 Form
+At it's core, this example is using HTML's standard [Built-In Form
 Validation].  However with the simple injection **SNF**'s `Checker`
 actions, and **SNF**'s **error display** components, a sophisticated
 control structure has been applied that promotes a very usable form.
@@ -170,8 +185,8 @@ Here are some points of interest:
     validation**.  If there are field errors, the appropriate messages
     are displayed, and no submit occurs.
 
-- the `<input>` form elements are employing some standard [HTML5 Form
-  Validation] constraints (`required`, `minlength`, etc.).
+- the `<input>` form elements are employing some standard [Built-In
+  Form Validation] constraints _(`required`, `minlength`, etc.)_.
 
 - the `use:fieldChecker` actions are applied to each `<input>` form
   element.  This completes the knowledge transfer of your form
@@ -198,6 +213,177 @@ Here are some points of interest:
 
 
 <!--- *** Section ************************************************************************* ---> 
+## Built-In Form Validation
+
+Web standards provide a native way to achieve client-side validation
+_(see [HTML5 Form Validation])_.  This is accomplished by simply
+applying validation attributes to your form elements, such as `type`,
+`required`, `minlength`, `maxlength`, `min`, `max`, `pattern`, etc.
+
+Roughly speaking, this standard is broken up into two parts:
+
+1. **validation** _(i.e. built-in validation)_:
+
+   **SNF** supports the continued use of built-in validation, _in
+   addition to the ability to easily inject custom validations_.  In
+   other words, you may continue to use the HTML validation attributes
+   _(mentioned above)_.  All built-in validation messages are presented
+   to the user before any custom validations.
+
+2. **presentation** _(of validation errors)_:
+
+   The error presentation provided by standard HTML is somewhat
+   primitive and unrefined.  It is for this reason that **SNF** takes
+   over the the presentation of validation errors.  This _(in
+   conjunction with **SNF**'s **powerful validation heuristic**)_,
+   provides a **much improved user experience**.
+
+**SNF** accomplishes this by applying the `novalidate` attribute to
+your `<form>` element.  While this disables the **presentation**
+aspects of the standard, it leaves the constraint validation API
+intact _(along with CSS pseudo-classes like `:valid` etc.)_.  This
+allows **SNF** to continue to interpret and support the built-in form
+validations!
+
+
+
+<!--- *** Section ************************************************************************* ---> 
+## Actions
+
+**SNF** provides two svelte actions:
+
+1. [`formChecker`]: to be applied to your `<form>` element
+2. [`fieldChecker`]: to be applied to your interactive form elements (`<input>`, `<select>`, `<textarea>`, etc.)
+
+
+<!--- *** Section ************************************************************************* ---> 
+## `formChecker`
+
+AI: ?? template only (follow pattern of fieldChecker)
+
+The `formChecker` action ?? more
+
+**Usage:**
+
+```html
+<script>
+ import {formChecker} from 'svelte-native-forms';
+
+ const submit = (event, fieldValues) => alert(`Successful submit (all fields are valid)!`);
+</script>
+
+<form use:formChecker={{submit}}>
+  ... snip snip
+</form>
+```
+
+**API:**
+
+The following parameters are supported by the `formChecker` action:
+
+AI: ?? follow syntax (below)
+
+
+<!--- *** Section ************************************************************************* ---> 
+## `fieldChecker`
+
+<ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
+
+The `fieldChecker` svelte action is applied to your interactive form elements
+(`<input>`, `<select>`, `<textarea>`, etc.).
+
+This action ?permits/allows/registers the contained form element to
+participate in the form's validation.  In addition it injects the
+form value into the set of `formFields` passed to your submit
+function.
+
+If your field has **no validation** constraints, this action is
+completely optional.  The only down-side to omitting the action is
+that the field value will NOT be included in the set of `formFields`
+passed to your submit function.
+
+Form elements containing this action **must have** a `name` or `id`
+attribute.  While this is a common form requirement, in the case of
+`fieldChecker`, it derives it's `fieldName` from these attributes
+_(the `name` attribute takes precedence over `id`)_.
+
+AI: ?? per web standards I think a form submission REQUIRES a `name` attribute
+- however **SNF** may need id to sync up various elements
+- this may need to be tweaked (however we need to play with ALL the form elements)
+
+
+**Action Usage:**
+
+```html
+<script>
+ import {formChecker} from 'svelte-native-forms';
+</script>
+
+... in the context of a form:
+
+    ... NO action parameters (all defaulted)
+    <input id="name" name="name" type="text" required minlength="3"
+           use:fieldChecker>
+
+    ... WITH action parameters
+    <input id="name" name="name" type="text" required minlength="3"
+           use:fieldChecker={{validate, initialValue: 'WowZee'}}>
+  
+... snip snip
+```
+
+**Action Parameters:**
+
+The `fieldChecker` action supports the following parameters _(all optional)_:
+
+- **`validate`**: an optional function that applies custom
+  client-specific validation to this field.
+
+  **DEFAULT**: NO custom validation is applied ... only [Built-In Form
+  Validation] _(e.g. `required`, `minlength`, etc.)_
+
+  **validate() API:**
+  ```
+  + validate(fieldValues): errMsgStr (use '' for valid)
+    NOTE: All field values are passed as named parameters,
+          supporting complex inner-dependent field validation
+            EX: validate({address, zip}) ...
+          Typically you only access the single field being validated
+            EX: validate({address}) ...
+  ```
+
+  **validate() example:** ?? more realistic
+  ```js
+  function validate({foo}) {
+    return foo==='dup' ? 'foo must be unique' : '';
+  }
+  ```
+
+- **`initialValue`**: optionally, the initial value to apply to this
+  field, both on DOM creation and `reset()` functionality.
+
+  **DEFAULT**: NO initial value is programmatically applied.  In other
+  words the initial value is strictly defined by your html.
+
+- **`boundValue`**: optionally, the application variable bound to this
+  inputElm.  This is required when svelte's `bind:value` is in affect
+  _(due to a web limitation, see: [svelte bound variables])_.
+
+- **`changeBoundValue`**: optionally, a client function that changes
+  it's bound value.  This is required when **SNF**'s `initialValue`
+  and `boundValue` are in affect _(also due to the same web limitation,
+  see: [more for `initialValue` ...])_.
+
+  **changeBoundValue() API:**
+  ```
+  + changeBoundValue(initialValue): void
+    ... the implementation should update the client boundValue
+  ```
+
+</ul>
+
+
+<!--- *** Section ************************************************************************* ---> 
 ## Components
 
 **SNF** promotes two simple components, both related to
@@ -210,7 +396,7 @@ displaying form-based error messages in your application.
 <!--- *** Section ************************************************************************* ---> 
 ## `<FormErr>`
 
-This component conditionally displays a generalized message when
+The `<FormErr>` component conditionally displays a generalized message when
 something is wrong with one or more form fields.  The default message
 is: <span style="font-size: 80%; font-weight: bold; color:red;">Please
 correct the highlighted field errors</span> but can easily be
@@ -324,7 +510,7 @@ AI: ?? Provide a full-blown example that overrides the internal DispErr componen
 <!--- *** Section ************************************************************************* ---> 
 ## `<FieldErr>`
 
-This component conditionally displays a field-specific message when
+The `<FieldErr>` component conditionally displays a field-specific message when
 the field it is monitoring is invalid.
 
 **Usage:**
@@ -394,6 +580,84 @@ is an example that overrides the default:
 
 ```html
 <FieldErr {fieldChecker} DispErr={MyErrComp}/>
+```
+
+
+<!--- *** Section ************************************************************************* ---> 
+## Advanced Concepts
+
+?? NEW SECTION: AI: ADD sub-toc
+
+
+<!--- *** Section ************************************************************************* ---> 
+## svelte bound variables
+
+A very powerful feature of svelte is it's ability to provide a two-way
+binding between form elements and JS variables.  By simply using the
+`bind:` directive these two aspects are kept "in sync".  For example:
+
+```html
+<script>
+	let name = 'World';
+</script>
+
+<input id="name" name="name"
+       bind:value={name}>
+
+<h1>Hello {name}!</h1>
+```
+
+For **SNF** usage, when two-way bindings are in affect, the
+`boundValue` parameter must be specified in the [`fieldChecker`]
+action.  For example:
+
+```html
+<input id="name" name="name"
+       bind:value={name}
+       use:fieldChecker={{boundValue: name}}>
+```
+
+Why is this required?  It seems a bit cumbersome!
+
+As it turns out, this has nothing to do with svelte or the **SNF**
+library.  Rather it is a limitation of the web itself, where updates
+to `inputElm.value` **do not** emit any web events _(such as the
+`on:input` event)_.
+
+- Svelte manages it's two-way binding by directly managing the
+  `inputElm.value`.
+  
+- By default, **SNF** monitors form element changes through the 
+  `on:input` event.
+
+Because of this web limitation, **SNF** requires visibility to
+`boundValues`, in order to have access to a "single source of truth".
+This is unfortunate, but there is nothing we can do about it :-(
+
+### more for `initialValue` ...
+
+This limitation gets worse, when you specify an `initialValue` for
+bound elements.  In this scenario **SNF** must update the "single
+source of truth", which _(in this case)_ is the `boundValue`.  This
+cannot be accomplished by **SNF** directly, because the svelte
+compiler must have visibility of this change.  As a result, when BOTH
+`initialValue` and `boundValue` are in affect, the client must also
+specify a `changeBoundValue` function.  For example:
+
+```html
+<input id="name" name="name"
+       bind:value={name}
+       use:fieldChecker={{
+         initialValue: 'WowZee',
+         boundValue: name,
+         changeBoundValue: (initialValue) => name = initialValue
+       }}>
+```
+
+**changeBoundValue() API:**
+```
++ changeBoundValue(initialValue): void
+  ... the implementation should update the client boundValue
 ```
 
 
@@ -494,9 +758,20 @@ A Form Generator (KJB: NO NO NO)
 <!--- *** REFERENCE LINKS ************************************************************************* ---> 
 
 <!--- **SNF** ---> 
-[`<FormErr>`]:       #formerr
-[`<FieldErr>`]:      #fielderr
-
+[Install]:                    #install
+[Concepts]:                   #concepts
+  [Basic Example]:            #basic-example
+  [Built-In Form Validation]: #built-in-form-validation
+[Actions]:                    #actions
+  [`formChecker`]:            #formchecker
+  [`fieldChecker`]:           #fieldchecker
+[Components]:                 #components
+  [`<FormErr>`]:              #formerr
+  [`<FieldErr>`]:             #fielderr
+[Advanced Concepts]:          #advanced-concepts
+  [svelte bound variables]:   #svelte-bound-variables
+  [more for `initialValue` ...]:    #more-for-initialvalue-
+[Competition]:                #competition
 
 <!--- external links ---> 
 [svelte]:                   https://svelte.dev/
