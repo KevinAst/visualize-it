@@ -119,11 +119,15 @@ technique to handle form validation)_.
 <!--- *** Section ************************************************************************* ---> 
 ## Concepts
 
-?? NEW SECTION: AI: ADD sub-toc
+- [Basic Example]
+- [Built-In Form Validation]
+- ?? more
 
-?? consider talking about (or sections for) some of the points mentioned in the top-level introduction
+AI: ?? provide sections that discuss the points mentioned in the top-level introduction
+- ?? INCLUDING a SECTION on: **SNF**'s validation heuristic!
+- ?? as a result, we may want to make the intro (above) smaller and more concise.
+- ?? the [Basic Example] may be a topic on it's own
 
-?? INCLUDING a SECTION on: **SNF**'s validation heuristic!
 
 <!--- *** Section ************************************************************************* ---> 
 ## Basic Example
@@ -237,6 +241,8 @@ Roughly speaking, this standard is broken up into two parts:
    over the the presentation of validation errors.  This _(in
    conjunction with **SNF**'s **powerful validation heuristic**)_,
    provides a **much improved user experience**.
+
+   AI: ?? Terminology above: ?cryptic/unrefined/crude/primitive/simple/basic/rudimentary/rough
 
 **SNF** accomplishes this by applying the `novalidate` attribute to
 your `<form>` element.  While this disables the **presentation**
@@ -586,7 +592,8 @@ is an example that overrides the default:
 <!--- *** Section ************************************************************************* ---> 
 ## Advanced Concepts
 
-?? NEW SECTION: AI: ADD sub-toc
+- [svelte bound variables]
+- ?? more
 
 
 <!--- *** Section ************************************************************************* ---> 
