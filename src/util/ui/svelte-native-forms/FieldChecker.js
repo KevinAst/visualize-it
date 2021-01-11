@@ -56,7 +56,7 @@ export default class FieldChecker {
    * must have visibility of this change (via this client function).
    * 
    *   API: 
-   *     + changeBoundValue(initialValue): void (updating client boundValue)
+   *     + changeBoundValue(initialValue): void (updating client boundValue to the supplied `initialValue`)
    */
   constructor(inputElm, clientParams={}) {
 

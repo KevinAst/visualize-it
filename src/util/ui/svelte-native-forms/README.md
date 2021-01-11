@@ -378,12 +378,12 @@ The `fieldChecker` action supports the following parameters _(all optional)_:
 - **`changeBoundValue`**: optionally, a client function that changes
   it's bound value.  This is required when **SNF**'s `initialValue`
   and `boundValue` are in affect _(also due to the same web limitation,
-  see: [more for `initialValue` ...])_.
+  see: [more when `initialValue` in use ...])_.
 
   **changeBoundValue() API:**
   ```
   + changeBoundValue(initialValue): void
-    ... the implementation should update the client boundValue
+    ... the implementation should update the client boundValue to the supplied initialValue
   ```
 
 </ul>
@@ -624,7 +624,9 @@ action.  For example:
        use:fieldChecker={{boundValue: name}}>
 ```
 
-Why is this required?  It seems a bit cumbersome!
+_**Why is this required?  It seems a bit cumbersome!**_
+
+<ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
 
 As it turns out, this has nothing to do with svelte or the **SNF**
 library.  Rather it is a limitation of the web itself, where updates
@@ -641,7 +643,11 @@ Because of this web limitation, **SNF** requires visibility to
 `boundValues`, in order to have access to a "single source of truth".
 This is unfortunate, but there is nothing we can do about it :-(
 
-### more for `initialValue` ...
+</ul>
+
+### more when `initialValue` in use ...
+
+<ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
 
 This limitation gets worse, when you specify an `initialValue` for
 bound elements.  In this scenario **SNF** must update the "single
@@ -664,8 +670,10 @@ specify a `changeBoundValue` function.  For example:
 **changeBoundValue() API:**
 ```
 + changeBoundValue(initialValue): void
-  ... the implementation should update the client boundValue
+  ... the implementation should update the client boundValue to the supplied initialValue
 ```
+
+</ul>
 
 
 
@@ -777,7 +785,7 @@ A Form Generator (KJB: NO NO NO)
   [`<FieldErr>`]:             #fielderr
 [Advanced Concepts]:          #advanced-concepts
   [svelte bound variables]:   #svelte-bound-variables
-  [more for `initialValue` ...]:    #more-for-initialvalue-
+  [more when `initialValue` in use ...]: #more-when-initialvalue-in-use-
 [Competition]:                #competition
 
 <!--- external links ---> 
