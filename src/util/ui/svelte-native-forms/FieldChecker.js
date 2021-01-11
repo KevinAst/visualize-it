@@ -125,16 +125,28 @@ export default class FieldChecker {
     check(this._fieldName, 'our fieldName is derived from the form elements name attribute (takes precedence) -or- id attribute (this form element has neither attribute)');
 
     // retain additional state in self
-    this._parentForm    = null;      // defined later via: setParentForm()
+    this._parentForm    = null;      // defined later via: registerParentForm()
     this._touched       = false;
     this._cachedIsValid = 'UNKNOWN'; // a cached boolean isValid, with a "3rd" unknown state
 
     // setup our field-based error message (a reactive svelte store)
-    this._errMsgStore   = writable(''); // ... the store
-    this._errMsg        = '';           // ... the current value
+    // ... the current value
+    this._errMsg = '';
+    // ... the reflexive store
+    this._errMsgStore = writable('', () => { // ?? clean-up function is new: MUST TEST THIS OUT
+      console.log(`?? fieldCheckerAction field: ${this.getFieldName()} errMsgStore registered it's FIRST subscriber!`);
+      return () => {
+        // clear our action's errMsgStore state on LAST subscription
+        // ... we can do this because self's FieldChecker is a subscriber
+        //     SO if the subscription goes to zero, our object HAS BEEN DESTROYED!
+        console.log(`?? fieldCheckerAction field: ${this.getFieldName()} errMsgStore un-registered it's LAST subscriber ... clearing our action's errMsgStore state!`);
+        this._errMsg      = 'OBSOLETE - the fieldCheckerAction-based form element has been destroyed!';
+        this._errMsgStore = null;             // remove the last store reference (making it eligible for GC)
+        this._errMsgStore_unsubscribe = null; // ... ditto
+      };
+    });
     // ... subscribe to the store, syncing self's _errMsg current value
-    const unsubscribe   = this._errMsgStore.subscribe( (errMsg) => this._errMsg = errMsg );
-    // ?# when self's object instance is destroyed: call unsubscribe()
+    this._errMsgStore_unsubscribe = this._errMsgStore.subscribe( (errMsg) => this._errMsg = errMsg );
 
     // locate our <form> elm, wiring up the FormChecker/FieldChecker containment tree
     //  - CASE-1: for initial DOM setup (the normal case) this is NOT yet available
@@ -307,17 +319,34 @@ export default class FieldChecker {
    *
    * @param {FormChecker} form - self's parent form.
    */
-  setParentForm(parentForm) {
+  registerParentForm(parentForm) {
     // validate parameters
-    const check = verify.prefix(`FieldChecker[{name: '${this.getFieldName()}'}].setParentForm(): parameter violation: `);
+    const check = verify.prefix(`FieldChecker[{name: '${this.getFieldName()}'}].registerParentForm(): parameter violation: `);
     // ... parentForm
     check(parentForm,                      'parentForm is required');
     check(parentForm.registerFieldChecker, 'parentForm must be a FormChecker instance');
     // ... above uses duck type check to avoid circular dependency import needed for `instanceof FormChecker` semantics
-    //     ?? does FormChecker need to import FieldChecker now (after refactor)?
+    //     ?? does FormChecker even need to import FieldChecker now (after refactor)?
+    // ... should NOT already have a registered parentForm
+    check(this._parentForm===null || this._parentForm===parentForm, "self's parentForm is ALREADY registered :-(");
 
     // retain our parentForm
     this._parentForm = parentForm;
+  }
+
+  /**
+   * Remove self's parent form.
+   *
+   * The ONLY acceptable invoker of this method should be: FormChecker.removeFieldChecker(self).
+   */
+  removeParentForm() {
+    // validate state
+    const check = verify.prefix(`FieldChecker[{name: '${this.getFieldName()}'}].removeParentForm(): `);
+    // ... should HAVE a registered parentForm
+    check(this._parentForm!==null, "NO parentForm is registered to self ... can't remove it :-(");
+
+    // remove our parentForm
+    this._parentForm = null;
   }
 
   /**
@@ -523,7 +552,10 @@ export default class FieldChecker {
     // remove self from our parent FormChecker
     // ?? IMPLEMENT THIS (in FormChecker)
     //? this.getParentForm().removeFieldChecker(this);
-    //? // ?? which in turn, invokes: fieldChecker.removeParentForm()
+    //? ... which in turn, should invoke: fieldChecker.removeParentForm()
+
+    // unsubscribe to our error message store (allowing it to clear it's state)
+    this._errMsgStore_unsubscribe()
 
     // AI: clear our event listeners
     //  1. to accomplish this we need to make our event handlerFunctions non-anonymous
