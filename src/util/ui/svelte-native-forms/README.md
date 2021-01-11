@@ -242,8 +242,6 @@ Roughly speaking, this standard is broken up into two parts:
    conjunction with **SNF**'s **powerful validation heuristic**)_,
    provides a **much improved user experience**.
 
-   AI: ?? Terminology above: ?cryptic/unrefined/crude/primitive/simple/basic/rudimentary/rough
-
 **SNF** accomplishes this by applying the `novalidate` attribute to
 your `<form>` element.  While this disables the **presentation**
 aspects of the standard, it leaves the constraint validation API
@@ -295,13 +293,11 @@ AI: ?? follow syntax (below)
 
 <ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
 
-The `fieldChecker` svelte action is applied to your interactive form elements
-(`<input>`, `<select>`, `<textarea>`, etc.).
-
-This action ?permits/allows/registers the contained form element to
-participate in the form's validation.  In addition it injects the
-form value into the set of `formFields` passed to your submit
-function.
+The `fieldChecker` svelte action is applied to your interactive form
+elements (`<input>`, `<select>`, `<textarea>`, etc.).  It registers
+the form element to **SNF** control, allowing it to participate in the
+form's validation.  In addition it injects the form value into the set
+of `formFields` passed to your submit function.
 
 If your field has **no validation** constraints, this action is
 completely optional.  The only down-side to omitting the action is
