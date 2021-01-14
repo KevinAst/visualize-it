@@ -263,11 +263,13 @@ validations!
 <!--- *** Section ************************************************************************* ---> 
 ## `formChecker`
 
-AI: ?? template only (follow pattern of fieldChecker)
+<ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
 
-The `formChecker` action ?? more
+The `formChecker` svelte action is applied to your html `<form>`
+element.  It registers the form to **SNF** control, allowing it
+orchestrate form validation.
 
-**Usage:**
+**Action Usage:**
 
 ```html
 <script>
@@ -281,11 +283,47 @@ The `formChecker` action ?? more
 </form>
 ```
 
-**API:**
+**Action Parameters:**
 
-The following parameters are supported by the `formChecker` action:
+The `formChecker` action supports the following parameters:
 
-AI: ?? follow syntax (below)
+- **`submit`**: a required submit function that executes a
+  client-specific process.  This is invoked when a submit occurs, only
+  when all fields pass validation.
+
+  **submit() API:**
+  ```
+  + submit(event, fieldValues): void
+    NOTE: All field values (monitored by SNF) are passed as named parameters.
+  ```
+
+- **`controller`**: an optional object that, when supplied, will be
+  populated with the SNF public API (a pseudo pass-by-reference).
+
+  **controller API:**
+  ```
+  {
+    reset() ... Reset the form back to it's original state.
+                Useful when a form is re-used without deleting it's DOM
+                representation (say when used in a form-based dialog).
+  }
+  ```
+
+- **`errStyles`**: an optional object containing the in-line styles to
+  apply to input elements that are in error.
+
+  - use an object with in-line styling pairs: camelCaseKey/value
+  - or `null` to disable
+   
+  **DEFAULT**:
+  ```
+  {
+    border:          '2px solid #900', ... solid red border
+    backgroundColor: '#FDD',           ... pink background
+  }
+  ```
+
+</ul>
 
 
 <!--- *** Section ************************************************************************* ---> 

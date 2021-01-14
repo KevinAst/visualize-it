@@ -133,7 +133,7 @@ export default class FieldChecker {
     // ... the current value
     this._errMsg = '';
     // ... the reflexive store
-    this._errMsgStore = writable('', () => { // ?? clean-up function is new: MUST TEST THIS OUT
+    this._errMsgStore = writable('', () => { // clean-up function ?? NEW: TEST THIS OUT
       console.log(`?? fieldCheckerAction field: ${this.getFieldName()} errMsgStore registered it's FIRST subscriber!`);
       return () => {
         // clear our action's errMsgStore state on LAST subscription
@@ -197,10 +197,10 @@ export default class FieldChecker {
 
     // insure our field is in the correct initial state
     // ... including applying initial values
-    // ?? we also have a form-level reset()
-    //    - it will do form-level stuff -AND- iterate over all field reset()
-    //    - most likely the Form constructor call's it's reset() ... although it's fields may NOT be hooked yet
-    //    - THIS form-level reset has to be returned out to the client
+    // ... NOTE: Our form-level reset() will invoke all fields reset()
+    //           ... invoked both in it's construction and our client reset() request
+    //           However, when dynamics are involved (where form elements are added/removed)
+    //           THIS reset() is necessary.
     this.reset();
   }
 
@@ -326,7 +326,6 @@ export default class FieldChecker {
     check(parentForm,                      'parentForm is required');
     check(parentForm.registerFieldChecker, 'parentForm must be a FormChecker instance');
     // ... above uses duck type check to avoid circular dependency import needed for `instanceof FormChecker` semantics
-    //     ?? does FormChecker even need to import FieldChecker now (after refactor)?
     // ... should NOT already have a registered parentForm
     check(this._parentForm===null || this._parentForm===parentForm, "self's parentForm is ALREADY registered :-(");
 
@@ -337,7 +336,9 @@ export default class FieldChecker {
   /**
    * Remove self's parent form.
    *
-   * The ONLY acceptable invoker of this method should be: FormChecker.removeFieldChecker(self).
+   * NOTE: In order to maintain our bi-directional relationship, the ONLY
+   *       acceptable invoker of this method should be: 
+   *         FormChecker.removeFieldChecker(fieldChecker).
    */
   removeParentForm() {
     // validate state
@@ -550,9 +551,8 @@ export default class FieldChecker {
    */
   destroy() {
     // remove self from our parent FormChecker
-    // ?? IMPLEMENT THIS (in FormChecker)
-    //? this.getParentForm().removeFieldChecker(this);
-    //? ... which in turn, should invoke: fieldChecker.removeParentForm()
+    // ... by controlling from parentForm, our bi-directional relationship is maintained
+    this.getParentForm().removeFieldChecker(this);
 
     // unsubscribe to our error message store (allowing it to clear it's state)
     this._errMsgStore_unsubscribe()
