@@ -38,7 +38,7 @@ the most difficult tasks in web development.
 facilitates field validation in your native html forms.
 
 The term _**native**_ refers to the utilization of the native HTML
-`<form>` tag and it' corresponding form elements (`<input>`,
+`<form>` tag and the corresponding form elements (`<input>`,
 `<select>`, `<textarea>`, etc.).  In other words, **SNF** does NOT
 introduce components for these abstractions, rather you use the native
 html representations.
@@ -47,40 +47,36 @@ Here are some **key points** to understand:
 
 - **SNF** is based on **svelte actions**.  By applying a simple action
   to your form elements, the basics of the form validation control is
-  defined right in your html markup.  
+  defined right in your html markup _... see [Native HTML Forms]_.
+  
+- **SNF** improves user experience by validating fields at the
+  appropriate time _... see [Validation Timing]_.
+  
+- **SNF** provides two simple reactive error display components, that
+  "auto wires" themselves to the appropriate form/fields, dynamically
+  displaying form-based errors as needed _... see [Reactive Error
+  Display]_.
 
-  This represents a different approach from other form validation
-  libraries.  Some may require you to define a separate JavaScript
-  control structure that either drives your html markup, or duplicates
-  the html hierarchy in some way.  Others may introduce their own
-  component layer on top of the native form elements.
-
-  Because **SNF** is action-based, it can utilize your DOM hierarchy
-  to implicitly define the validation control structure, _making it a
-  simple and understandable **single source of truth**_.  In other words, _**your form
-  validation control is defined right in your html markup!**_
+- **SNF** supports the native [HTML5 Form Validation], by using
+  the standard validation attributes in your form elements, such as
+  `type`, `required`, `minlength`, etc. _... see [Built-In Form
+  Validation]_.
 
 - **SNF** allows you to easily apply **custom validations**, where your
   JavaScript code can perform app-specific validation _(even
-  involving cross field validations)_.
-  
-- **SNF** provides a **reactive error display component**, that "auto
-  wires" itself to appropriate field errors, dynamically displaying form
-  errors as needed.
-  
-- **SNF** employs a **powerful validation heuristic**, where fields are
-  validated only when they have been seen by the user _(i.e. touched)_, or
-  when a submit is attempted.  This is a common technique that is
-  tedious to accomplish _(when implemented in application code)_.
+  involving cross field validations)_
+  _... see [Custom Validation]_.
   
 - **SNF** is customizable
-  **&bull; don't like the error display format?** _&hellip; that is easily resolved_
-  **&bull; want to perform a custom field validation?** _&hellip; easy peasy_
+  **&bull; don't like the error display format?** _... that is easily resolved_
+  **&bull; want to perform a custom field validation?** _... easy peasy_
+  _... see [Customization]_.
+
 
 **SNF** promotes a <mark>**clean and simple approach**</mark> to form
 validation, that yields <mark>**powerful results**</mark>.
 
-**Important NOTE**: **SNF** is intended to be used by applications
+<mark>**Important NOTE**</mark>: **SNF** is intended to be used by applications
 that employ native html forms and form elements.  Because of
 **SNF**'s usage of svelte actions, **this is a hard restriction**!
 _Svelte actions may only be applied to native DOM elements - **not**
@@ -96,9 +92,13 @@ technique to handle form validation)_.
 ## At a Glance
 
 - [Install]
+- [Basic Example]
 - [Concepts]
-  - [Basic Example]
+  - [Native HTML Forms]
+  - [Validation Timing]
+  - [Reactive Error Display]
   - [Built-In Form Validation]
+  - [Custom Validation]
 - [Actions]
   - [`formChecker`]
   - [`fieldChecker`]
@@ -106,7 +106,8 @@ technique to handle form validation)_.
   - [`<FormErr>`]
   - [`<FieldErr>`]
 - [Advanced Concepts]
-  - [svelte bound variables]
+  - [Svelte Bound Variables]
+  - [Customization]
 - [Competition]
 
 
@@ -114,20 +115,6 @@ technique to handle form validation)_.
 ## Install
 
 ?? Installation
-
-
-<!--- *** Section ************************************************************************* ---> 
-## Concepts
-
-- [Basic Example]
-- [Built-In Form Validation]
-- ?? more
-
-AI: ?? provide sections that discuss the points mentioned in the top-level introduction
-- ?? INCLUDING a SECTION on: **SNF**'s validation heuristic!
-- ?? as a result, we may want to make the intro (above) smaller and more concise.
-- ?? the [Basic Example] may be a topic on it's own
-
 
 <!--- *** Section ************************************************************************* ---> 
 ## Basic Example
@@ -190,7 +177,7 @@ Here are some points of interest:
     are displayed, and no submit occurs.
 
 - the `<input>` form elements are employing some standard [Built-In
-  Form Validation] constraints _(`required`, `minlength`, etc.)_.
+  Form Validation] constraints _(`type`, `required`, `minlength`, etc.)_.
 
 - the `use:fieldChecker` actions are applied to each `<input>` form
   element.  This completes the knowledge transfer of your form
@@ -216,8 +203,115 @@ Here are some points of interest:
   pass validation.
 
 
+
+<!--- *** Section ************************************************************************* ---> 
+## Concepts
+
+**svelte-native-forms** _(<mark>aka **SNF**</mark>)_ is a [svelte]
+utility that facilitates field validation in your native html forms.
+
+The following sections discuss the basic concepts of **SNF**:
+
+- [Native HTML Forms]
+- [Validation Timing]
+- [Reactive Error Display]
+- [Built-In Form Validation]
+- [Custom Validation]
+
+
+<!--- *** Section ************************************************************************* ---> 
+## Native HTML Forms
+
+<ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
+
+In **SNF**, your interactive forms continue to use the native HTML
+`<form>` tag along with the corresponding form elements (`<input>`,
+`<select>`, `<textarea>`, etc.).  In other words, **SNF** does NOT
+introduce components for these abstractions, rather you use the native
+html representations.
+
+This is accomplished by using **svelte actions**. By applying a simple
+action to your form elements, the basics of the form validation
+control is defined right in your html markup.
+
+This represents a different approach from other form validation
+libraries.  Some may require you to define a separate JavaScript
+control structure that either drives your html markup, or duplicates
+the html hierarchy in some way.  Others may introduce their own
+component layer on top of the native form elements.
+
+Because **SNF** is action-based, it can utilize your DOM hierarchy
+to implicitly define the validation control structure, _making it a
+simple and understandable **single source of truth**_.  In other words, _**your form
+validation control is defined right in your html markup!**_
+
+</ul>
+
+
+<!--- *** Section ************************************************************************* ---> 
+## Validation Timing
+
+<ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
+
+Validation timing is an important characteristic in achieving a better
+user experience.  You don't want to overwhelm your users by validating
+every field from the start, yet once a field has been seen, validation
+is more appropriate.
+
+**SNF** employs a validation heuristic, where fields are validated
+at the appropriate time:
+
+- only when they have been seen by the user _(i.e. touched)_, 
+- or when a submit has been attempted. 
+
+The "touched" determination is made through focus semantics.  A field is
+considered to have been touched when it has gone in and out of focus
+(i.e. blur).
+
+This heuristic is a common technique that is tedious to accomplish,
+_when attempted in application code_.
+
+</ul>
+
+
+<!--- *** Section ************************************************************************* ---> 
+## Reactive Error Display
+
+<ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
+
+**SNF** provides two reactive error display components that
+dynamically display appropriate errors as needed.  The beauty of these
+components are that they auto-wire themselves to the appropriate
+error.  As a result, they are very simple to use.
+
+In the following example, the mere inclusion of `<FieldErr/>` will
+dynamically display any **name-field** errors at the appropriate time,
+simply because it is contained in the `<label>` that holds the
+**name** `<input>` _(this is not the only way to bind errors, but a
+very common one)_:
+
+```html
+<label>
+  Name:
+  <input id="name" name="name" type="text" required minlength="3"
+         use:fieldChecker>
+  <FieldErr/>
+</label>
+```
+
+There are two reactive error display components:
+
+- [`<FormErr>`]: for displaying form errors
+- [`<FieldErr>`]: for displaying field errors
+
+
+</ul>
+
+
 <!--- *** Section ************************************************************************* ---> 
 ## Built-In Form Validation
+
+<ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
 
 Web standards provide a native way to achieve client-side validation
 _(see [HTML5 Form Validation])_.  This is accomplished by simply
@@ -226,21 +320,21 @@ applying validation attributes to your form elements, such as `type`,
 
 Roughly speaking, this standard is broken up into two parts:
 
-1. **validation** _(i.e. built-in validation)_:
+- **validation** _(i.e. built-in validation)_:
 
-   **SNF** supports the continued use of built-in validation, _in
-   addition to the ability to easily inject custom validations_.  In
-   other words, you may continue to use the HTML validation attributes
-   _(mentioned above)_.  All built-in validation messages are presented
-   to the user before any custom validations.
+  **SNF** supports the continued use of built-in validation, _in
+  addition to the ability to easily inject [Custom Validation]_.  In
+  other words, you may continue to use the HTML validation attributes
+  _(mentioned above)_.  All built-in validation messages are presented
+  to the user before any custom validations.
 
-2. **presentation** _(of validation errors)_:
+- **presentation** _(of validation errors)_:
 
-   The error presentation provided by standard HTML is somewhat
-   primitive and unrefined.  It is for this reason that **SNF** takes
-   over the the presentation of validation errors.  This _(in
-   conjunction with **SNF**'s **powerful validation heuristic**)_,
-   provides a **much improved user experience**.
+  The error presentation provided by standard HTML is somewhat
+  primitive and unrefined.  It is for this reason that **SNF** takes
+  over the the presentation of validation errors.  This _(in
+  conjunction with **SNF**'s **powerful validation heuristic**)_,
+  provides a **much improved user experience**.
 
 **SNF** accomplishes this by applying the `novalidate` attribute to
 your `<form>` element.  While this disables the **presentation**
@@ -248,6 +342,37 @@ aspects of the standard, it leaves the constraint validation API
 intact _(along with CSS pseudo-classes like `:valid` etc.)_.  This
 allows **SNF** to continue to interpret and support the built-in form
 validations!
+
+</ul>
+
+
+
+<!--- *** Section ************************************************************************* ---> 
+## Custom Validation
+
+<ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
+
+You can easily apply **custom validations**, where your JavaScript
+code provides app-specific validation.  This even includes more
+complex things, such as cross field validation!
+
+This is accomplished through the `validate` parameter of the
+[`fieldChecker`] action.
+
+The following simple example confirms that the `id` field is unique,
+_based on an app-specific `isUnique()` function_.
+
+```html
+<input id="id" name="id" type="text" required
+       use:fieldChecker={{validate: ({id}) => isUnique(id) ? '' : 'ID must be unique''}}>
+```
+
+The `validate` hook can employ any logic _(as complex or simple as
+needed)_, and can reason about multiple fields _(not just one)_.
+Ultimately it returns a string - which is either an **error** _(for
+non-empty strings)_ or **valid** _(for an empty string)_.
+
+</ul>
 
 
 
@@ -380,7 +505,7 @@ The `fieldChecker` action supports the following parameters _(all optional)_:
   client-specific validation to this field.
 
   **DEFAULT**: NO custom validation is applied ... only [Built-In Form
-  Validation] _(e.g. `required`, `minlength`, etc.)_
+  Validation] _(e.g. `type`, `required`, `minlength`, etc.)_
 
   **validate() API:**
   ```
@@ -407,7 +532,7 @@ The `fieldChecker` action supports the following parameters _(all optional)_:
 
 - **`boundValue`**: optionally, the application variable bound to this
   inputElm.  This is required when svelte's `bind:value` is in affect
-  _(due to a web limitation, see: [svelte bound variables])_.
+  _(due to a web limitation, see: [Svelte Bound Variables])_.
 
 - **`changeBoundValue`**: optionally, a client function that changes
   it's bound value.  This is required when **SNF**'s `initialValue`
@@ -426,15 +551,20 @@ The `fieldChecker` action supports the following parameters _(all optional)_:
 <!--- *** Section ************************************************************************* ---> 
 ## Components
 
-**SNF** promotes two simple components, both related to
-displaying form-based error messages in your application.
+**SNF** promotes two reactive components that display form-based error
+messages in your application:
 
-1. [`<FormErr>`]: for displaying form errors
-2. [`<FieldErr>`]: for displaying field errors
+- [`<FormErr>`]: for displaying form errors
+- [`<FieldErr>`]: for displaying field errors
+
+The beauty of these components are that they auto-wire themselves to
+the appropriate error.  As a result, they are very simple to use.
 
 
 <!--- *** Section ************************************************************************* ---> 
 ## `<FormErr>`
+
+<ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
 
 The `<FormErr>` component conditionally displays a generalized message when
 something is wrong with one or more form fields.  The default message
@@ -546,9 +676,13 @@ AI: ?? Provide a full-blown example that overrides the internal DispErr componen
   </style>
   ```
 
+</ul>
+
 
 <!--- *** Section ************************************************************************* ---> 
 ## `<FieldErr>`
+
+<ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
 
 The `<FieldErr>` component conditionally displays a field-specific message when
 the field it is monitoring is invalid.
@@ -622,16 +756,22 @@ is an example that overrides the default:
 <FieldErr {fieldChecker} DispErr={MyErrComp}/>
 ```
 
+</ul>
+
 
 <!--- *** Section ************************************************************************* ---> 
 ## Advanced Concepts
 
-- [svelte bound variables]
-- ?? more
+The following sections discuss more advanced concepts of **SNF**:
+
+- [Svelte Bound Variables]
+- [Customization]
 
 
 <!--- *** Section ************************************************************************* ---> 
-## svelte bound variables
+## Svelte Bound Variables
+
+<ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
 
 A very powerful feature of svelte is it's ability to provide a two-way
 binding between form elements and JS variables.  By simply using the
@@ -709,6 +849,22 @@ specify a `changeBoundValue` function.  For example:
 
 </ul>
 
+</ul>
+
+
+<!--- *** Section ************************************************************************* ---> 
+## Customization
+
+<ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
+
+**SNF** is customizable!
+
+- don't like the error display format?** _... that is easily resolved_
+- want to perform a custom field validation?** _... easy peasy_
+
+AI: ?? expand this section!
+
+</ul>
 
 
 <!--- *** Section ************************************************************************* ---> 
@@ -808,9 +964,13 @@ A Form Generator (KJB: NO NO NO)
 
 <!--- **SNF** ---> 
 [Install]:                    #install
+[Basic Example]:              #basic-example
 [Concepts]:                   #concepts
-  [Basic Example]:            #basic-example
+  [Native HTML Forms]:        #native-html-forms
+  [Validation Timing]:        #validation-timing
+  [Reactive Error Display]:   #reactive-error-display
   [Built-In Form Validation]: #built-in-form-validation
+  [Custom Validation]:        #custom-validation
 [Actions]:                    #actions
   [`formChecker`]:            #formchecker
   [`fieldChecker`]:           #fieldchecker
@@ -818,8 +978,9 @@ A Form Generator (KJB: NO NO NO)
   [`<FormErr>`]:              #formerr
   [`<FieldErr>`]:             #fielderr
 [Advanced Concepts]:          #advanced-concepts
-  [svelte bound variables]:   #svelte-bound-variables
+  [Svelte Bound Variables]:   #svelte-bound-variables
   [more when `initialValue` in use ...]: #more-when-initialvalue-in-use-
+  [Customization]:            #customization
 [Competition]:                #competition
 
 <!--- external links ---> 
