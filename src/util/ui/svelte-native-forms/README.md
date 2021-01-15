@@ -379,7 +379,7 @@ non-empty strings)_ or **valid** _(for an empty string)_.
 <!--- *** Section ************************************************************************* ---> 
 ## Actions
 
-**SNF** provides two svelte actions:
+The primary instrument that **SNF** uses are **svelte actions**!  There are two:
 
 1. [`formChecker`]: to be applied to your `<form>` element
 2. [`fieldChecker`]: to be applied to your interactive form elements (`<input>`, `<select>`, `<textarea>`, etc.)
