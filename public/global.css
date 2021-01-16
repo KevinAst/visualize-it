@@ -1,12 +1,15 @@
 html, body {
 	position: relative;
+/* ?? add back for production ... temporarly removed for: src/util/ui/svelte-native-forms/demo/DemoApp.svelte
 	width: 100%;
 	height: 100%;
+*/
 }
 
 body {
 	color: #333;
-	margin: 0;
+/*	margin: 0; ?? add back for production ... following temporarly used for: src/util/ui/svelte-native-forms/demo/DemoApp.svelte */
+  margin: 15px;
 /*	padding: 8px ... can cause scroll bars ... in conjunction with src/AppLayout.svelte (.drawer-container border etc) */
 	box-sizing: border-box;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;

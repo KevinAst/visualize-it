@@ -7,7 +7,8 @@ import './core/preregisterCoreClasses'; // pre-register our "core" SmartPkg very
 import './sandbox'; // TODO: ?? before we can include this, must resolve Svelte duplicate JS class definitions
 
 // now process our GUI App!!
-import App from './App.svelte';
+//import App from './App.svelte'; // ?? ORIGINAL
+import App from '././util/ui/svelte-native-forms/demo/DemoApp.svelte'; // ?? TEMP to see svelte-native-forms demo
 
 const app = new App({
 	target: document.body,
