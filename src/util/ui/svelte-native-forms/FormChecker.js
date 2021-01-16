@@ -82,7 +82,7 @@ export default class FormChecker {
     // ... descturcture our individual clientParams (i.e. named parameters)
     const {submit,
            controller,
-           errStyles,
+           errStyles=errStylesDEFAULT,
            ...unknownNamedArgs} = clientParams;
 
     // retain all parameters in self
