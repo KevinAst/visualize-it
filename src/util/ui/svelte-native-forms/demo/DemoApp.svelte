@@ -23,5 +23,7 @@
   {/each}
 </select>
 
+<hr/>
+
 <!-- promote active <Demo/> -->
 <svelte:component this={Demo}/>
