@@ -1,10 +1,18 @@
 <script>
- import Basics  from './Basics.svelte';
- import Basics2 from './Basics2.svelte'; // ?? temp just to have two
+ import Basics               from './Basics.svelte';
+ import Basics2              from './Basics2.svelte'; // ?? temp just to have two
+ import BasicsTextArea       from './BasicsTextArea.svelte';
+ import BasicsSelect         from './BasicsSelect.svelte';
+ import BasicsGroupedInputs  from './BasicsGroupedInputs.svelte';
 
  const demos = [
-   [Basics,  'Basics'],
-   [Basics2, 'Basics 2'],
+   [Basics,              'Basics'],
+   [Basics2,             'Basics2'],
+   [BasicsTextArea,      'BasicsTextArea'],
+   [BasicsSelect,        'BasicsSelect'],
+   [BasicsGroupedInputs, 'BasicsGroupedInputs'],
+
+
  ];
 
  let Demo = demos[0][0];
