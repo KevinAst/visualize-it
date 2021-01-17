@@ -18,6 +18,15 @@ const errStylesDEFAULT = {
  *           the formCheckerAction.  As a result, you will see public
  *           facing items (such as Errors) reflect
  *           "formCheckerAction" nomenclature.
+ *
+ * **NOTE**: Regarding one specific variable name, WE AVOID the usage of: formElm
+ *           - Because it is ambiguous as to whether we are referring to the "form" or "field"
+ *             ... due to the unfortunate pseudo-standard term "interactive form element" (referring to fields)
+ *           - RATHER we use:
+ *             * formNode:  refers to the `<form>` element
+ *             * fieldNode: refers to the "field(s)" of a `<form>`
+ *                          ... what is typically called "interactive form element(s)"
+ *                          ... `<input>`, `<select>`, `<textarea>`, etc.
  */
 export default class FormChecker {
 
@@ -26,10 +35,10 @@ export default class FormChecker {
    *
    * **NOTE**: This constructor has the SAME signature of formCheckerAction.
    *
-   * @param {DOMElm} formElm - the form element we are managing
+   * @param {DOMElm} formNode - the `<form>` element we are managing
    * (supplied by svelte).
    *
-   * **Please Note**: Subsequent to the formElm parameter (supplied by svelte),
+   * **Please Note**: Subsequent to the formNode parameter (supplied by svelte),
    *                  named parameters are in use (supplied by client).
    *
    * @param {function} submit - an app-specific process
@@ -65,7 +74,7 @@ export default class FormChecker {
    *   }
    *   ```
    */
-  constructor(formElm, clientParams={}) {
+  constructor(formNode, clientParams={}) {
 
     //***
     //*** validate supplied parameters
@@ -73,9 +82,9 @@ export default class FormChecker {
 
     const check = verify.prefix('formCheckerAction parameter violation: ');
 
-    // formElm:
-    check(formElm,                     'a DOM elm was expected (by svelte) but is missing ... something is wrong');
-    check(formElm.nodeName === 'FORM', `this svelte action should be used on a <form> element, NOT a <${formElm.nodeName.toLowerCase()}>`);
+    // formNode:
+    check(formNode,                     'a DOM elm was expected (by svelte) but is missing ... something is wrong');
+    check(formNode.nodeName === 'FORM', `this svelte action should be used on a <form> element, NOT a <${formNode.nodeName.toLowerCase()}>`);
 
     // clientParams:
     check(isPlainObject(clientParams), "client supplied parameters should be named parameters (ex: {submit})");
@@ -127,12 +136,12 @@ export default class FormChecker {
     this._isFormValid = true;
     // ... the reflexive store
     this._isFormValidStore = writable(true, () => { // clean-up function ?? NEW: TEST THIS OUT
-      console.log(`?? formCheckerAction isFormValidStore registered it's FIRST subscriber!`);
+      //? console.log(`?? formCheckerAction isFormValidStore registered it's FIRST subscriber!`);
       return () => {
         // clear our action's isFormValidStore state on LAST subscription
         // ... we can do this because self's FormChecker is a subscriber
         //     SO if the subscription goes to zero, our object HAS BEEN DESTROYED!
-        console.log(`?? formCheckerAction isFormValidStore un-registered it's LAST subscriber ... clearing our action's isFormValidStore state!`);
+        //? console.log(`?? formCheckerAction isFormValidStore un-registered it's LAST subscriber ... clearing our action's isFormValidStore state!`);
         this._isFormValid      = 'OBSOLETE - the formCheckerAction-based form element has been destroyed!';
         this._isFormValidStore = null;             // remove the last store reference (making it eligible for GC)
         this._isFormValidStore_unsubscribe = null; // ... ditto
@@ -145,8 +154,12 @@ export default class FormChecker {
     // L8TR: ?? regurgitate CASE-1 and 2 in other controller
     // ?? logic sample to register any fieldCheckers (once we find them)
     //?   fieldCheckers.forEach( (fieldChecker) => this.registerFieldChecker(fieldChecker) );
+    // ??$$ WIRE IT UP ?? MUST BE AFTER WE KNOW ALL THINGS ARE VALID (i.e. there are more checks below)
+    const fieldNodes = [...formNode.elements]; // ?? we can EASILY get ALL form elements ... works for <input> -AND- <select> -AND- <textarea>!!
+    console.log(`??$$ formCheckerAction executing ... fieldNodes: `, {fieldNodes});
+    fieldNodes.forEach((elm) => console.log(`??$$ element:`, elm));
 
-    // catalog self in the DOM
+    // catalog self in the DOM ??$$ this is part of wiring I presume
     // ... so our form elements can do it's wiring (see CASE-2 above)
     // L8TR: ?? mimic what is done in FieldChecker controller
 
@@ -155,13 +168,13 @@ export default class FormChecker {
     // ... while leaving the Constraint Validation API in place (so we can tap into that)
     // <form novalidate ...>
     // ... we perform all field validation :-)
-    check(!formElm.hasAttribute('novalidate'), 'the <form> element should NOT manage the "novalidate" attribute ... this is the job of formCheckerAction');
-    formElm.setAttribute('novalidate', true);
+    check(!formNode.hasAttribute('novalidate'), 'the <form> element should NOT manage the "novalidate" attribute ... this is the job of formCheckerAction');
+    formNode.setAttribute('novalidate', true);
 
     // register the on:submit event to our <form>
     // <form on:submit={ourFn}>
     // ... NOTE: there is NO WAY to determine if an event has already been registered
-    formElm.addEventListener('submit', (e) => {
+    formNode.addEventListener('submit', (e) => {
       // prevent default behavior - we do NOT want to submit anything (over the web)
       e.preventDefault();
 
@@ -392,9 +405,9 @@ export default class FormChecker {
 
     // AI: clear our event listeners
     //  1. to accomplish this we need to make our event handlerFunctions non-anonymous
-    //  2. this cleanup is prob an overkill - the formElm has already been removed
+    //  2. this cleanup is prob an overkill - the formNode has already been removed
     //  >> JUST PUNT (unless it is a problem)
-    // formElm.removeEventListener('submit', needFunc);
+    // formNode.removeEventListener('submit', needFunc);
 
     // AI: clear additional functional state
     // ... prob an overkill

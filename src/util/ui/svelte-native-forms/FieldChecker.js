@@ -14,6 +14,15 @@ import {isString,
  *           the fieldCheckerAction.  As a result, you will see public
  *           facing items (such as Errors) reflect
  *           "fieldCheckerAction" nomenclature.
+ *
+ * **NOTE**: Regarding one specific variable name, WE AVOID the usage of: formElm
+ *           - Because it is ambiguous as to whether we are referring to the "form" or "field"
+ *             ... due to the unfortunate pseudo-standard term "interactive form element" (referring to fields)
+ *           - RATHER we use:
+ *             * formNode:  refers to the `<form>` element
+ *             * fieldNode: refers to the "field(s)" of a `<form>`
+ *                          ... what is typically called "interactive form element(s)"
+ *                          ... `<input>`, `<select>`, `<textarea>`, etc.
  */
 export default class FieldChecker {
 
@@ -22,10 +31,12 @@ export default class FieldChecker {
    *
    * **NOTE**: This constructor has the SAME signature of fieldCheckerAction.
    *
-   * @param {DOMElm} inputElm - the interactive form element for field
-   * we are monitoring (supplied by svelte).
+   * @param {DOMElm} fieldNode - the "field" element we are managing
+   * (supplied by svelte).  This is what it typically called an
+   * "interactive form element" ... `<input>`, `<select>`,
+   * `<textarea>`, etc.
    *
-   * **Please Note**: Subsequent to the inputElm parameter (supplied by svelte),
+   * **Please Note**: Subsequent to the fieldNode parameter (supplied by svelte),
    *                  named parameters are in use (supplied by client).
    *
    * @param {function} [validate] - optionally, a validate function
@@ -43,9 +54,9 @@ export default class FieldChecker {
    * apply to this field ... on DOM creation and reset() functionality.
    *
    * @param {any} [boundValue] - optionally, the application variable
-   * bound to this inputElm (required when svelte's bind:value is in
+   * bound to this fieldNode (required when svelte's bind:value is in
    * affect).  This is needed due to a web limitation where updates to
-   * inputElm.value (how svelte maintains the two-way binding) does NOT
+   * fieldNode.value (how svelte maintains the two-way binding) does NOT
    * emit 'on:input' events (how we typically monitor change -
    * triggering validation).
    *
@@ -58,7 +69,7 @@ export default class FieldChecker {
    *   API: 
    *     + changeBoundValue(initialValue): void (updating client boundValue to the supplied `initialValue`)
    */
-  constructor(inputElm, clientParams={}) {
+  constructor(fieldNode, clientParams={}) {
 
     //***
     //*** validate supplied parameters
@@ -66,10 +77,10 @@ export default class FieldChecker {
 
     const check = verify.prefix('fieldCheckerAction parameter violation: ');
 
-    // inputElm:
-    check(inputElm, 'a DOM elm was expected (by svelte) but is missing ... something is wrong');
-    check(['INPUT', 'SELECT', 'TEXTAREA'].indexOf(inputElm.nodeName) >= -1,
-          `this svelte action should be used on an interactive form element, NOT a <${inputElm.nodeName.toLowerCase()}>`);
+    // fieldNode:
+    check(fieldNode, 'a DOM elm was expected (by svelte) but is missing ... something is wrong');
+    check(['INPUT', 'SELECT', 'TEXTAREA'].indexOf(fieldNode.nodeName) >= -1,
+          `this svelte action should be used on an interactive form element, NOT a <${fieldNode.nodeName.toLowerCase()}>`);
 
     // clientParams:
     check(isPlainObject(clientParams), "client supplied parameters should be named parameters (ex: {validate, initialValue: 'abc'})");
@@ -84,14 +95,16 @@ export default class FieldChecker {
     // ... this is done early (prior to complete validation), 
     //     so as to activate various methods
     //     (like initialValueSupplied() and boundValueSupplied())
-    this._inputElm         = inputElm;
+    this._fieldNode        = fieldNode;
     this._validate         = validate;
     this._initialValue     = initialValue;
     this._boundValue       = boundValue;
     this._changeBoundValue = changeBoundValue;
 
     // validate:
-    check(validate && isFunction(validate),  'validate (when supplied) must be a function');
+    if (validate) {
+      check(isFunction(validate),  'validate (when supplied) must be a function');
+    }
 
     // initialValue: NO VALIDATION NEEDED (any value is acceptable)
 
@@ -120,9 +133,9 @@ export default class FieldChecker {
     //*** continue initialization (our parameters are valid)
     //***
 
-    // extract our fieldName from elm.name (takes precedence) -or- elm.id
-    this._fieldName = inputElm.getAttribute('name') || inputElm.getAttribute('id');
-    check(this._fieldName, 'our fieldName is derived from the form elements name attribute (takes precedence) -or- id attribute (this form element has neither attribute)');
+    // extract our fieldName from elm.name or elm.id (name takes precedence)
+    this._fieldName = fieldNode.getAttribute('name') || fieldNode.getAttribute('id');
+    check(this._fieldName, 'the actions form element MUST have a name -or- id attribute ... defining our actions fieldName (name takes precedence)');
 
     // retain additional state in self
     this._parentForm    = null;      // defined later via: registerParentForm()
@@ -134,12 +147,12 @@ export default class FieldChecker {
     this._errMsg = '';
     // ... the reflexive store
     this._errMsgStore = writable('', () => { // clean-up function ?? NEW: TEST THIS OUT
-      console.log(`?? fieldCheckerAction field: ${this.getFieldName()} errMsgStore registered it's FIRST subscriber!`);
+      //? console.log(`?? fieldCheckerAction field: ${this.getFieldName()} errMsgStore registered it's FIRST subscriber!`);
       return () => {
         // clear our action's errMsgStore state on LAST subscription
         // ... we can do this because self's FieldChecker is a subscriber
         //     SO if the subscription goes to zero, our object HAS BEEN DESTROYED!
-        console.log(`?? fieldCheckerAction field: ${this.getFieldName()} errMsgStore un-registered it's LAST subscriber ... clearing our action's errMsgStore state!`);
+        //? console.log(`?? fieldCheckerAction field: ${this.getFieldName()} errMsgStore un-registered it's LAST subscriber ... clearing our action's errMsgStore state!`);
         this._errMsg      = 'OBSOLETE - the fieldCheckerAction-based form element has been destroyed!';
         this._errMsgStore = null;             // remove the last store reference (making it eligible for GC)
         this._errMsgStore_unsubscribe = null; // ... ditto
@@ -153,21 +166,23 @@ export default class FieldChecker {
     //            ... in this case, the wiring occurs from top-to-bottom (later: when FormChecker is established)
     //  - CASE-2: when dynamics are involved (such as sub-sections of the form added) this IS be available
     //            ... in this case, we wire it up bottom-to-top (now: by us)
-    // ?? it may be that we can find the <form> but it's action has NOT yet executed
-    // ?? L8TR: DO SOMETHING
+    // ??$$ DO SOMETHING
+    const formNode = fieldNode.form; // ?? we can EASILY get our form here ... works for <input> -AND- <select> -AND- <textarea>!!
+    console.log(`??$$ fieldCheckerAction field: ${this.getFieldName()} executing ... form: `, formNode);
+    // ??$$ it IS in fact the case that we can access our parent <form> HOWEVER, for initial document load, the <form> action executes AFTER the <input> actions
 
-    // catalog self in the DOM
+    // catalog self in the DOM ??$$ this is part of wiring I presume
     // ... so the <form> can do it's wiring (see CASE-1 above)
     // ?? L8TR: DO SOMETHING ?? also need getKey() method -and- some static catalog/accessor
     //? this._key = someNextKey++;
-    //? store _key in this._inputElm data-attribute
+    //? store _key in this._fieldNode data-attribute
 
     // bind a "blur" event to our field, marking it as "touched"
     // <input on:blur={ourFn}>
     // ... NOTE: We really don't need to detect/prevent other on:blur events
     //           - the app logic may need this for other reasons
     //           - technically there is NO way to detect this
-    this._inputElm.addEventListener('blur', (e) => {
+    this._fieldNode.addEventListener('blur', (e) => {
       // prevent default behavior
       // ... unsure there IS a default for 'blur', but it doesn't hurt
       e.preventDefault();
@@ -184,13 +199,13 @@ export default class FieldChecker {
     //           - the app logic may need this for other reasons
     //           - technically there is NO way to detect this
     if (!this.boundValueSupplied()) {
-      this._inputElm.addEventListener('input', (e) => {
+      this._fieldNode.addEventListener('input', (e) => {
         // prevent default behavior
         // ... unsure there IS a default for 'input', but it doesn't hurt
         e.preventDefault();
         
         // provide notification that our field has changed, triggering validation
-        // ... in this case, the field change is through inputElm.value
+        // ... in this case, the field change is through fieldNode.value
         this.fieldHasChanged();
       });
     }
@@ -220,9 +235,9 @@ export default class FieldChecker {
     //       to monitor value changes.  With that said, this routine is coded
     //       in such a way that any clientParams change should be reflected.
     //       BACKGROUND:
-    //         - svelte maintains two-way bindings by managing inputElm.value
+    //         - svelte maintains two-way bindings by managing fieldNode.value
     //         - unfortunately, due to a limitation in web-standards,
-    //           changes to inputElm.value does NOT emit any events
+    //           changes to fieldNode.value does NOT emit any events
     //           (such as the "input" event we use to monitor changes)
     //         - therefore we are forced to monitor boundValue ourselves
     //           to monitor changes in svelte-bound fields
@@ -264,7 +279,7 @@ export default class FieldChecker {
    */
   getFieldValue() {
     // we handle BOTH svelte-bound -and- non-bound fields
-    return this.boundValueSupplied() ? this._boundValue : this._inputElm.value;
+    return this.boundValueSupplied() ? this._boundValue : this._fieldNode.value;
   }
 
   /**
@@ -296,7 +311,7 @@ export default class FieldChecker {
         // ?? unsure if we want to trigger change here (with it's validation) BUT I think this boundValue change WILL do this regardless
       }
       else {
-        inputElm.value = this._initialValue;
+        fieldNode.value = this._initialValue;
         // ?? unsure if we want to trigger change here (with it's validation) BUT if we do it must be done explicitly here (?? whatever we decide SHOULD be consistent with bound case - above)
       }
     }
@@ -310,7 +325,9 @@ export default class FieldChecker {
   getParentForm() {
     // ?# this is a central spot where we can check to insure our structure has been setup correctly
     //    ... USED when this structure is dynamically gleaned from the DOM hierarchy (driven by our action injection)
-    //    ... if (!this._parentForm) throw new Error(`*** ERROR *** Invalid FormChecker structure ... did you forget to apply the Xxx action on your form? ... (FieldChecker has NO parent FormChecker)`);
+    // ??? put it in early (see how we like it)
+    verify(this._parentForm, `*** ERROR *** Invalid FormChecker structure ... did you forget to apply the Xxx action on your form? ... (FieldChecker has NO parent FormChecker)`);
+
     return this._parentForm;
   }
 
@@ -442,7 +459,7 @@ export default class FieldChecker {
       // interpret the standard "HTML Form Element Constraint Validation"
       // ... ex: <input type="text" required minlength="5">
       // ... NOTE: checkValidity() -AND- validationMessage are part of this standard web API
-      let errMsg = this._inputElm.checkValidity() === false ? this._inputElm.validationMessage : '';
+      let errMsg = this._fieldNode.checkValidity() === false ? this._fieldNode.validationMessage : '';
 
       // perform app-specific field validation
       if (!errMsg &&        // ... when the standard "HTML Form Element Constraint Validation" IS CLEAN
@@ -491,7 +508,8 @@ export default class FieldChecker {
     this._errMsgStore.set(errMsg);
 
     // style our field to better distinguish errors
-    this.styleFieldErr();
+    // ??? do this ONCE we are hooked up
+    //? this.styleFieldErr();
   }
 
   /**
@@ -525,8 +543,8 @@ export default class FieldChecker {
     if (isValid) { // ... clear error styles
       // console.log(`XX styling form element '${this.getFieldName()}' AS valid`);
       Object.entries(errStyles).forEach( ([propName, propValue]) => {
-        // EX: this._inputElm.style.removeProperty('background-color')
-        removeProp(this._inputElm.style, camel2dashes(propName))
+        // EX: this._fieldNode.style.removeProperty('background-color')
+        removeProp(this._fieldNode.style, camel2dashes(propName))
       });
       // AI: CONSIDER retaining prior client-defined in-styles, to revert back to
       //     ... this would have to be done in constructor (once we know the properties we are dealing with - since it is parameterized)
@@ -535,7 +553,7 @@ export default class FieldChecker {
     else { // ... apply error styles
       // console.log(`XX styling form element '${this.getFieldName()}' AS invalid`);
       Object.entries(errStyles).forEach( ([propName, propValue]) => {
-        this._inputElm.style[propName] = propValue
+        this._fieldNode.style[propName] = propValue
       });
     }
   }
@@ -552,17 +570,18 @@ export default class FieldChecker {
   destroy() {
     // remove self from our parent FormChecker
     // ... by controlling from parentForm, our bi-directional relationship is maintained
-    this.getParentForm().removeFieldChecker(this);
+    // ??? do this ONCE we are hooked up
+    //? this.getParentForm().removeFieldChecker(this);
 
     // unsubscribe to our error message store (allowing it to clear it's state)
     this._errMsgStore_unsubscribe()
 
     // AI: clear our event listeners
     //  1. to accomplish this we need to make our event handlerFunctions non-anonymous
-    //  2. this cleanup is prob an overkill - the inputElm has already been removed
+    //  2. this cleanup is prob an overkill - the fieldNode has already been removed
     //  >> JUST PUNT (unless it is a problem)
-    // inputElm.removeEventListener('blur',  needFunc);
-    // inputElm.removeEventListener('input', needFunc);
+    // fieldNode.removeEventListener('blur',  needFunc);
+    // fieldNode.removeEventListener('input', needFunc);
 
     // AI: clear additional functional state
     // ... prob an overkill

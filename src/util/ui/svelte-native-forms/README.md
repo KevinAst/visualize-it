@@ -531,7 +531,7 @@ The `fieldChecker` action supports the following parameters _(all optional)_:
   words the initial value is strictly defined by your html.
 
 - **`boundValue`**: optionally, the application variable bound to this
-  inputElm.  This is required when svelte's `bind:value` is in affect
+  fieldNode.  This is required when svelte's `bind:value` is in affect
   _(due to a web limitation, see: [Svelte Bound Variables])_.
 
 - **`changeBoundValue`**: optionally, a client function that changes
@@ -804,11 +804,11 @@ _**Why is this required?  It seems a bit cumbersome!**_
 
 As it turns out, this has nothing to do with svelte or the **SNF**
 library.  Rather it is a limitation of the web itself, where updates
-to `inputElm.value` **do not** emit any web events _(such as the
+to `fieldNode.value` **do not** emit any web events _(such as the
 `on:input` event)_.
 
 - Svelte manages it's two-way binding by directly managing the
-  `inputElm.value`.
+  `fieldNode.value`.
   
 - By default, **SNF** monitors form element changes through the 
   `on:input` event.
