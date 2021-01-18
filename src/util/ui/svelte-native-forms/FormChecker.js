@@ -5,6 +5,9 @@ import {writable}        from 'svelte/store';
 import verify            from '../../verify.js';
 import {isFunction,
         isPlainObject}   from '../../typeCheck';
+import {get,
+        register,
+        unregister}      from './snfCatalog';
 
 const errStylesDEFAULT = {
   border:          '2px solid #900', /* solid red border */
@@ -96,6 +99,7 @@ export default class FormChecker {
 
     // retain all parameters in self
     // ... even though we have not yet completed validation (doesn't hurt)
+    this._formNode   = formNode;
     this._submit     = submit;
     this._controller = controller;
     this._errStyles  = errStyles;
@@ -150,18 +154,26 @@ export default class FormChecker {
     // ... subscribe to the store, syncing self's _isFormValid current value
     this._isFormValidStore_unsubscribe = this._isFormValidStore.subscribe( (isFormValid) => this._isFormValid = isFormValid );
 
-    // locate our form's interactive form elements, wiring up the FormChecker/FieldChecker containment tree
-    // L8TR: ?? regurgitate CASE-1 and 2 in other controller
-    // ?? logic sample to register any fieldCheckers (once we find them)
-    //?   fieldCheckers.forEach( (fieldChecker) => this.registerFieldChecker(fieldChecker) );
-    // ??$$ WIRE IT UP ?? MUST BE AFTER WE KNOW ALL THINGS ARE VALID (i.e. there are more checks below)
-    const fieldNodes = [...formNode.elements]; // ?? we can EASILY get ALL form elements ... works for <input> -AND- <select> -AND- <textarea>!!
-    console.log(`??$$ formCheckerAction executing ... fieldNodes: `, {fieldNodes});
-    fieldNodes.forEach((elm) => console.log(`??$$ element:`, elm));
+    // register self in our snfCatalog
+    // ... retaining the key in self
+    // ... and registering the key in our DOM (using "HTML5 Custom Data Attributes")
+    this._key = register('FormChecker', this); // ... ex: 'FormChecker-3010'
+    this._formNode.dataset.snfKey = this._key; // ... ex: <input data-snf-key="FormChecker-3010" ...>
 
-    // catalog self in the DOM ??$$ this is part of wiring I presume
-    // ... so our form elements can do it's wiring (see CASE-2 above)
-    // L8TR: ?? mimic what is done in FieldChecker controller
+    // wire up all FieldChecker children, accessed via the DOM hierarchy
+    // ... because our formCheckerAction executes last (as it is the top of the hierarchy)
+    //     we must wire up our FieldChecker children (on this DOM's initial construction)
+    const fieldNodes = [...formNode.elements]; // ... all DOM fields within the form (<input>, <select>, <textarea>, etc.)
+    fieldNodes.forEach((fieldNode) => {
+      // ... if snfKey has NOT been set, 
+      //     it means the <input> does NOT have a fieldCheckerAction (occurs when no validation is required for this field)
+      //     and fieldChecker will be undefined
+      const fieldChecker = get(fieldNode.dataset.snfKey);
+      if (fieldChecker) {
+        this.registerFieldChecker(fieldChecker);
+        // console.log(`XX formCheckerAction wiring up field: ${fieldChecker}`);
+      }
+    });
 
     // apply the novalidate attribute to our <form>
     // ... this disables the standard error presentation (allowing our presentation to take affect)
@@ -402,6 +414,11 @@ export default class FormChecker {
 
     // unsubscribe to our form-based error state (allowing it to clear it's state)
     this._isFormValidStore_unsubscribe()
+
+    // unregister self in our snfCatalog
+    // ... we could also remove our DOM data attribute, but the DOM is gone, so it is a mute point)
+    //     e.g. this._formNode.removeAttribute('data-snf-key');
+    unregister(this._key);
 
     // AI: clear our event listeners
     //  1. to accomplish this we need to make our event handlerFunctions non-anonymous

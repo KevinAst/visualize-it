@@ -1,10 +1,13 @@
 // ?? ?#: further refinement for Phase II
 // ?? ?%: DOM-BASED-CLEANUP: once we restructure to be DOM-based (where FieldChecker is independent of FormChecker) this will be cleaned up!
 import {writable}        from 'svelte/store';
-import verify            from '../../verify.js';
+import verify            from '../../verify';
 import {isString,
         isPlainObject,
         isFunction}      from '../../typeCheck';
+import {get,
+        register,
+        unregister}      from './snfCatalog';
 
 /**
  * A FieldChecker object orchestrates validation of an individual
@@ -80,7 +83,8 @@ export default class FieldChecker {
     // fieldNode:
     check(fieldNode, 'a DOM elm was expected (by svelte) but is missing ... something is wrong');
     check(['INPUT', 'SELECT', 'TEXTAREA'].indexOf(fieldNode.nodeName) >= -1,
-          `this svelte action should be used on an interactive form element, NOT a <${fieldNode.nodeName.toLowerCase()}>`);
+          `this action should be used on an interactive form element, NOT a <${fieldNode.nodeName.toLowerCase()}>`);
+    check(fieldNode.form, "this action's interactive form element MUST BE part of a <form>");
 
     // clientParams:
     check(isPlainObject(clientParams), "client supplied parameters should be named parameters (ex: {validate, initialValue: 'abc'})");
@@ -161,21 +165,29 @@ export default class FieldChecker {
     // ... subscribe to the store, syncing self's _errMsg current value
     this._errMsgStore_unsubscribe = this._errMsgStore.subscribe( (errMsg) => this._errMsg = errMsg );
 
-    // locate our <form> elm, wiring up the FormChecker/FieldChecker containment tree
-    //  - CASE-1: for initial DOM setup (the normal case) this is NOT yet available
-    //            ... in this case, the wiring occurs from top-to-bottom (later: when FormChecker is established)
-    //  - CASE-2: when dynamics are involved (such as sub-sections of the form added) this IS be available
-    //            ... in this case, we wire it up bottom-to-top (now: by us)
-    // ??$$ DO SOMETHING
-    const formNode = fieldNode.form; // ?? we can EASILY get our form here ... works for <input> -AND- <select> -AND- <textarea>!!
-    console.log(`??$$ fieldCheckerAction field: ${this.getFieldName()} executing ... form: `, formNode);
-    // ??$$ it IS in fact the case that we can access our parent <form> HOWEVER, for initial document load, the <form> action executes AFTER the <input> actions
+    // register self in our snfCatalog
+    // ... retaining the key in self
+    // ... and registering the key in our DOM (using "HTML5 Custom Data Attributes")
+    this._key = register('FieldChecker', this); // ... ex: 'FieldChecker-3005'
+    this._fieldNode.dataset.snfKey = this._key; // ... ex: <input data-snf-key="FieldChecker-3005" ...>
 
-    // catalog self in the DOM ??$$ this is part of wiring I presume
-    // ... so the <form> can do it's wiring (see CASE-1 above)
-    // ?? L8TR: DO SOMETHING ?? also need getKey() method -and- some static catalog/accessor
-    //? this._key = someNextKey++;
-    //? store _key in this._fieldNode data-attribute
+    // optionally wire up our FormChecker parent, when our DOM is pre-established
+    // - when the form's snfKey/formChecker IS defined:
+    //   * then self's fieldNode has been dynamically introduced to this existing form
+    //     and we wire it up now (dynamically)
+    // - when the form's snfKey/formChecker IS NOT defined:
+    //   * it means the <form use:formCheckerAction> has not been executed yet
+    //     (or the action is missing)
+    //   * in this case we rely on the formCheckerAction to wire us up (once it executes)
+    //     ... if the formCheckerAction is missing, we will catch that in our getParentForm() check
+    const formChecker = get(fieldNode.form.dataset.snfKey);
+    if (formChecker) {
+      formChecker.registerFieldChecker(this);
+      // console.log(`XX fieldCheckerAction field: '${this.getFieldName()}' dynamically wired up our form: ${formChecker}`);
+    }
+    // else {
+    //   console.log(`XX fieldCheckerAction field: '${this.getFieldName()}' waiting for our form to execute the formCheckerAction to wire us up`);
+    // }
 
     // bind a "blur" event to our field, marking it as "touched"
     // <input on:blur={ourFn}>
@@ -323,11 +335,13 @@ export default class FieldChecker {
    * @returns {FormChecker} self's parent form.
    */
   getParentForm() {
-    // ?# this is a central spot where we can check to insure our structure has been setup correctly
-    //    ... USED when this structure is dynamically gleaned from the DOM hierarchy (driven by our action injection)
-    // ??? put it in early (see how we like it)
-    verify(this._parentForm, `*** ERROR *** Invalid FormChecker structure ... did you forget to apply the Xxx action on your form? ... (FieldChecker has NO parent FormChecker)`);
+    // verify we have a parentForm
+    // ... this is a central spot where we can check to insure our structure has been setup correctly
+    //     - due to the dynamics of our wiring (gleaning our hierarchy from the DOM hierarchy
+    //     - driven by our svelte actions
+    verify(this._parentForm, `*** ERROR *** Invalid FormChecker structure (FieldChecker has NO parent FormChecker) ... did you forget to apply the formChecker action on your <form>?`);
 
+    // fulfill request
     return this._parentForm;
   }
 
@@ -508,8 +522,12 @@ export default class FieldChecker {
     this._errMsgStore.set(errMsg);
 
     // style our field to better distinguish errors
-    // ??? do this ONCE we are hooked up
-    //? this.styleFieldErr();
+    // ... condition (below) is due to "initial setup" race condition
+    //     NO-OP styling in this case
+    //     NOTE: should be correctly "re-executed" from a our formChecker control
+    if (this._parentForm) {
+      this.styleFieldErr();
+    }
   }
 
   /**
@@ -570,11 +588,15 @@ export default class FieldChecker {
   destroy() {
     // remove self from our parent FormChecker
     // ... by controlling from parentForm, our bi-directional relationship is maintained
-    // ??? do this ONCE we are hooked up
-    //? this.getParentForm().removeFieldChecker(this);
+    this.getParentForm().removeFieldChecker(this);
 
     // unsubscribe to our error message store (allowing it to clear it's state)
     this._errMsgStore_unsubscribe()
+
+    // unregister self in our snfCatalog
+    // ... we could also remove our DOM data attribute, but the DOM is gone, so it is a mute point)
+    //     e.g. this._fieldNode.removeAttribute('data-snf-key');
+    unregister(this._key);
 
     // AI: clear our event listeners
     //  1. to accomplish this we need to make our event handlerFunctions non-anonymous
