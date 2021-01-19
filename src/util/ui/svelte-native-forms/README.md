@@ -688,25 +688,8 @@ The `<FieldErr>` component dynamically displays a field-specific
 message when the field it is monitoring is invalid.
 
 This component auto-wires itself to the monitored field of interest
-either through the `forId`/`forName` properties, or implicitly through
+either through the `forName` property, or implicitly through
 it's placement within a `<label>` container _(see **Usage** below)_.
-**These three techniques are mutually exclusive**.
-?? AI: no need to say "mutually exclusive" this when we remove forId.
-
-**Usage** _(via `forId`)_: ?? AI: consider removing - REDUNDANT and over-complicates (WHICH TO REMOVE?)
-
-<ul>
-
-```html
-<FieldErr forId="zip"/>
-```
-
-In this case, the monitored field is identified through it's DOM ID.
-
-Example: `<input id="zip" use:fieldChecker ...>`
-
-</ul>
-
 
 **Usage** _(via `forName`)_:
 
@@ -752,9 +735,7 @@ how an `<input>` element can be implicitly associated to it's
 
 **API:**
 ```
-<FieldErr [forId=""]     ... identifies the field to monitor errors on, as defined by the 
-                             field's DOM ID (mutually exclusive to forName)
-          [forName=""]   ... identifies the field to monitor errors on, as defined by the SNF
+<FieldErr [forName=""]   ... identifies the field to monitor errors on, as defined by the SNF
                              fieldName (which can be the DOM name or id attributes, name taking
                              precedence)
                              DEFAULT: implicit <label> containment
