@@ -684,21 +684,67 @@ AI: ?? Provide a full-blown example that overrides the internal DispErr componen
 
 <ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
 
-The `<FieldErr>` component conditionally displays a field-specific message when
-the field it is monitoring is invalid.
+The `<FieldErr>` component dynamically displays a field-specific
+message when the field it is monitoring is invalid.
 
-**Usage:**
+This component auto-wires itself to the monitored field of interest
+either through the `forId`/`forName` properties, or implicitly through
+it's placement within a `<label>` container _(see **Usage** below)_.
+**These three techniques are mutually exclusive**.
+?? AI: no need to say "mutually exclusive" this when we remove forId.
+
+**Usage** _(via `forId`)_: ?? AI: consider removing - REDUNDANT and over-complicates (WHICH TO REMOVE?)
+
+<ul>
 
 ```html
-<!-- field error message -->
-?# retrofit to what it ultimately looks like for field defs
-<FieldErr {fieldChecker}/>
+<FieldErr forId="zip"/>
 ```
 
-?# The `<FieldErr>` <mark>**must** identify the field it is
-monitoring</mark>, either through the `forFieldId` property, or it's
-placement within a `<label>` container By doing this, it will
-auto-bind to the errors from that field!
+In this case, the monitored field is identified through it's DOM ID.
+
+Example: `<input id="zip" use:fieldChecker ...>`
+
+</ul>
+
+
+**Usage** _(via `forName`)_:
+
+<ul>
+
+```html
+<FieldErr forName="zip"/>
+```
+
+In this case, the monitored field is identified through the **SNF**
+defined `fieldName` _(which can be the DOM `name` or `id` attributes,
+`name` taking precedence)_.
+
+Example: `<input id="wow" name="zip" use:fieldChecker ...>`
+
+</ul>
+
+
+**Usage** _(via implicit `label` containment)_:
+
+<ul>
+
+```html
+<label>
+  Zip:
+  <input name="zip" type="text" required use:fieldChecker>
+  <FieldErr/>
+</label>
+```
+
+In this case, the monitored field is implicitly identified through
+it's placement in a `<label>` container.  Both the field and
+`<FieldErr>` are nested in a `<label>` element.  This is similar to
+how an `<input>` element can be implicitly associated to it's
+`<label>`.
+
+</ul>
+
 
 **Visual:**
 
@@ -706,9 +752,14 @@ auto-bind to the errors from that field!
 
 **API:**
 ```
-<FieldErr fieldChecker={} ... the FieldChecker object to monitor errors on
-          [DispErr={}]/>  ... the display component that renders the error
-                              DEFAULT: the standard internal error display component
+<FieldErr [forId=""]     ... identifies the field to monitor errors on, as defined by the 
+                             field's DOM ID (mutually exclusive to forName)
+          [forName=""]   ... identifies the field to monitor errors on, as defined by the SNF
+                             fieldName (which can be the DOM name or id attributes, name taking
+                             precedence)
+                             DEFAULT: implicit <label> containment
+          [DispErr={}]/> ... the display component that renders the error
+                             DEFAULT: the standard internal error display component
 ```
 
 **Customization:**
