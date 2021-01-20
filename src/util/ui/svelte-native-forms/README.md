@@ -566,24 +566,24 @@ the appropriate error.  As a result, they are very simple to use.
 
 <ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
 
-The `<FormErr>` component conditionally displays a generalized message when
-something is wrong with one or more form fields.  The default message
-is: <span style="font-size: 80%; font-weight: bold; color:red;">Please
-correct the highlighted field errors</span> but can easily be
-overwritten through the `errMsg` property.
+The `<FormErr>` component dynamically displays a generalized message
+when something is wrong with one or more form fields.  The default
+message is: <span style="font-size: 80%; font-weight: bold;
+color:red;">Please correct the highlighted field errors</span> but can
+easily be overwritten through the `errMsg` property.
+
+`<FormErr>` <mark>must be a descendant of</mark> a `<form>` that is
+controlled by a `formChecker` action.  This is how it implicitly
+auto-wires itself to the form's error status.
 
 **Usage:**
 
 ```html
-<!-- form error message -->
-<center>
-  <FormErr {formChecker}/>
-</center>
+<form use:formChecker={{submit}}>
+  ... snip snip
+  <FormErr/>
+</form>
 ```
-
-?# The `<FormErr>` <mark>**must** be placed</mark> within the `<form>`
-for which it is monitoring.  By doing this, it will auto-bind to the
-errors from that form!
 
 **Visual:**
 
@@ -591,8 +591,7 @@ errors from that form!
 
 **API:**
 ```
-<FormErr formChecker={} ... the FormChecker object to monitor errors on
-         [errMsg={}]    ... the generalized form-based error message
+<FormErr [errMsg={}]    ... the generalized form-based error message
                             DEFAULT: "Please correct the highlighted field errors"
          [DispErr={}]/> ... the display component that renders the error
                             DEFAULT: the standard internal error display component

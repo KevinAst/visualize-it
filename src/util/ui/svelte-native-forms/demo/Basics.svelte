@@ -1,5 +1,5 @@
 <script>
- import {formChecker,  /*FormErr,*/
+ import {formChecker,  FormErr,
          fieldChecker, FieldErr} from '../../svelte-native-forms';
 
  const submit     = (event, fieldValues) => alert(`Successful submit (all fields are valid)!`);
@@ -23,7 +23,7 @@
   </label>
 
   <center>
-<!--<FormErr/>-->
+    <FormErr/>
   </center>
   <center>
     <input type="submit" value="Make It SO!">
