@@ -4,7 +4,7 @@
  import {isString,
          isFunction}   from '../../typeCheck';
  import {onMount}      from 'svelte';
- import {get}          from './snfCatalog';
+ import {get}          from './catalog';
  
  // The `<FieldErr>` component dynamically displays a field-specific
  // message when the field it is monitoring is invalid.

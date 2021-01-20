@@ -7,7 +7,7 @@ import {isFunction,
         isPlainObject}   from '../../typeCheck';
 import {get,
         register,
-        unregister}      from './snfCatalog';
+        unregister}      from './catalog';
 
 const errStylesDEFAULT = {
   border:          '2px solid #900', /* solid red border */
@@ -154,7 +154,7 @@ export default class FormChecker {
     // ... subscribe to the store, syncing self's _isFormValid current value
     this._isFormValidStore_unsubscribe = this._isFormValidStore.subscribe( (isFormValid) => this._isFormValid = isFormValid );
 
-    // register self in our snfCatalog
+    // register self in our catalog
     // ... retaining the key in self
     // ... and registering the key in our DOM (using "HTML5 Custom Data Attributes")
     this._key = register('FormChecker', this); // ... ex: 'FormChecker-3010'
@@ -426,7 +426,7 @@ export default class FormChecker {
     // unsubscribe to our form-based error state (allowing it to clear it's state)
     this._isFormValidStore_unsubscribe()
 
-    // unregister self in our snfCatalog
+    // unregister self in our catalog
     // ... we could also remove our DOM data attribute, but the DOM is gone, so it is a mute point)
     //     e.g. this._formNode.removeAttribute('data-snf-key');
     unregister(this._key);

@@ -7,7 +7,7 @@ import {isString,
         isFunction}      from '../../typeCheck';
 import {get,
         register,
-        unregister}      from './snfCatalog';
+        unregister}      from './catalog';
 
 /**
  * A FieldChecker object orchestrates validation of an individual
@@ -165,7 +165,7 @@ export default class FieldChecker {
     // ... subscribe to the store, syncing self's _errMsg current value
     this._errMsgStore_unsubscribe = this._errMsgStore.subscribe( (errMsg) => this._errMsg = errMsg );
 
-    // register self in our snfCatalog
+    // register self in our catalog
     // ... retaining the key in self
     // ... and registering the key in our DOM (using "HTML5 Custom Data Attributes")
     this._key = register('FieldChecker', this); // ... ex: 'FieldChecker-3005'
@@ -597,7 +597,7 @@ export default class FieldChecker {
     // unsubscribe to our error message store (allowing it to clear it's state)
     this._errMsgStore_unsubscribe()
 
-    // unregister self in our snfCatalog
+    // unregister self in our catalog
     // ... we could also remove our DOM data attribute, but the DOM is gone, so it is a mute point)
     //     e.g. this._fieldNode.removeAttribute('data-snf-key');
     unregister(this._key);
