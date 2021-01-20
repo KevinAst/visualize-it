@@ -107,7 +107,8 @@ technique to handle form validation)_.
   - [`<FieldErr>`]
 - [Advanced Concepts]
   - [Svelte Bound Variables]
-  - [Customization]
+- [Customization]
+  - [Error Look and Feel]
 - [Competition]
 
 
@@ -594,86 +595,15 @@ auto-wires itself to the form's error status.
 <FormErr [errMsg={}]    ... the generalized form-based error message
                             DEFAULT: "Please correct the highlighted field errors"
          [DispErr={}]/> ... the display component that renders the error
+                            ACCEPTS: errMsg property ... an empty string ('') represents NO error
                             DEFAULT: the standard internal error display component
 ```
 
 **Customization:**
 
-The `<FormErr>` component simply monitors the reflective state of form
-errors, and defers it's display to an internal `<DispErr>`,
-passing it the `errMsg` string _(an empty string (`''`) represents no
-error)_.
-
-This display component is extremely simple.  It styles the message and
-dynamically displays it using animation:
-
-**DispErr.svelte** _... the internal default component_
-```html
-<script>
- import {fade} from 'svelte/transition';
- export let errMsg;
-</script>
-
-{#if errMsg}
-  <div class="error" transition:fade>
-    {errMsg}
-  </div>
-{/if}
-
-<style>
- .error {
-   font-size:    80%;
-   font-weight:  bold;
-   font-style:   italic;
-   color:        #900;
- }
-</style>
-```
-
-Because of it's simplicity, you can easily implement your own display
-component and pass it to `<FormErr>` through the `DispErr` property.
-Simply use the `DispErr.svelte` _(above)_ as a pattern.  _**You
-can tailor the style and animation to your application needs!**_ Here
-is an example that overrides the default:
-
-```html
-<!-- form error message -->
-<center>
-  <FormErr {formChecker} DispErr={MyErrComp}/>
-</center>
-```
-
-AI: ?? Provide a full-blown example that overrides the internal DispErr component.  Here are some ideas:
-
-- NOTE: this covers BOTH FieldErr and FormErr
-- change the animation
-- change the error display into a red box via the following form style:
-  ```
-  <style>
-   .formError {
-     padding:          0.3em;
-     font-size:        80%;
-     color:            white;
-     background-color: #900;
-     border-radius:    5px;
-     box-sizing:       border-box;
-   }
-  </style>
-  ```
-- here is the corresponding field style (a red box with square top so it looks like part of the input):
-  ```
-  <style>
-   .fieldError {
-     width:            100%;
-     padding:          0.3em;
-     font-size:        80%;
-     color:            white;
-     background-color: #900;
-     border-radius:    0 0 5px 5px;
-     box-sizing:       border-box;
-   }
-  </style>
-  ```
+Please refer to the [Error Look and Feel] section to see how you can
+customize the display of your error messages _(using the `DispErr`
+property)_.
 
 </ul>
 
@@ -739,53 +669,16 @@ how an `<input>` element can be implicitly associated to it's
                              precedence)
                              DEFAULT: implicit <label> containment
           [DispErr={}]/> ... the display component that renders the error
+                             ACCEPTS: errMsg property ... an empty string ('') represents NO error
                              DEFAULT: the standard internal error display component
 ```
 
 **Customization:**
 
-The `<FieldErr>` component simply monitors the reflective error state
-of the field it is monitoring, and defers it's display to an internal
-`<DispErr>`, passing it the `errMsg` string _(an empty string (`''`)
-represents no error)_.
 
-This display component is extremely simple.  It styles the message and
-dynamically displays it using animation:
-
-?? THIS IS MOSTLY A DUPLICATE (from `<FieldErr>`)
-
-**DispErr.svelte** _... the internal default component_
-```html
-<script>
- import {fade} from 'svelte/transition';
- export let errMsg;
-</script>
-
-{#if errMsg}
-  <div class="error" transition:fade>
-    {errMsg}
-  </div>
-{/if}
-
-<style>
- .error {
-   font-size:    80%;
-   font-weight:  bold;
-   font-style:   italic;
-   color:        #900;
- }
-</style>
-```
-
-Because of it's simplicity, you can easily implement your own display
-component and pass it to `<FieldErr>` through the `DispErr` property.
-Simply use the `DispErr.svelte` _(above)_ as a pattern.  _**You
-can tailor the style and animation to your application needs!**_ Here
-is an example that overrides the default:
-
-```html
-<FieldErr {fieldChecker} DispErr={MyErrComp}/>
-```
+Please refer to the [Error Look and Feel] section to see how you can
+customize the display of your error messages _(using the `DispErr`
+property)_.
 
 </ul>
 
@@ -796,7 +689,6 @@ is an example that overrides the default:
 The following sections discuss more advanced concepts of **SNF**:
 
 - [Svelte Bound Variables]
-- [Customization]
 
 
 <!--- *** Section ************************************************************************* ---> 
@@ -886,14 +778,99 @@ specify a `changeBoundValue` function.  For example:
 <!--- *** Section ************************************************************************* ---> 
 ## Customization
 
-<ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
-
 **SNF** is customizable!
 
-- don't like the error display format?** _... that is easily resolved_
-- want to perform a custom field validation?** _... easy peasy_
+- **don't like the error display format?** _... that is easily resolved_
+- **want to perform a custom field validation?** _... easy peasy_
 
-AI: ?? expand this section!
+The following sections discuss various **customization features**:
+
+- [Error Look and Feel]
+
+
+<!--- *** Section ************************************************************************* ---> 
+## Error Look and Feel
+
+<ul><!--- indentation hack for github - other attempts with style is stripped (be careful with number bullets) ---> 
+
+**SNF** provides two reactive error display components that
+dynamically display appropriate errors as needed ([`<FormErr>`] and
+[`<FieldErr>`]).  
+
+**The "Look and Feel" of these components can easily be overridden.**
+They merely monitor the appropriate reflective error state, and defer
+their display to an internal `<DispErr>` component _(passing the
+`errMsg` to display ... where an empty string (`''`) represents no error)_.
+
+This display component is extremely simple!  It styles and displays
+the message using animation.  Here is the default implementation:
+
+**DispErr.svelte** _... the **DEFAULT** internal display component_
+```html
+<script>
+ import {fade} from 'svelte/transition';
+ export let errMsg;
+</script>
+
+{#if errMsg}
+  <span class="error" transition:fade>
+    {errMsg}
+  </span>
+{/if}
+
+<style>
+ .error {
+   font-size:    80%;
+   font-weight:  bold;
+   font-style:   italic;
+   color:        #900;
+ }
+</style>
+```
+
+Because of it's simplicity, you can easily implement your own display
+component and pass it to [`<FormErr>`]/[`<FieldErr>`] through the
+`DispErr` property.  Simply use the `DispErr.svelte` _(above)_ as a
+pattern.  _**You can tailor the style and animation to your
+application needs!**_
+
+Here is an example that overrides the default:
+
+```html
+<FormErr DispErr={MyErrComp}/>
+```
+
+AI: ?? Provide a full-blown example that overrides the internal DispErr component.  Here are some ideas:
+
+- NOTE: this covers BOTH FieldErr and FormErr
+- change the animation
+- change the error display into a red box via the following form style:
+  ```
+  <style>
+   .formError {
+     padding:          0.3em;
+     font-size:        80%;
+     color:            white;
+     background-color: #900;
+     border-radius:    5px;
+     box-sizing:       border-box;
+   }
+  </style>
+  ```
+- here is the corresponding field style (a red box with square top so it looks like part of the input):
+  ```
+  <style>
+   .fieldError {
+     width:            100%;
+     padding:          0.3em;
+     font-size:        80%;
+     color:            white;
+     background-color: #900;
+     border-radius:    0 0 5px 5px;
+     box-sizing:       border-box;
+   }
+  </style>
+  ```
 
 </ul>
 
@@ -1011,7 +988,8 @@ A Form Generator (KJB: NO NO NO)
 [Advanced Concepts]:          #advanced-concepts
   [Svelte Bound Variables]:   #svelte-bound-variables
   [more when `initialValue` in use ...]: #more-when-initialvalue-in-use-
-  [Customization]:            #customization
+[Customization]:              #customization
+  [Error Look and Feel]:      #error-look-and-feel
 [Competition]:                #competition
 
 <!--- external links ---> 

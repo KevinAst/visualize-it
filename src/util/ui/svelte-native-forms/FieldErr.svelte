@@ -29,6 +29,7 @@
  export let forName = null;
  
  // INPUT: [DispErr]: the display component that renders the error - DEFAULTS to the standard internal error display component
+ //                   ACCEPTS: errMsg property ... an empty string ('') represents NO error
  export let DispErr = DispErrDefault;
  
  // validate INPUT properties
