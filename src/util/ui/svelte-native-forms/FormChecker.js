@@ -140,12 +140,12 @@ export default class FormChecker {
     this._isFormValid = true;
     // ... the reflexive store
     this._isFormValidStore = writable(true, () => { // clean-up function
-      // console.log(`XX formCheckerAction isFormValidStore registered it's FIRST subscriber!`);
+      // console.log(`XX formCheckerAction: registered isFormValidStore's FIRST subscriber!`);
       return () => {
         // clear our action's isFormValidStore state on LAST subscription
         // ... we can do this because self's FormChecker is a subscriber
         //     SO if the subscription goes to zero, our object HAS BEEN DESTROYED!
-        // console.log(`XX formCheckerAction isFormValidStore un-registered it's LAST subscriber ... clearing our action's isFormValidStore state!`);
+        // console.log(`XX formCheckerAction: un-register isFormValidStore - it has NO MORE subscribers!`);
         this._isFormValid      = 'OBSOLETE - the formCheckerAction-based form element has been destroyed!';
         this._isFormValidStore = null;             // remove the last store reference (making it eligible for GC)
         this._isFormValidStore_unsubscribe = null; // ... ditto

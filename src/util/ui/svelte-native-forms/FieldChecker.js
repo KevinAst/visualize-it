@@ -151,12 +151,12 @@ export default class FieldChecker {
     this._errMsg = '';
     // ... the reflexive store
     this._errMsgStore = writable('', () => { // clean-up function ?? NEW: TEST THIS OUT
-      //? console.log(`?? fieldCheckerAction field: ${this.getFieldName()} errMsgStore registered it's FIRST subscriber!`);
+      // console.log(`XX fieldCheckerAction[field: '${this.getFieldName()}']: registered errMsgStore's FIRST subscriber!`);
       return () => {
         // clear our action's errMsgStore state on LAST subscription
         // ... we can do this because self's FieldChecker is a subscriber
         //     SO if the subscription goes to zero, our object HAS BEEN DESTROYED!
-        //? console.log(`?? fieldCheckerAction field: ${this.getFieldName()} errMsgStore un-registered it's LAST subscriber ... clearing our action's errMsgStore state!`);
+        // console.log(`XX fieldCheckerAction[field: '${this.getFieldName()}']: un-register errMsgStore - it has NO MORE subscribers!`);
         this._errMsg      = 'OBSOLETE - the fieldCheckerAction-based form element has been destroyed!';
         this._errMsgStore = null;             // remove the last store reference (making it eligible for GC)
         this._errMsgStore_unsubscribe = null; // ... ditto
