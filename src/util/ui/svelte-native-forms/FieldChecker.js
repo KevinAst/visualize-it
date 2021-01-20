@@ -588,7 +588,11 @@ export default class FieldChecker {
   destroy() {
     // remove self from our parent FormChecker
     // ... by controlling from parentForm, our bi-directional relationship is maintained
-    this.getParentForm().removeFieldChecker(this);
+    // ... NOTE: condition (below) ALLOWS demo to continue for error conditions that are caught at run-time
+    //           - we NO-OP the cleanup process (in this case)
+    if (this._parentForm) {
+      this.getParentForm().removeFieldChecker(this);
+    }
 
     // unsubscribe to our error message store (allowing it to clear it's state)
     this._errMsgStore_unsubscribe()
