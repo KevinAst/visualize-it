@@ -50,19 +50,6 @@ export default class FormChecker {
    *   API:
    *    + submit(event, fieldValues): void
    *
-   * @param {object} [controller] - an optional object that, when
-   * supplied, will be populated with the SNF public API (a pseudo
-   * pass-by-reference).
-   *
-   *   API:
-   *   ```
-   *   {
-   *     reset() ... Reset the form back to it's original state.
-   *                 Useful when a form is re-used without deleting it's DOM
-   *                 representation (say when used in a form-based dialog).
-   *   }
-   *   ```
-   *
    * @param {object} [errStyles] - an optional object containing the
    * in-line styles to apply to input elements that are in error.
    *
@@ -93,7 +80,6 @@ export default class FormChecker {
     check(isPlainObject(clientParams), "client supplied parameters should be named parameters (ex: {submit})");
     // ... descturcture our individual clientParams (i.e. named parameters)
     const {submit,
-           controller,
            errStyles=errStylesDEFAULT,
            ...unknownNamedArgs} = clientParams;
 
@@ -101,17 +87,11 @@ export default class FormChecker {
     // ... even though we have not yet completed validation (doesn't hurt)
     this._formNode   = formNode;
     this._submit     = submit;
-    this._controller = controller;
     this._errStyles  = errStyles;
 
     // submit:
     check(submit,             'submit is required');
     check(isFunction(submit), 'submit must be a function');
-
-    // controller (optional):
-    if (controller) {
-      check(isPlainObject(controller), 'controller (when supplied) must be a plain object, which will be populated with the SNF public API (a pseudo pass-by-reference)');
-    }
 
     // errStyles (optional):
     check(errStyles === null || 
@@ -194,18 +174,45 @@ export default class FormChecker {
       this.submitRequested(e);
     });
 
-    // bind necessary methods to self's object, allowing them to be used as isolated functions
-    this.reset = this.reset.bind(this);
-
-    // define the SNF public controller API, optionally communicated to our client
-    const publicController = {
-      reset: this.reset,
+    // define the SNF formController API, publicly promoted via the `form-controller` event
+    // NOTE 1: These controller functions are true functions (not methods)
+    //         - BECAUSE: They do NOT rely on formController `this`: DUE to arrow function usage
+    //                    RATHER the `this` refs (below) are the outer context of our FormChecker object
+    //         - This means that clients can hold references to these functions without the object context
+    //           ... EX: <button on:click|preventDefault={controller.reset}>Reset</button>
+    // NOTE 2: This controller automatically detects "staleness" and throws appropriate errors
+    //         WHEN the formCheckerAction DOM structure has been removed!
+    //         - the client should NOT use controllers in this case!
+    //           FYI: Even though the client should implicitly know this,
+    //                we can't inform them to remove the controller (via an event)
+    //                because the DOM NODE (on which this event would be emitted) has been removed.
+    //                As a result, the emitted Errors (below) are definitive (to the client)
+    const formController = {
+      reset: () => {
+        this.checkStale('formController.reset()');
+        this.reset();
+      },
     }
 
-    // when supplied, populate the client controller with our SNF public API (a pseudo pass-by-reference)
-    if (controller) {
-      Object.entries(publicController).forEach( ([key, val]) => controller[key] = val );
-    }
+    // emit `form-controller` event to communicate controller to our client!
+    // NOTE: By default, event handlers must be registered BEFORE our action
+    //       because actions are executed in the order of the DOM attributes!
+    //         EX: This is correct:
+    //             <form on:form-controller={ (e) => controller = e.detail.formController }
+    //                   use:formChecker={{submit: addPkgEntry}}>
+    //       If the order is reversed, our action will emit the event before the
+    //       event registration occurs :-(
+    //         EX: This emits an ERROR (when controller.reset() is invoked):
+    //             <form use:formChecker={{submit: addPkgEntry}}
+    //                   on:form-controller={ (e) => controller = e.detail.formController }>
+    //             ERROR: Cannot read property 'reset' of undefined
+    //                    ... because the form-controller was registered AFTER the event was emitted!
+    //       FIX: TO RELAX THIS CONSTRAINT: We emit the event in a timer!
+    //            This may be considered a bit hoaky, BUT it works!
+    setTimeout( () => {
+	    formNode.dispatchEvent(new CustomEvent('form-controller', 
+                                             {detail: {formController}}));
+    }, 100); // ... 100 mills - technically a smaller time should work (we merely want to break the synchronicity)
 
     // insure our form (and it's fields) are in the correct initial state
     // ... including applying initial field values
@@ -220,6 +227,7 @@ export default class FormChecker {
    * @returns {DOMEvent} the submit form event.
    */
   submitRequested(e) {
+    // console.log(`XX submitRequested(): `, {event: e});
 
     // mark form submit attempted
     // ... this opens the flood gates that forces ALL field validation
@@ -299,6 +307,7 @@ export default class FormChecker {
    * representation (example: when used in form-based dialog).
    */
   reset() {
+    // console.log(`XX in FormChecker reset() of this: `, this);
     // reset our error state
     this.setFormValid();
 
@@ -408,6 +417,26 @@ export default class FormChecker {
   }
 
   /**
+   * Provide a systematic check to insure self is NOT stale.
+   * 
+   * @throws {Error} an Error is thrown (with the supplied context) if self is stale.
+   */
+  checkStale(context) {
+    if (this.isStale()) {
+      throw new Error(`***ERROR*** ${context}: stale reference, the formCheckerAction DOM has been removed!`);;
+    }
+  }
+
+  /**
+   * Return an indicator as to whether self is stale.
+   * 
+   * @returns {boolean} true: self is stale, false: self is NOT stale
+   */
+  isStale() {
+    return this._key ? false : true;
+  }
+
+  /**
    * Destroy self, invoked by our svelte action's destroy() life-cycle
    * hook.
    *
@@ -440,6 +469,7 @@ export default class FormChecker {
     // AI: clear additional functional state
     // ... prob an overkill
     // >>> JUST PUNT (unless it is a problem)
+    this._key = null; // used in staleness detection
   }
 
   /**

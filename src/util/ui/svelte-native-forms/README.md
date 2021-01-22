@@ -105,6 +105,8 @@ technique to handle form validation)_.
 - [Components]
   - [`<FormErr>`]
   - [`<FieldErr>`]
+- [Controllers]
+  - [`formController`]
 - [Advanced Concepts]
   - [Svelte Bound Variables]
 - [Customization]
@@ -423,18 +425,6 @@ The `formChecker` action supports the following parameters:
     NOTE: All field values (monitored by SNF) are passed as named parameters.
   ```
 
-- **`controller`**: an optional object that, when supplied, will be
-  populated with the SNF public API (a pseudo pass-by-reference).
-
-  **controller API:**
-  ```
-  {
-    reset() ... Reset the form back to it's original state.
-                Useful when a form is re-used without deleting it's DOM
-                representation (say when used in a form-based dialog).
-  }
-  ```
-
 - **`errStyles`**: an optional object containing the in-line styles to
   apply to input elements that are in error.
 
@@ -448,6 +438,14 @@ The `formChecker` action supports the following parameters:
     backgroundColor: '#FDD',           ... pink background
   }
   ```
+
+**formController:**
+
+The `formChecker` action promotes a `formController` API through
+which your application can programmatically make various form-specific
+requests _(like resetting the form)_.  Please refer to the
+[`formController`] section for a discussion of this API _(and how to
+access it)_.
 
 </ul>
 
@@ -679,6 +677,107 @@ how an `<input>` element can be implicitly associated to it's
 Please refer to the [Error Look and Feel] section to see how you can
 customize the display of your error messages _(using the `DispErr`
 property)_.
+
+</ul>
+
+
+
+<!--- *** Section ************************************************************************* ---> 
+## Controllers
+
+**SNF** promotes public APIs through which application code can
+programmatically make various requests.
+
+- These API's are created and promoted by **SNF** actions, and
+  therefore are scoped to the DOM controlled by the action.
+
+- Access to these API's are provided through event handlers. The
+  reason for this is there is **no direct way to return content from
+  svelte actions**.  Please refer to content _(below)_ for details on
+  each controller.
+  
+- _**While this probably goes without saying**_, these APIs should not
+  be used outside the scope of the action that created them.  As an
+  "internal note", there is no process by which an event notification
+  can mark them as stale, because the action-attached DOM element has
+  already been removed prior to any action life-cycle notification.
+
+  If the application violates this tenet, the API will throw an Error
+  such as:
+  
+  ```
+  ***ERROR*** formController.reset(): stale reference, the formCheckerAction DOM has been removed!
+  ```
+
+- These APIs promote **true functions (not methods)**.  In other words
+  their execution does **not** require a `controller` dereference.  As
+  an example, the following snippet retains a "function only"
+  _(without invocation)_ ... so on event handler invocation, it is
+  truly a function:
+  
+  ```html
+  <button on:click|preventDefault={formController.reset}>Reset</button>
+  ```
+
+
+<!--- *** Section ************************************************************************* ---> 
+## `formController`
+
+<ul>
+
+The `formController` is specific to a `<form>` _(i.e. the
+[`formChecker`] action)_.
+
+
+**`formController` API:**
+
+_Currently, this API promotes only one function (but provides a place
+for future expansion)_.  
+
+```
+{
+  + reset(): void ... reset the form back to it's original state.
+}
+```
+
+Here are the specifics of each function:
+
+- `+ formController.reset(): void`
+
+  This resets the form back to it's original state, including:
+
+  - initial field values _(as supplied through the [`fieldChecker`]
+    `initialValue` action parameter)_
+  - clear all error state _(both form and fields)_
+    * form error message
+    * field error messages
+  - reset **Validation Timing** heuristics _(both form and fields)_
+    * form as "submit NOT attempted"
+    * fields as "not been touched"
+
+  A reset is useful when a form is re-used by retaining it's DOM
+  representation _(say when used in a form-based dialog)_.
+
+
+**Accessing `formController`:**
+
+Because svelte actions have **no direct way to return content to the
+client**, a `form-controller` event is emitted that contains the
+`formController` _(found in `event.detail.formController`)_.  The
+application can simply monitor this event _(on the `<form>` element)_,
+and retain the `formController` for it's use.  Here is an example:
+
+```html
+<script>
+ let formController;
+ ... snip snip
+</script>
+
+<form use:formChecker={{submit}}
+      on:form-controller={ (e) => formController = e.detail.formController }>
+  ... snip snip
+</form>
+```
 
 </ul>
 
@@ -971,26 +1070,28 @@ A Form Generator (KJB: NO NO NO)
 <!--- *** REFERENCE LINKS ************************************************************************* ---> 
 
 <!--- **SNF** ---> 
-[Install]:                    #install
-[Basic Example]:              #basic-example
-[Concepts]:                   #concepts
-  [Native HTML Forms]:        #native-html-forms
-  [Validation Timing]:        #validation-timing
-  [Reactive Error Display]:   #reactive-error-display
-  [Built-In Form Validation]: #built-in-form-validation
-  [Custom Validation]:        #custom-validation
-[Actions]:                    #actions
-  [`formChecker`]:            #formchecker
-  [`fieldChecker`]:           #fieldchecker
-[Components]:                 #components
-  [`<FormErr>`]:              #formerr
-  [`<FieldErr>`]:             #fielderr
-[Advanced Concepts]:          #advanced-concepts
-  [Svelte Bound Variables]:   #svelte-bound-variables
+[Install]:                               #install
+[Basic Example]:                         #basic-example
+[Concepts]:                              #concepts
+  [Native HTML Forms]:                   #native-html-forms
+  [Validation Timing]:                   #validation-timing
+  [Reactive Error Display]:              #reactive-error-display
+  [Built-In Form Validation]:            #built-in-form-validation
+  [Custom Validation]:                   #custom-validation
+[Actions]:                               #actions
+  [`formChecker`]:                       #formchecker
+  [`fieldChecker`]:                      #fieldchecker
+[Components]:                            #components
+  [`<FormErr>`]:                         #formerr
+  [`<FieldErr>`]:                        #fielderr
+[Controllers]:                           #controllers
+  [`formController`]:                    #formcontroller
+[Advanced Concepts]:                     #advanced-concepts
+  [Svelte Bound Variables]:              #svelte-bound-variables
   [more when `initialValue` in use ...]: #more-when-initialvalue-in-use-
-[Customization]:              #customization
-  [Error Look and Feel]:      #error-look-and-feel
-[Competition]:                #competition
+[Customization]:                         #customization
+  [Error Look and Feel]:                 #error-look-and-feel
+[Competition]:                           #competition
 
 <!--- external links ---> 
 [svelte]:                   https://svelte.dev/
