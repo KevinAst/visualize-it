@@ -1,6 +1,6 @@
 <script>
  import {formChecker,  /*FormErr,*/
-         fieldChecker, /*FieldErr*/} from '../../svelte-native-forms';
+         fieldChecker, /*FieldErr*/} from '../../../svelte-native-forms';
 
  const submit  = (event, fieldValues) => alert(`Successful submit (all fields are valid)!`);
 
@@ -8,11 +8,12 @@
 
 <form use:formChecker={{submit}}>
 
-  <!-- ?? test textarea -->
+  <!-- ?? test radio -->
   <label>
-    Desc:
-    <textarea id="desc" name="desc" rows="4" cols="50" use:fieldChecker>This is a test</textarea>
-    <!--<FieldErr/>-->
+    Radio:
+    <input type="radio" name="Wow" value="1" use:fieldChecker> 1
+    <input type="radio" name="Wow" value="2" use:fieldChecker> 2
+    <input type="radio" name="Wow" value="3" use:fieldChecker> 3
   </label>
 
   <center>

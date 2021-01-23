@@ -1,22 +1,17 @@
 <script>
  import {formChecker,  /*FormErr,*/
-         fieldChecker, /*FieldErr*/} from '../../svelte-native-forms';
+         fieldChecker, /*FieldErr*/} from '../../../svelte-native-forms';
 
  const submit  = (event, fieldValues) => alert(`Successful submit (all fields are valid)!`);
- const options = [1, 2, 3];
 
 </script>
 
 <form use:formChecker={{submit}}>
 
-  <!-- ?? test select -->
+  <!-- ?? test textarea -->
   <label>
-    Select:
-    <select id="sel" name="sel"  use:fieldChecker>
-      {#each options as option}
-      <option value={option}>{option}</option>
-      {/each}
-    </select>
+    Desc:
+    <textarea id="desc" name="desc" rows="4" cols="50" use:fieldChecker>This is a test</textarea>
     <!--<FieldErr/>-->
   </label>
 

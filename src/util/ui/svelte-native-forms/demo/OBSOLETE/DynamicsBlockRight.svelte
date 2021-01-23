@@ -1,7 +1,7 @@
 <script>
  import {fade}                   from 'svelte/transition';
  import {formChecker,  FormErr,
-         fieldChecker, FieldErr} from '../../svelte-native-forms';
+         fieldChecker, FieldErr} from '../../../svelte-native-forms';
 
  const pkgEntryTypes = ['Component', 'Scene', 'Collage', 'Directory'];
  let   pkgEntryType  = pkgEntryTypes[0];
@@ -17,36 +17,33 @@
  }
 </script>
 
-<h5>DynamicsUnderRight - new-line labels (errors to right)</h5>
+<h5>DynamicsBlockRight - styled with fixed width label (errors to right)</h5>
 
 <form use:formChecker={{submit: addPkgEntry}}
       on:form-controller={retainController}>
 
   <!-- PkgEntryType -->
-  <label>
-    Type:
-    {#each pkgEntryTypes as t}
-    <label class="radio">
-      <input type="radio" value={t} bind:group={pkgEntryType}>
-      {t}
-    </label>
-    {/each}
+  {#each pkgEntryTypes as t}
+  <label class="radio">
+    <input type="radio" value={t} bind:group={pkgEntryType}>
+    {t}
   </label>
+  {/each}
 
   <label>
-    Name:<br/>
+    <b>Name:</b>
     <input id="name" name="name" type="text" required minlength="3"
            use:fieldChecker={{validate: ({name}) => name==='dup' ? 'Name must be unique' : ''}}>
-    <FieldErr/>
+    <i><FieldErr/></i>
   </label>
 
   <!-- ID (un-needed for directories) KEY: NOTICE this dynamically changes validation requirements!  -->
   {#if pkgEntryType !== 'Directory'}
   <label>
-    ID:<br/>
+    <b>ID:</b>
     <input id="id" name="id" type="text" required minlength="2" maxlength="10"
            use:fieldChecker={{validate: ({id}) => id==='dup' ? 'ID must be unique' : ''}}>
-    <FieldErr/>
+    <i><FieldErr/></i>
   </label>
   {/if}
 
@@ -65,7 +62,6 @@
  label {
    user-select: none;    /* prevent text selection of labels */
    cursor:      pointer; /* hover as pointer */
-   font-weight: bold;
  }
 
  /* align radio on same line */
@@ -73,4 +69,18 @@
    display: inline;   /* adjacent labels on same line */
    margin:  0px 10px; /* with the proper spacing */
  }
+
+ /* FOLLOWING: a "simple" technique to align labels and limit error size
+    (short and sweet) - although a bit hoaky with fixed widths */
+
+ b { /* used for labels */
+   display: inline-block;
+   width:   50px;
+ }
+
+ i { /* used for errors */
+   display: inline-block;
+   width:   250px;
+ }
+
 </style>

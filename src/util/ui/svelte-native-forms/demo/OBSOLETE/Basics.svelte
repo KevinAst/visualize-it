@@ -1,6 +1,6 @@
 <script>
  import {formChecker,  FormErr,
-         fieldChecker, FieldErr} from '../../svelte-native-forms';
+         fieldChecker, FieldErr} from '../../../svelte-native-forms';
 
  const submit     = (event, fieldValues) => alert(`Successful submit (all fields are valid)!`);
  const isIdUnique = ({id}) => id==='dup' ? 'ID must be unique' : '';

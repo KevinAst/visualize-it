@@ -1,7 +1,7 @@
 <script>
  import {fade}                   from 'svelte/transition';
  import {formChecker,  FormErr,
-         fieldChecker, FieldErr} from '../../svelte-native-forms';
+         fieldChecker, FieldErr} from '../../../svelte-native-forms';
 
  const pkgEntryTypes = ['Component', 'Scene', 'Collage', 'Directory'];
  let   pkgEntryType  = pkgEntryTypes[0];
