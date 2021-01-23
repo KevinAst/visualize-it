@@ -1,6 +1,3 @@
-// ?? ?#: further refinement for Phase II
-// ?? ?%: DOM-BASED-CLEANUP: once we restructure to be DOM-based (where FieldChecker is independent of FormChecker) this will be cleaned up!
-
 import {writable}        from 'svelte/store';
 import verify            from '../../verify.js';
 import {isFunction,
