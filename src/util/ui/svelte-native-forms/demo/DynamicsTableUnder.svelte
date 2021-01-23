@@ -1,5 +1,5 @@
 <script>
- import {fade}          from 'svelte/transition';
+ import {fade}                   from 'svelte/transition';
  import {formChecker,  FormErr,
          fieldChecker, FieldErr} from '../../svelte-native-forms';
 
@@ -7,6 +7,9 @@
  let   pkgEntryType  = pkgEntryTypes[0];
 
  let formController;
+ function retainController(e) {
+   formController = e.detail.formController;
+ }
 
  function addPkgEntry(e, fieldValues) {
    // console.log('XX addPkgEntry() invoked!', {event: e, fieldValues});
@@ -14,16 +17,21 @@
  }
 </script>
 
-<form on:form-controller={ (e) => formController = e.detail.formController }
-      use:formChecker={{submit: addPkgEntry}}>
+<h5>DynamicsTableUnder - table layout (errors under input)</h5>
+
+<form use:formChecker={{submit: addPkgEntry}}
+      on:form-controller={retainController}>
 
   <!-- PkgEntryType -->
-  {#each pkgEntryTypes as t}
-    <label class="spacer">
+  <label>
+    Type:
+    {#each pkgEntryTypes as t}
+    <label class="radio">
       <input type="radio" value={t} bind:group={pkgEntryType}>
       {t}
     </label>
-  {/each}
+    {/each}
+  </label>
 
   <table> <!-- table provides nicely aligned labels -->
     <!-- Name -->
@@ -32,7 +40,9 @@
       <td>
         <input id="name" name="name" type="text" required minlength="3"
                use:fieldChecker={{validate: ({name}) => name==='dup' ? 'Name must be unique' : ''}}>
-        <FieldErr forName="name"/>
+        <br/><FieldErr forName="name"/>
+      </td>
+      <td>
       </td>
     </tr>
 
@@ -43,7 +53,10 @@
       <td>
         <input id="id" name="id" type="text" required minlength="2" maxlength="10"
                use:fieldChecker={{validate: ({id}) => id==='dup' ? 'ID must be unique' : ''}}>
+        <br/>
         <FieldErr forName="id"/>
+      </td>
+      <td>
       </td>
     </tr>
     {/if}
@@ -51,29 +64,26 @@
 
   <hr/>
 
-  <!-- form error message -->
-  <center>
-    <FormErr/>
-  </center>
-
-  <!-- control buttons -->
-  <center>
+  <p><FormErr/></p>
+  <p>
     <button>Add</button>
     <button on:click|preventDefault={formController.reset}>Reset</button>
-  </center>
+    <p>
 
 </form>
 
 
 <style>
  label {
-   user-select: none;    /* prevent test selection of labels */
-   cursor:      pointer; /* ?? may not want this for other labels ... unless it selects the text field */
+   user-select: none;    /* prevent text selection of labels */
+   cursor:      pointer; /* hover as pointer */
+   font-weight: bold;
  }
 
- .spacer {
-   display: inline;  /* adjust label to be on single line */
-   margin:  0px 5px; /* with the proper spacing */
+ /* align radio on same line */
+ .radio {
+   display: inline;   /* adjacent labels on same line */
+   margin:  0px 10px; /* with the proper spacing */
  }
 
  td {
@@ -91,3 +101,4 @@
    margin: 0px; /* "joins" error msg right below the cooresponding input */
  }
 </style>
+

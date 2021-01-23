@@ -1,18 +1,30 @@
 <script>
  import Basics               from './Basics.svelte';
- import Dynamics             from './Dynamics.svelte';
+
+ import DynamicsBlockRight   from './DynamicsBlockRight.svelte';
+ import DynamicsUnderRight   from './DynamicsUnderRight.svelte';
+ import DynamicsFlex         from './DynamicsFlex.svelte';
+ import DynamicsTableUnder   from './DynamicsTableUnder.svelte';
+
  import BasicsTextArea       from './BasicsTextArea.svelte';
  import BasicsSelect         from './BasicsSelect.svelte';
  import BasicsGroupedInputs  from './BasicsGroupedInputs.svelte';
 
+ import Sandbox              from './Sandbox.svelte';
+
  const demos = [
    [Basics,              'Basics'],
-   [Dynamics,            'Dynamics'],
+
+   [DynamicsBlockRight,  'DynamicsBlockRight'],
+   [DynamicsUnderRight,  'DynamicsUnderRight'],
+   [DynamicsFlex,        'DynamicsFlex'],
+   [DynamicsTableUnder,  'DynamicsTableUnder'],
+
    [BasicsTextArea,      'BasicsTextArea'],
    [BasicsSelect,        'BasicsSelect'],
    [BasicsGroupedInputs, 'BasicsGroupedInputs'],
 
-
+   [Sandbox,             'Sandbox'],
  ];
 
  let Demo = demos[0][0];
